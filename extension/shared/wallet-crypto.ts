@@ -1,16 +1,26 @@
 /**
  * Wallet cryptographic utilities
- * TODO: Replace placeholder implementations with real BIP-39 and Nockchain WASM integration
+ * Uses BIP-39 for mnemonic generation
+ * TODO: Replace address derivation with Nockchain WASM integration
  */
+
+import * as bip39 from 'bip39';
 
 /**
  * Generates a BIP-39 mnemonic (24 words)
- * TODO: Replace with real BIP-39 generation (use bip39 npm package or WASM)
+ * Uses 256 bits of entropy for maximum security
  */
 export function generateMnemonic(): string {
-  // Placeholder: 24 fixed words for development
-  // TODO: Replace with: bip39.generateMnemonic(256)
-  return Array.from({ length: 24 }, (_v, i) => `word${i + 1}`).join(' ');
+  return bip39.generateMnemonic(256);
+}
+
+/**
+ * Validates a BIP-39 mnemonic
+ * @param mnemonic - The mnemonic phrase to validate
+ * @returns true if valid, false otherwise
+ */
+export function validateMnemonic(mnemonic: string): boolean {
+  return bip39.validateMnemonic(mnemonic);
 }
 
 /**

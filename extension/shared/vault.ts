@@ -3,7 +3,7 @@
  */
 
 import { encryptGCM, decryptGCM, deriveKeyPBKDF2, rand } from "./webcrypto";
-import { generateMnemonic, deriveAddress } from "./wallet-crypto";
+import { generateMnemonic, deriveAddress, validateMnemonic } from "./wallet-crypto";
 import { ERROR_CODES, STORAGE_KEYS } from "./constants";
 
 interface EncryptedData {
@@ -35,7 +35,14 @@ export class Vault {
     password: string,
     mnemonic?: string
   ): Promise<{ ok: boolean; address: string } | { error: string }> {
-    const words = (mnemonic || generateMnemonic()).trim();
+    // Generate or validate mnemonic
+    const words = mnemonic ? mnemonic.trim() : generateMnemonic();
+
+    // Validate imported mnemonic
+    if (mnemonic && !validateMnemonic(words)) {
+      return { error: ERROR_CODES.INVALID_MNEMONIC };
+    }
+
     const addr = deriveAddress(words, 0);
 
     const { key, salt: keySalt } = await deriveKeyPBKDF2(password, rand(16));

@@ -64,6 +64,9 @@ export const ERROR_CODES = {
   /** Invalid address format */
   BAD_ADDRESS: "BAD_ADDRESS",
 
+  /** Invalid mnemonic phrase provided */
+  INVALID_MNEMONIC: "INVALID_MNEMONIC",
+
   /** Unsupported RPC method requested */
   METHOD_NOT_SUPPORTED: "METHOD_NOT_SUPPORTED",
 } as const;
