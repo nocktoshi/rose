@@ -12,7 +12,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { UploadIcon } from './icons/UploadIcon';
 
 export function AccountSelector() {
-  const { wallet, syncWallet } = useStore();
+  const { wallet, syncWallet, navigate } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -55,8 +55,13 @@ export function AccountSelector() {
   }
 
   function handleImportWallet() {
-    // TODO: Navigate to import wallet screen
-    alert('Import wallet feature coming soon!');
+    // Show warning - importing will replace current wallet
+    const confirmed = confirm(
+      'WARNING: Importing a wallet will replace your current wallet. Make sure you have backed up your current recovery phrase. Continue?'
+    );
+    if (confirmed) {
+      navigate('onboarding-import');
+    }
     setIsOpen(false);
   }
 
