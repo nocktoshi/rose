@@ -23,14 +23,17 @@ export function LockedScreen() {
       return;
     }
 
-    const result = await send(INTERNAL_METHODS.UNLOCK, [password]);
+    const result = await send<{ ok?: boolean; address?: string; error?: string }>(
+      INTERNAL_METHODS.UNLOCK,
+      [password]
+    );
 
     if (result?.error) {
       setError(result.error === ERROR_CODES.BAD_PASSWORD ? 'Incorrect password' : `Error: ${result.error}`);
       setPassword(''); // Clear password on error
     } else {
       setPassword('');
-      syncWallet({ locked: false, address: result.address });
+      syncWallet({ locked: false, address: result.address || null });
       navigate('home');
     }
   }

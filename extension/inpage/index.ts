@@ -7,7 +7,7 @@ import { MESSAGE_TARGETS } from '../shared/constants';
 
 interface RequestArgs {
   method: string;
-  params?: any[];
+  params?: unknown[];
 }
 
 class NockProvider {
@@ -15,7 +15,7 @@ class NockProvider {
    * Make a request to the wallet
    * @param args - Request arguments with method and params
    */
-  request(args: RequestArgs): Promise<any> {
+  request(args: RequestArgs): Promise<unknown> {
     const id = Math.random().toString(36).slice(2);
 
     // Post message to content script
@@ -52,20 +52,26 @@ class NockProvider {
   /**
    * Event listener stub (for EIP-1193 compatibility)
    */
-  on(_eventName: string, _listener: (...args: any[]) => void): void {
+  on(_eventName: string, _listener: (...args: unknown[]) => void): void {
     // TODO: Implement event system if needed
   }
 
   /**
    * Remove event listener stub (for EIP-1193 compatibility)
    */
-  removeListener(_eventName: string, _listener: (...args: any[]) => void): void {
+  removeListener(_eventName: string, _listener: (...args: unknown[]) => void): void {
     // TODO: Implement event system if needed
   }
 }
 
 // Inject provider into window
-(window as any).nockchain = new NockProvider();
+declare global {
+  interface Window {
+    nockchain: NockProvider;
+  }
+}
+
+window.nockchain = new NockProvider();
 
 // Announce provider availability
 window.dispatchEvent(new Event('nockchain#initialized'));

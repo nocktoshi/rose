@@ -11,6 +11,6 @@
  * @param params - Optional parameters to pass
  * @returns Promise with the response from the service worker
  */
-export function send(method: string, params?: any[]): Promise<any> {
+export function send<T = unknown>(method: string, params?: unknown[]): Promise<T> {
   return chrome.runtime.sendMessage({ payload: { method, params } });
 }

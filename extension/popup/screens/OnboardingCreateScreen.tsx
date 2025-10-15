@@ -36,14 +36,17 @@ export function OnboardingCreateScreen() {
     }
 
     // Create wallet
-    const result = await send(INTERNAL_METHODS.SETUP, [password]);
+    const result = await send<{ ok?: boolean; address?: string; mnemonic?: string; error?: string }>(
+      INTERNAL_METHODS.SETUP,
+      [password]
+    );
 
     if (result?.error) {
       setError(`Error: ${result.error}`);
     } else {
       // Store mnemonic temporarily for backup/verification flow
-      setOnboardingMnemonic(result.mnemonic);
-      syncWallet({ locked: false, address: result.address });
+      setOnboardingMnemonic(result.mnemonic || '');
+      syncWallet({ locked: false, address: result.address || null });
       navigate('onboarding-backup');
     }
   }

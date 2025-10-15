@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import { INTERNAL_METHODS } from '../shared/constants';
+import { send } from './utils/messaging';
 
 /**
  * All available screens in the wallet
@@ -62,13 +63,6 @@ interface AppStore {
 }
 
 /**
- * Helper to send messages to service worker
- */
-async function send(method: string, params?: any[]): Promise<any> {
-  return chrome.runtime.sendMessage({ payload: { method, params } });
-}
-
-/**
  * Create the store
  */
 export const useStore = create<AppStore>((set, get) => ({
@@ -118,7 +112,7 @@ export const useStore = create<AppStore>((set, get) => ({
   initialize: async () => {
     try {
       // Get current vault state from service worker
-      const state = await send(INTERNAL_METHODS.GET_STATE);
+      const state = await send<{ locked: boolean; address: string }>(INTERNAL_METHODS.GET_STATE);
 
       const walletState: WalletState = {
         locked: state.locked,

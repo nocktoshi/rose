@@ -143,10 +143,10 @@ export class Vault {
    * Signs a message
    * TODO: Replace with real signing using WASM and derived private key
    */
-  async signMessage(params: any): Promise<string> {
+  async signMessage(params: unknown): Promise<string> {
     // Placeholder: returns base64-encoded string
     // TODO: Implement Schnorr signature over CheetahPoint via WASM
-    const msg = params?.[0] ?? "";
-    return btoa("signed:" + msg);
+    const msg = (Array.isArray(params) ? params[0] : params) ?? "";
+    return btoa("signed:" + String(msg));
   }
 }
