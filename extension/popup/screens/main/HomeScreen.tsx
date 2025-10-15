@@ -2,10 +2,10 @@
  * Home Screen - Main wallet view showing balance and actions
  */
 
-import { INTERNAL_METHODS } from '../../shared/constants';
-import { useStore } from '../store';
-import { send } from '../utils/messaging';
-import { ScreenContainer } from '../components/ScreenContainer';
+import { INTERNAL_METHODS } from "../../../shared/constants";
+import { useStore } from "../../store";
+import { send } from "../../utils/messaging";
+import { ScreenContainer } from "../../components/ScreenContainer";
 
 export function HomeScreen() {
   const { wallet, navigate, syncWallet } = useStore();
@@ -13,7 +13,7 @@ export function HomeScreen() {
   async function handleLock() {
     await send(INTERNAL_METHODS.LOCK);
     syncWallet({ locked: true, address: wallet.address });
-    navigate('locked');
+    navigate("locked");
   }
 
   return (
@@ -22,7 +22,7 @@ export function HomeScreen() {
 
       <div className="address-display">
         <div className="label">Address:</div>
-        <div>{wallet.address || '(none)'}</div>
+        <div>{wallet.address || "(none)"}</div>
       </div>
 
       <div className="my-4">
@@ -31,15 +31,18 @@ export function HomeScreen() {
       </div>
 
       <div className="grid grid-cols-2 gap-2 my-4">
-        <button onClick={() => navigate('send')} className="btn-primary">
+        <button onClick={() => navigate("send")} className="btn-primary">
           Send
         </button>
-        <button onClick={() => navigate('receive')} className="btn-secondary">
+        <button onClick={() => navigate("receive")} className="btn-secondary">
           Receive
         </button>
       </div>
 
-      <button onClick={() => navigate('settings')} className="btn-secondary my-2">
+      <button
+        onClick={() => navigate("settings")}
+        className="btn-secondary my-2"
+      >
         Settings
       </button>
 

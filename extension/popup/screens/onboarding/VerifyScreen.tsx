@@ -3,11 +3,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useStore } from '../store';
-import { ScreenContainer } from '../components/ScreenContainer';
-import { Alert } from '../components/Alert';
+import { useStore } from '../../store';
+import { ScreenContainer } from '../../components/ScreenContainer';
+import { Alert } from '../../components/Alert';
 
-export function OnboardingVerifyScreen() {
+export function VerifyScreen() {
   const { onboardingMnemonic, navigate, setOnboardingMnemonic } = useStore();
   const [selectedWord, setSelectedWord] = useState<string>('');
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);

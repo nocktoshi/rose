@@ -3,13 +3,13 @@
  */
 
 import { useState } from 'react';
-import { INTERNAL_METHODS, UI_CONSTANTS } from '../../shared/constants';
-import { useStore } from '../store';
-import { send } from '../utils/messaging';
-import { ScreenContainer } from '../components/ScreenContainer';
-import { Alert } from '../components/Alert';
+import { INTERNAL_METHODS, UI_CONSTANTS } from '../../../shared/constants';
+import { useStore } from '../../store';
+import { send } from '../../utils/messaging';
+import { ScreenContainer } from '../../components/ScreenContainer';
+import { Alert } from '../../components/Alert';
 
-export function OnboardingCreateScreen() {
+export function CreateScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');

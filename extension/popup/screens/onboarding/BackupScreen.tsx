@@ -2,11 +2,11 @@
  * Onboarding Backup Screen - Display mnemonic for user to write down
  */
 
-import { useStore } from '../store';
-import { ScreenContainer } from '../components/ScreenContainer';
-import { Alert } from '../components/Alert';
+import { useStore } from '../../store';
+import { ScreenContainer } from '../../components/ScreenContainer';
+import { Alert } from '../../components/Alert';
 
-export function OnboardingBackupScreen() {
+export function BackupScreen() {
   const { onboardingMnemonic, navigate } = useStore();
 
   if (!onboardingMnemonic) {

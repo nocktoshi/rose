@@ -3,11 +3,11 @@
  */
 
 import { useState } from 'react';
-import { INTERNAL_METHODS, ERROR_CODES } from '../../shared/constants';
-import { useStore } from '../store';
-import { send } from '../utils/messaging';
-import { ScreenContainer } from '../components/ScreenContainer';
-import { Alert } from '../components/Alert';
+import { INTERNAL_METHODS, ERROR_CODES } from '../../../shared/constants';
+import { useStore } from '../../store';
+import { send } from '../../utils/messaging';
+import { ScreenContainer } from '../../components/ScreenContainer';
+import { Alert } from '../../components/Alert';
 
 export function LockedScreen() {
   const [password, setPassword] = useState('');

@@ -6,19 +6,17 @@ import { useEffect } from 'react';
 import { useStore } from './store';
 
 // Screen components
-import { LockedScreen } from './screens/LockedScreen';
-import { OnboardingStartScreen } from './screens/OnboardingStartScreen';
-import { OnboardingCreateScreen } from './screens/OnboardingCreateScreen';
-import { OnboardingBackupScreen } from './screens/OnboardingBackupScreen';
-import { OnboardingVerifyScreen } from './screens/OnboardingVerifyScreen';
-import { HomeScreen } from './screens/HomeScreen';
-import {
-  OnboardingSuccessScreen,
-  OnboardingImportScreen,
-  SendScreen,
-  ReceiveScreen,
-  SettingsScreen,
-} from './screens/PlaceholderScreens';
+import { LockedScreen } from './screens/system/LockedScreen';
+import { StartScreen } from './screens/onboarding/StartScreen';
+import { CreateScreen } from './screens/onboarding/CreateScreen';
+import { BackupScreen } from './screens/onboarding/BackupScreen';
+import { VerifyScreen } from './screens/onboarding/VerifyScreen';
+import { SuccessScreen } from './screens/onboarding/SuccessScreen';
+import { ImportScreen } from './screens/onboarding/ImportScreen';
+import { HomeScreen } from './screens/main/HomeScreen';
+import { SendScreen } from './screens/transactions/SendScreen';
+import { ReceiveScreen } from './screens/transactions/ReceiveScreen';
+import { SettingsScreen } from './screens/settings/SettingsScreen';
 
 export function Popup() {
   const { currentScreen, initialize } = useStore();
@@ -32,17 +30,17 @@ export function Popup() {
   switch (currentScreen) {
     // Onboarding
     case 'onboarding-start':
-      return <OnboardingStartScreen />;
+      return <StartScreen />;
     case 'onboarding-create':
-      return <OnboardingCreateScreen />;
+      return <CreateScreen />;
     case 'onboarding-backup':
-      return <OnboardingBackupScreen />;
+      return <BackupScreen />;
     case 'onboarding-verify':
-      return <OnboardingVerifyScreen />;
+      return <VerifyScreen />;
     case 'onboarding-success':
-      return <OnboardingSuccessScreen />;
+      return <SuccessScreen />;
     case 'onboarding-import':
-      return <OnboardingImportScreen />;
+      return <ImportScreen />;
 
     // Main app
     case 'home':

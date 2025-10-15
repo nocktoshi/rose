@@ -2,10 +2,10 @@
  * Onboarding Start Screen - Create new or import wallet
  */
 
-import { useStore } from '../store';
-import { ScreenContainer } from '../components/ScreenContainer';
+import { useStore } from '../../store';
+import { ScreenContainer } from '../../components/ScreenContainer';
 
-export function OnboardingStartScreen() {
+export function StartScreen() {
   const { navigate } = useStore();
 
   return (
