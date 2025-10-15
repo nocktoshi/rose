@@ -4,6 +4,7 @@
 
 import { useStore } from '../store';
 import { ScreenContainer } from '../components/ScreenContainer';
+import { Alert } from '../components/Alert';
 
 export function OnboardingBackupScreen() {
   const { onboardingMnemonic, navigate } = useStore();
@@ -31,12 +32,10 @@ export function OnboardingBackupScreen() {
     <ScreenContainer className="flex flex-col">
       <h2 className="text-xl font-semibold mb-2">Secret Recovery Phrase</h2>
 
-      <div className="bg-red-900/20 border border-red-500/50 rounded p-3 mb-4">
-        <p className="text-sm text-red-300">
-          <strong>Warning:</strong> Write down these 24 words in order and store them safely.
-          Never share them with anyone. This is the ONLY way to recover your wallet.
-        </p>
-      </div>
+      <Alert type="warning" className="mb-4">
+        <strong>Warning:</strong> Write down these 24 words in order and store them safely.
+        Never share them with anyone. This is the ONLY way to recover your wallet.
+      </Alert>
 
       <div className="flex-1 overflow-y-auto mb-4">
         <div className="grid grid-cols-2 gap-2">

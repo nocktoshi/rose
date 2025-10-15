@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { ScreenContainer } from '../components/ScreenContainer';
+import { Alert } from '../components/Alert';
 
 export function OnboardingVerifyScreen() {
   const { onboardingMnemonic, navigate, setOnboardingMnemonic } = useStore();
@@ -92,19 +93,15 @@ export function OnboardingVerifyScreen() {
       </div>
 
       {isCorrect === false && (
-        <div className="bg-red-900/20 border border-red-500/50 rounded p-3 mb-4">
-          <p className="text-sm text-red-300">
-            Incorrect word. Please review your recovery phrase and try again.
-          </p>
-        </div>
+        <Alert type="error" className="mb-4">
+          Incorrect word. Please review your recovery phrase and try again.
+        </Alert>
       )}
 
       {isCorrect === true && (
-        <div className="bg-green-900/20 border border-green-500/50 rounded p-3 mb-4">
-          <p className="text-sm text-green-300">
-            Correct! Setting up your wallet...
-          </p>
-        </div>
+        <Alert type="success" className="mb-4">
+          Correct! Setting up your wallet...
+        </Alert>
       )}
 
       <div className="mt-auto flex flex-col gap-2">

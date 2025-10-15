@@ -7,6 +7,7 @@ import { INTERNAL_METHODS, UI_CONSTANTS } from '../../shared/constants';
 import { useStore } from '../store';
 import { send } from '../utils/messaging';
 import { ScreenContainer } from '../components/ScreenContainer';
+import { Alert } from '../components/Alert';
 
 export function OnboardingCreateScreen() {
   const [password, setPassword] = useState('');
@@ -79,9 +80,9 @@ export function OnboardingCreateScreen() {
       />
 
       {error && (
-        <div className="bg-red-900/20 border border-red-500/50 rounded p-3 my-2">
-          <p className="text-sm text-red-300">{error}</p>
-        </div>
+        <Alert type="error" className="my-2">
+          {error}
+        </Alert>
       )}
 
       <button onClick={handleCreate} className="btn-primary my-2">
