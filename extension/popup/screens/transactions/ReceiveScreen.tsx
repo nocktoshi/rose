@@ -13,7 +13,7 @@ export function ReceiveScreen() {
       <h2 className="text-xl font-semibold mb-4">Receive NOCK</h2>
       <div className="address-display my-4">
         <div className="label">Your Address:</div>
-        <div>{wallet.address}</div>
+        <div>{wallet.currentAccount?.address || "(none)"}</div>
       </div>
       {/* TODO: Add QR code */}
       <button onClick={() => navigate('home')} className="btn-secondary">

@@ -81,7 +81,26 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return sendResponse({
           locked: await vault.isLocked(),
           address: await vault.getAddressSafe(),
+          accounts: await vault.getAccounts(),
+          currentAccount: vault.getCurrentAccount(),
         });
+
+      case INTERNAL_METHODS.GET_ACCOUNTS:
+        return sendResponse({
+          accounts: await vault.getAccounts(),
+          currentAccount: vault.getCurrentAccount(),
+        });
+
+      case INTERNAL_METHODS.SWITCH_ACCOUNT:
+        return sendResponse(await vault.switchAccount(payload.params?.[0]));
+
+      case INTERNAL_METHODS.RENAME_ACCOUNT:
+        return sendResponse(await vault.renameAccount(payload.params?.[0], payload.params?.[1]));
+
+      case INTERNAL_METHODS.CREATE_ACCOUNT:
+        // Creating an account requires the decrypted mnemonic
+        // For now, return not implemented
+        return sendResponse({ error: "CREATE_ACCOUNT_NOT_IMPLEMENTED" });
 
       default:
         return sendResponse({ error: ERROR_CODES.METHOD_NOT_SUPPORTED });

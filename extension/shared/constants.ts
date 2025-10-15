@@ -38,6 +38,18 @@ export const INTERNAL_METHODS = {
 
   /** Set auto-lock timeout in minutes */
   SET_AUTO_LOCK: "wallet:setAutoLock",
+
+  /** Create a new account */
+  CREATE_ACCOUNT: "wallet:createAccount",
+
+  /** Switch to a different account */
+  SWITCH_ACCOUNT: "wallet:switchAccount",
+
+  /** Get all accounts */
+  GET_ACCOUNTS: "wallet:getAccounts",
+
+  /** Rename an account */
+  RENAME_ACCOUNT: "wallet:renameAccount",
 } as const;
 
 /**
@@ -78,7 +90,13 @@ export const STORAGE_KEYS = {
   /** Encrypted mnemonic data (iv, ct, salt) */
   ENCRYPTED_VAULT: "enc",
 
-  /** Wallet address */
+  /** Array of accounts with name, address, and derivation index */
+  ACCOUNTS: "accounts",
+
+  /** Current active account index */
+  CURRENT_ACCOUNT_INDEX: "currentAccountIndex",
+
+  /** @deprecated Legacy address field - use ACCOUNTS instead */
   ADDRESS: "address",
 } as const;
 

@@ -6,13 +6,14 @@ import { INTERNAL_METHODS } from "../../../shared/constants";
 import { useStore } from "../../store";
 import { send } from "../../utils/messaging";
 import { ScreenContainer } from "../../components/ScreenContainer";
+import { AccountSelector } from "../../components/AccountSelector";
 
 export function HomeScreen() {
   const { wallet, navigate, syncWallet } = useStore();
 
   async function handleLock() {
     await send(INTERNAL_METHODS.LOCK);
-    syncWallet({ locked: true, address: wallet.address });
+    syncWallet({ ...wallet, locked: true });
     navigate("locked");
   }
 
@@ -20,9 +21,9 @@ export function HomeScreen() {
     <ScreenContainer>
       <h2 className="text-xl font-semibold mb-4">Fort Nock</h2>
 
-      <div className="address-display">
-        <div className="label">Address:</div>
-        <div>{wallet.address || "(none)"}</div>
+      {/* Account Selector */}
+      <div className="mb-4">
+        <AccountSelector />
       </div>
 
       <div className="my-4">

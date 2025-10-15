@@ -23,7 +23,12 @@ export function LockedScreen() {
       return;
     }
 
-    const result = await send<{ ok?: boolean; address?: string; error?: string }>(
+    const result = await send<{
+      ok?: boolean;
+      address?: string;
+      accounts?: Array<{ name: string; address: string; index: number }>;
+      error?: string;
+    }>(
       INTERNAL_METHODS.UNLOCK,
       [password]
     );
@@ -33,7 +38,14 @@ export function LockedScreen() {
       setPassword(''); // Clear password on error
     } else {
       setPassword('');
-      syncWallet({ locked: false, address: result.address || null });
+      const accounts = result.accounts || [];
+      const currentAccount = accounts[0] || null;
+      syncWallet({
+        locked: false,
+        address: result.address || null,
+        accounts,
+        currentAccount,
+      });
       navigate('home');
     }
   }

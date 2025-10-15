@@ -46,7 +46,18 @@ export function CreateScreen() {
     } else {
       // Store mnemonic temporarily for backup/verification flow
       setOnboardingMnemonic(result.mnemonic || '');
-      syncWallet({ locked: false, address: result.address || null });
+      // After setup, we have the first account (Account 1)
+      const firstAccount = {
+        name: "Account 1",
+        address: result.address || "",
+        index: 0,
+      };
+      syncWallet({
+        locked: false,
+        address: result.address || null,
+        accounts: [firstAccount],
+        currentAccount: firstAccount,
+      });
       navigate('onboarding-backup');
     }
   }

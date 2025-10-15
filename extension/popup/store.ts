@@ -31,11 +31,22 @@ export type Screen =
   | 'locked';
 
 /**
+ * Account information
+ */
+interface Account {
+  name: string;
+  address: string;
+  index: number;
+}
+
+/**
  * Wallet state synced from background service worker
  */
 interface WalletState {
   locked: boolean;
   address: string | null;
+  accounts: Account[];
+  currentAccount: Account | null;
 }
 
 /**
@@ -73,6 +84,8 @@ export const useStore = create<AppStore>((set, get) => ({
   wallet: {
     locked: true,
     address: null,
+    accounts: [],
+    currentAccount: null,
   },
 
   onboardingMnemonic: null,
@@ -112,11 +125,18 @@ export const useStore = create<AppStore>((set, get) => ({
   initialize: async () => {
     try {
       // Get current vault state from service worker
-      const state = await send<{ locked: boolean; address: string }>(INTERNAL_METHODS.GET_STATE);
+      const state = await send<{
+        locked: boolean;
+        address: string;
+        accounts: Account[];
+        currentAccount: Account | null;
+      }>(INTERNAL_METHODS.GET_STATE);
 
       const walletState: WalletState = {
         locked: state.locked,
         address: state.address || null,
+        accounts: state.accounts || [],
+        currentAccount: state.currentAccount || null,
       };
 
       // Determine initial screen
