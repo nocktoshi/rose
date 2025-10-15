@@ -79,6 +79,9 @@ export const ERROR_CODES = {
   /** Invalid mnemonic phrase provided */
   INVALID_MNEMONIC: "INVALID_MNEMONIC",
 
+  /** Invalid account index provided */
+  INVALID_ACCOUNT_INDEX: "INVALID_ACCOUNT_INDEX",
+
   /** Unsupported RPC method requested */
   METHOD_NOT_SUPPORTED: "METHOD_NOT_SUPPORTED",
 } as const;

@@ -48,9 +48,25 @@ export function AccountSelector() {
     setIsOpen(false);
   }
 
-  function handleCreateAccount() {
-    // TODO: Implement create account flow (requires mnemonic in memory)
-    alert('Create account feature coming soon!');
+  async function handleCreateAccount() {
+    const result = await send<{ ok?: boolean; account?: Account; error?: string }>(
+      INTERNAL_METHODS.CREATE_ACCOUNT,
+      []
+    );
+
+    if (result?.ok && result.account) {
+      // Add new account to wallet state and switch to it
+      const updatedWallet = {
+        ...wallet,
+        accounts: [...wallet.accounts, result.account],
+        currentAccount: result.account,
+        address: result.account.address,
+      };
+      syncWallet(updatedWallet);
+    } else if (result?.error) {
+      alert(`Failed to create account: ${result.error}`);
+    }
+
     setIsOpen(false);
   }
 
@@ -125,7 +141,7 @@ export function AccountSelector() {
             className="w-full flex items-center gap-2 p-3 hover:bg-gray-700 transition-colors text-left"
           >
             <PlusIcon />
-            <span className="text-sm">Create New Wallet</span>
+            <span className="text-sm">Create New Account</span>
           </button>
 
           <button

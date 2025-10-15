@@ -98,9 +98,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return sendResponse(await vault.renameAccount(payload.params?.[0], payload.params?.[1]));
 
       case INTERNAL_METHODS.CREATE_ACCOUNT:
-        // Creating an account requires the decrypted mnemonic
-        // For now, return not implemented
-        return sendResponse({ error: "CREATE_ACCOUNT_NOT_IMPLEMENTED" });
+        // params: name (optional)
+        return sendResponse(await vault.createAccount(payload.params?.[0]));
 
       default:
         return sendResponse({ error: ERROR_CODES.METHOD_NOT_SUPPORTED });

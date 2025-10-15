@@ -28,6 +28,9 @@ export class Vault {
     enc: null,
   };
 
+  /** Decrypted mnemonic (only stored in memory while unlocked) */
+  private mnemonic: string | null = null;
+
   /**
    * Sets up a new vault with encrypted mnemonic
    * @param password - User password for encryption
@@ -116,6 +119,9 @@ export class Vault {
         return { error: ERROR_CODES.BAD_PASSWORD };
       }
 
+      // Store decrypted mnemonic in memory (only while unlocked)
+      this.mnemonic = pt;
+
       this.state = {
         locked: false,
         accounts,
@@ -135,6 +141,8 @@ export class Vault {
    */
   async lock(): Promise<{ ok: boolean }> {
     this.state.locked = true;
+    // Clear mnemonic from memory for security
+    this.mnemonic = null;
     return { ok: true };
   }
 
@@ -191,30 +199,8 @@ export class Vault {
       return { error: ERROR_CODES.LOCKED };
     }
 
-    if (!this.state.enc) {
+    if (!this.mnemonic) {
       return { error: ERROR_CODES.NO_VAULT };
-    }
-
-    // Get the encrypted mnemonic and decrypt it
-    try {
-      const stored = await chrome.storage.local.get(STORAGE_KEYS.ENCRYPTED_VAULT);
-      const enc = stored[STORAGE_KEYS.ENCRYPTED_VAULT] as EncryptedData;
-
-      // We need to decrypt the mnemonic to derive a new account
-      // For now, we'll return an error since we need the password
-      // This will need to be called with the mnemonic in memory after unlock
-      return { error: "CREATE_ACCOUNT_NOT_IMPLEMENTED" };
-    } catch (err) {
-      return { error: ERROR_CODES.NO_VAULT };
-    }
-  }
-
-  /**
-   * Creates a new account with the decrypted mnemonic (called after unlock with mnemonic in memory)
-   */
-  async createAccountWithMnemonic(mnemonic: string, name?: string): Promise<{ ok: boolean; account: Account } | { error: string }> {
-    if (this.state.locked) {
-      return { error: ERROR_CODES.LOCKED };
     }
 
     const nextIndex = this.state.accounts.length;
@@ -222,7 +208,7 @@ export class Vault {
 
     const newAccount: Account = {
       name: accountName,
-      address: deriveAddress(mnemonic, nextIndex),
+      address: deriveAddress(this.mnemonic, nextIndex),
       index: nextIndex,
     };
 
@@ -246,7 +232,7 @@ export class Vault {
     }
 
     if (index < 0 || index >= this.state.accounts.length) {
-      return { error: "INVALID_ACCOUNT_INDEX" };
+      return { error: ERROR_CODES.INVALID_ACCOUNT_INDEX };
     }
 
     this.state.currentAccountIndex = index;
@@ -267,7 +253,7 @@ export class Vault {
     }
 
     if (index < 0 || index >= this.state.accounts.length) {
-      return { error: "INVALID_ACCOUNT_INDEX" };
+      return { error: ERROR_CODES.INVALID_ACCOUNT_INDEX };
     }
 
     this.state.accounts[index].name = name;
