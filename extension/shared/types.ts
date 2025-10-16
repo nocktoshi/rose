@@ -55,3 +55,20 @@ export interface Transaction {
   /** Transaction status */
   status: 'confirmed' | 'pending' | 'failed';
 }
+
+/**
+ * Transaction details for confirmation screen
+ * Used to display transaction details immediately after sending
+ */
+export interface TransactionDetails {
+  /** Transaction ID */
+  txid: string;
+  /** Amount in NOCK */
+  amount: number;
+  /** Transaction fee in NOCK */
+  fee: number;
+  /** Recipient address */
+  to?: string;
+  /** Sender address */
+  from?: string;
+}

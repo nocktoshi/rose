@@ -84,6 +84,7 @@ export function CreateScreen() {
         }}
         placeholder="Password"
         className="my-2"
+        autoFocus
       />
 
       <PasswordInput

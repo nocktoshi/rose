@@ -19,6 +19,7 @@ import { ImportScreen } from "./screens/onboarding/ImportScreen";
 import { ResumeBackupScreen } from "./screens/onboarding/ResumeBackupScreen";
 import { HomeScreen } from "./screens/main/HomeScreen";
 import { SendScreen } from "./screens/transactions/SendScreen";
+import { SentScreen } from "./screens/transactions/SentScreen";
 import { ReceiveScreen } from "./screens/transactions/ReceiveScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { RecoveryPhraseScreen } from "./screens/RecoveryPhraseScreen";
@@ -90,6 +91,8 @@ export function Popup() {
     // Transactions
     case "send":
       return <SendScreen />;
+    case "sent":
+      return <SentScreen />;
     case "receive":
       return <ReceiveScreen />;
 

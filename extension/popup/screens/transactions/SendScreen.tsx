@@ -15,7 +15,7 @@ import { PROVIDER_METHODS } from "../../../shared/constants";
 import { useNumericInput } from "../../hooks/useNumericInput";
 
 export function SendScreen() {
-  const { navigate, wallet } = useStore();
+  const { navigate, wallet, setLastTransaction } = useStore();
   const [toAddress, setToAddress] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,9 +71,14 @@ export function SendScreen() {
       if (result?.error) {
         setError(`Error: ${result.error}`);
       } else {
-        // Success
-        // TODO: Show success message with transaction ID
-        navigate("home");
+        // Success - store transaction details and navigate to confirmation screen
+        setLastTransaction({
+          txid: result.txid || '',
+          amount: amount.numericValue,
+          fee: fee.numericValue,
+          to: toAddress,
+        });
+        navigate("sent");
       }
     } catch (err) {
       setError("Failed to send transaction");

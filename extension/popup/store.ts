@@ -5,7 +5,7 @@
 import { create } from 'zustand';
 import { INTERNAL_METHODS } from '../shared/constants';
 import { hasIncompleteOnboarding } from '../shared/onboarding';
-import { Account } from '../shared/types';
+import { Account, TransactionDetails } from '../shared/types';
 import { send } from './utils/messaging';
 
 /**
@@ -28,6 +28,7 @@ export type Screen =
 
   // Transaction screens
   | 'send'
+  | 'sent'
   | 'receive'
   | 'tx-details'
 
@@ -65,6 +66,10 @@ interface AppStore {
   onboardingMnemonic: string | null;
   setOnboardingMnemonic: (mnemonic: string | null) => void;
 
+  // Last transaction details (for showing confirmation screen)
+  lastTransaction: TransactionDetails | null;
+  setLastTransaction: (transaction: TransactionDetails | null) => void;
+
   // Initialize app - checks vault status and navigates appropriately
   initialize: () => Promise<void>;
 
@@ -89,6 +94,7 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   onboardingMnemonic: null,
+  lastTransaction: null,
 
   // Navigate to a new screen
   navigate: (screen: Screen) => {
@@ -119,6 +125,11 @@ export const useStore = create<AppStore>((set, get) => ({
   // Set temporary mnemonic during onboarding
   setOnboardingMnemonic: (mnemonic: string | null) => {
     set({ onboardingMnemonic: mnemonic });
+  },
+
+  // Set last transaction details
+  setLastTransaction: (transaction: TransactionDetails | null) => {
+    set({ lastTransaction: transaction });
   },
 
   // Initialize app on load
