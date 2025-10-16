@@ -36,3 +36,22 @@ export type InternalMethod = (typeof INTERNAL_METHODS)[keyof typeof INTERNAL_MET
  * Type for all valid error codes
  */
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
+
+/**
+ * Transaction information
+ * Represents a blockchain transaction (sent or received)
+ */
+export interface Transaction {
+  /** Unique transaction ID */
+  id: string;
+  /** Transaction type */
+  type: 'sent' | 'received';
+  /** Amount in NOCK */
+  amount: number;
+  /** Counterparty address (sender for received, recipient for sent) */
+  address: string;
+  /** Transaction timestamp */
+  timestamp: Date;
+  /** Transaction status */
+  status: 'confirmed' | 'pending' | 'failed';
+}

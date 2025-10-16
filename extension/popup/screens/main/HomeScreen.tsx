@@ -7,6 +7,7 @@ import { useStore } from "../../store";
 import { send } from "../../utils/messaging";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { AccountSelector } from "../../components/AccountSelector";
+import { RecentTransactions } from "../../components/RecentTransactions";
 
 export function HomeScreen() {
   const { wallet, navigate, syncWallet } = useStore();
@@ -18,7 +19,7 @@ export function HomeScreen() {
   }
 
   return (
-    <ScreenContainer>
+    <ScreenContainer className="flex flex-col">
       <h2 className="text-xl font-semibold mb-4">Fort Nock</h2>
 
       {/* Account Selector */}
@@ -40,16 +41,24 @@ export function HomeScreen() {
         </button>
       </div>
 
-      <button
-        onClick={() => navigate("settings")}
-        className="btn-secondary my-2"
-      >
-        Settings
-      </button>
+      {/* Recent Transactions */}
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+        <RecentTransactions onViewAll={() => navigate("home")} />
+      </div>
 
-      <button onClick={handleLock} className="btn-secondary my-2">
-        Lock
-      </button>
+      {/* Bottom Actions */}
+      <div className="pt-4 space-y-2">
+        <button
+          onClick={() => navigate("settings")}
+          className="btn-secondary"
+        >
+          Settings
+        </button>
+
+        <button onClick={handleLock} className="btn-secondary">
+          Lock
+        </button>
+      </div>
     </ScreenContainer>
   );
 }
