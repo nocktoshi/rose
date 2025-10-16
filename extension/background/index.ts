@@ -79,7 +79,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         if (vault.isLocked()) {
           return sendResponse({ error: ERROR_CODES.LOCKED });
         }
-        const { to } = payload.params ?? {};
+        const { to, amount, fee } = payload.params?.[0] ?? {};
         if (!isNockAddress(to)) {
           return sendResponse({ error: ERROR_CODES.BAD_ADDRESS });
         }
@@ -87,6 +87,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         // For now, return a generated transaction ID until WASM signing and RPC are integrated
         return sendResponse({
           txid: crypto.randomUUID(),
+          amount,
+          fee,
         });
 
       // Internal methods (called from popup)
