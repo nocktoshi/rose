@@ -119,7 +119,7 @@ export class Vault {
    */
   async unlock(
     password: string
-  ): Promise<{ ok: boolean; address: string; accounts: Account[] } | { error: string }> {
+  ): Promise<{ ok: boolean; address: string; accounts: Account[]; currentAccount: Account } | { error: string }> {
     const stored = await chrome.storage.local.get([
       STORAGE_KEYS.ENCRYPTED_VAULT,
       STORAGE_KEYS.ACCOUNTS,
@@ -164,7 +164,12 @@ export class Vault {
       };
 
       const currentAccount = accounts[currentAccountIndex] || accounts[0];
-      return { ok: true, address: currentAccount?.address || "", accounts };
+      return {
+        ok: true,
+        address: currentAccount?.address || "",
+        accounts,
+        currentAccount
+      };
     } catch (err) {
       return { error: ERROR_CODES.BAD_PASSWORD };
     }

@@ -28,6 +28,7 @@ export function LockedScreen() {
       ok?: boolean;
       address?: string;
       accounts?: Array<{ name: string; address: string; index: number }>;
+      currentAccount?: { name: string; address: string; index: number };
       error?: string;
     }>(INTERNAL_METHODS.UNLOCK, [password]);
 
@@ -41,7 +42,7 @@ export function LockedScreen() {
     } else {
       setPassword("");
       const accounts = result.accounts || [];
-      const currentAccount = accounts[0] || null;
+      const currentAccount = result.currentAccount || accounts[0] || null;
       syncWallet({
         locked: false,
         address: result.address || null,
