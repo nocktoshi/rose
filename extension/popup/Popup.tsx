@@ -5,18 +5,35 @@
 import { useEffect } from "react";
 import { useStore } from "./store";
 import { send } from "./utils/messaging";
-import { INTERNAL_METHODS } from "../shared/constants";
+import { INTERNAL_METHODS, UI_CONSTANTS } from "../shared/constants";
 import { Account } from "../shared/types";
 import { Router } from "./Router";
+import { useApprovalDetection } from "./hooks/useApprovalDetection";
 
 export function Popup() {
-  const { currentScreen, initialize, wallet, syncWallet, navigate } =
-    useStore();
+  const {
+    currentScreen,
+    initialize,
+    wallet,
+    syncWallet,
+    navigate,
+    setPendingTransactionRequest,
+    setPendingSignRequest,
+  } = useStore();
 
   // Initialize app on mount
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // Handle approval requests from URL hash
+  useApprovalDetection({
+    walletAddress: wallet.address,
+    walletLocked: wallet.locked,
+    setPendingTransactionRequest,
+    setPendingSignRequest,
+    navigate,
+  });
 
   // Poll for vault state changes (e.g., auto-lock)
   useEffect(() => {
@@ -42,10 +59,10 @@ export function Popup() {
         });
         navigate("locked");
       }
-    }, 2000); // Check every 2 seconds
+    }, UI_CONSTANTS.STATE_POLL_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [currentScreen, wallet.locked, syncWallet, navigate]);
+  }, [currentScreen, wallet.locked, wallet.balance, syncWallet, navigate]);
 
   // Render current screen via router
   return <Router />;

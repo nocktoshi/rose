@@ -2,42 +2,48 @@
  * Zustand store for popup UI state and navigation
  */
 
-import { create } from 'zustand';
-import { INTERNAL_METHODS } from '../shared/constants';
-import { hasIncompleteOnboarding } from '../shared/onboarding';
-import { Account, TransactionDetails, SignRequest } from '../shared/types';
-import { send } from './utils/messaging';
+import { create } from "zustand";
+import { INTERNAL_METHODS, APPROVAL_CONSTANTS } from "../shared/constants";
+import { hasIncompleteOnboarding } from "../shared/onboarding";
+import {
+  Account,
+  TransactionDetails,
+  SignRequest,
+  TransactionRequest,
+} from "../shared/types";
+import { send } from "./utils/messaging";
 
 /**
  * All available screens in the wallet
  */
 export type Screen =
   // Onboarding flow
-  | 'onboarding-start'
-  | 'onboarding-create'
-  | 'onboarding-backup'
-  | 'onboarding-verify'
-  | 'onboarding-success'
-  | 'onboarding-import'
-  | 'onboarding-import-success'
-  | 'onboarding-resume-backup'
+  | "onboarding-start"
+  | "onboarding-create"
+  | "onboarding-backup"
+  | "onboarding-verify"
+  | "onboarding-success"
+  | "onboarding-import"
+  | "onboarding-import-success"
+  | "onboarding-resume-backup"
 
   // Main app screens
-  | 'home'
-  | 'settings'
-  | 'recovery-phrase'
+  | "home"
+  | "settings"
+  | "recovery-phrase"
 
   // Transaction screens
-  | 'send'
-  | 'sent'
-  | 'receive'
-  | 'tx-details'
+  | "send"
+  | "sent"
+  | "receive"
+  | "tx-details"
 
   // Approval screens
-  | 'sign-message'
+  | "sign-message"
+  | "approve-transaction"
 
   // System
-  | 'locked';
+  | "locked";
 
 /**
  * Wallet state synced from background service worker
@@ -78,6 +84,10 @@ interface AppStore {
   pendingSignRequest: SignRequest | null;
   setPendingSignRequest: (request: SignRequest | null) => void;
 
+  // Pending transaction request (for showing approval screen)
+  pendingTransactionRequest: TransactionRequest | null;
+  setPendingTransactionRequest: (request: TransactionRequest | null) => void;
+
   // Initialize app - checks vault status and navigates appropriately
   initialize: () => Promise<void>;
 
@@ -90,7 +100,7 @@ interface AppStore {
  */
 export const useStore = create<AppStore>((set, get) => ({
   // Initial state
-  currentScreen: 'locked',
+  currentScreen: "locked",
   history: [],
 
   wallet: {
@@ -104,6 +114,7 @@ export const useStore = create<AppStore>((set, get) => ({
   onboardingMnemonic: null,
   lastTransaction: null,
   pendingSignRequest: null,
+  pendingTransactionRequest: null,
 
   // Navigate to a new screen
   navigate: (screen: Screen) => {
@@ -146,9 +157,20 @@ export const useStore = create<AppStore>((set, get) => ({
     set({ pendingSignRequest: request });
   },
 
+  // Set pending transaction request
+  setPendingTransactionRequest: (request: TransactionRequest | null) => {
+    set({ pendingTransactionRequest: request });
+  },
+
   // Initialize app on load
   initialize: async () => {
     try {
+      // Check if we're opening for an approval request
+      const hash = window.location.hash.slice(1); // Remove '#'
+      const isApprovalRequest =
+        hash.startsWith(APPROVAL_CONSTANTS.TRANSACTION_HASH_PREFIX) ||
+        hash.startsWith(APPROVAL_CONSTANTS.SIGN_MESSAGE_HASH_PREFIX);
+
       // Get current vault state from service worker
       const state = await send<{
         locked: boolean;
@@ -168,22 +190,26 @@ export const useStore = create<AppStore>((set, get) => ({
       // Determine initial screen
       let initialScreen: Screen;
 
-      if (!walletState.address) {
+      if (isApprovalRequest) {
+        // For approval requests, don't override the screen
+        // Let the approval useEffect handle navigation
+        initialScreen = walletState.locked ? "locked" : "home";
+      } else if (!walletState.address) {
         // No vault exists - start onboarding
-        initialScreen = 'onboarding-start';
+        initialScreen = "onboarding-start";
       } else {
         // Check if user has incomplete onboarding (created wallet but didn't complete backup)
         const incompleteOnboarding = await hasIncompleteOnboarding();
 
         if (incompleteOnboarding) {
           // User needs to complete their backup - show resume screen
-          initialScreen = 'onboarding-resume-backup';
+          initialScreen = "onboarding-resume-backup";
         } else if (walletState.locked) {
           // Vault exists but locked
-          initialScreen = 'locked';
+          initialScreen = "locked";
         } else {
           // Vault unlocked - go to home
-          initialScreen = 'home';
+          initialScreen = "home";
         }
       }
 
@@ -197,16 +223,18 @@ export const useStore = create<AppStore>((set, get) => ({
         get().fetchBalance();
       }
     } catch (error) {
-      console.error('Failed to initialize app:', error);
+      console.error("Failed to initialize app:", error);
       // Default to locked screen on error
-      set({ currentScreen: 'locked' });
+      set({ currentScreen: "locked" });
     }
   },
 
   // Fetch balance from blockchain
   fetchBalance: async () => {
     try {
-      const result = await send<{ balance: number }>(INTERNAL_METHODS.GET_BALANCE);
+      const result = await send<{ balance: number }>(
+        INTERNAL_METHODS.GET_BALANCE
+      );
       set({
         wallet: {
           ...get().wallet,
@@ -214,7 +242,7 @@ export const useStore = create<AppStore>((set, get) => ({
         },
       });
     } catch (error) {
-      console.error('Failed to fetch balance:', error);
+      console.error("Failed to fetch balance:", error);
     }
   },
 }));

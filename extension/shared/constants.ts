@@ -59,6 +59,24 @@ export const INTERNAL_METHODS = {
 
   /** Get wallet balance from blockchain */
   GET_BALANCE: "wallet:getBalance",
+
+  /** Get pending transaction request for approval */
+  GET_PENDING_TRANSACTION: "wallet:getPendingTransaction",
+
+  /** Approve pending transaction request */
+  APPROVE_TRANSACTION: "wallet:approveTransaction",
+
+  /** Reject pending transaction request */
+  REJECT_TRANSACTION: "wallet:rejectTransaction",
+
+  /** Get pending sign message request for approval */
+  GET_PENDING_SIGN_REQUEST: "wallet:getPendingSignRequest",
+
+  /** Approve pending sign message request */
+  APPROVE_SIGN_MESSAGE: "wallet:approveSignMessage",
+
+  /** Reject pending sign message request */
+  REJECT_SIGN_MESSAGE: "wallet:rejectSignMessage",
 } as const;
 
 /**
@@ -96,6 +114,9 @@ export const ERROR_CODES = {
 
   /** Unauthorized: internal methods can only be called from popup/extension pages */
   UNAUTHORIZED: "UNAUTHORIZED",
+
+  /** Requested resource not found (e.g., pending approval request) */
+  NOT_FOUND: "NOT_FOUND",
 } as const;
 
 /**
@@ -141,6 +162,15 @@ export const MESSAGE_TARGETS = {
 export const AUTOLOCK_MINUTES = 15;
 
 /**
+ * Nockchain Currency Conversion
+ */
+/** Conversion rate: 1 NOCK = 65,536 nicks (2^16) */
+export const NOCK_TO_NICKS = 65_536;
+
+/** Default transaction fee in nicks (32,768 nicks = 0.5 NOCK) */
+export const DEFAULT_TRANSACTION_FEE = 32_768;
+
+/**
  * User Activity Methods - Methods that count as user activity for auto-lock timer
  * Only these methods reset the lastActivity timestamp. Passive/polling methods
  * (like GET_STATE, GET_ACCOUNTS, etc.) do NOT reset the timer.
@@ -168,8 +198,24 @@ export const UI_CONSTANTS = {
   POPUP_WIDTH: 357,
   /** Extension popup height in pixels */
   POPUP_HEIGHT: 600,
+  /** Approval popup top offset in pixels */
+  POPUP_TOP_OFFSET: 40,
+  /** Approval popup right offset in pixels */
+  POPUP_RIGHT_OFFSET: 20,
+  /** Wallet state polling interval in milliseconds */
+  STATE_POLL_INTERVAL: 2000,
   /** Minimum password length */
   MIN_PASSWORD_LENGTH: 8,
   /** Number of words in BIP-39 mnemonic */
   MNEMONIC_WORD_COUNT: 24,
+} as const;
+
+/**
+ * Approval Request Constants - URL hash prefixes for approval flows
+ */
+export const APPROVAL_CONSTANTS = {
+  /** Hash prefix for transaction approval requests */
+  TRANSACTION_HASH_PREFIX: 'transaction-approval-',
+  /** Hash prefix for sign message approval requests */
+  SIGN_MESSAGE_HASH_PREFIX: 'sign-message-approval-',
 } as const;

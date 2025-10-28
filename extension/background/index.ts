@@ -13,11 +13,63 @@ import {
   AUTOLOCK_MINUTES,
   STORAGE_KEYS,
   USER_ACTIVITY_METHODS,
+  DEFAULT_TRANSACTION_FEE,
+  UI_CONSTANTS,
+  APPROVAL_CONSTANTS,
 } from "../shared/constants";
+import type { TransactionRequest, SignRequest } from "../shared/types";
 
 const vault = new Vault();
 let lastActivity = Date.now();
 let autoLockMinutes = AUTOLOCK_MINUTES;
+
+/**
+ * Pending approval requests
+ * Maps request ID to the request data and response callback
+ */
+interface PendingRequest {
+  request: TransactionRequest | SignRequest;
+  sendResponse: (response: any) => void;
+  origin: string;
+}
+
+const pendingRequests = new Map<string, PendingRequest>();
+
+/**
+ * Create an approval popup window
+ */
+async function createApprovalPopup(requestId: string, type: 'transaction' | 'sign-message') {
+  const hashPrefix = type === 'transaction'
+    ? APPROVAL_CONSTANTS.TRANSACTION_HASH_PREFIX
+    : APPROVAL_CONSTANTS.SIGN_MESSAGE_HASH_PREFIX;
+  const popupUrl = chrome.runtime.getURL(`popup/index.html#${hashPrefix}${requestId}`);
+
+  // Get the last focused window to position the popup relative to it
+  const currentWindow = await chrome.windows.getLastFocused();
+
+  // Calculate position for top-right area
+  const width = UI_CONSTANTS.POPUP_WIDTH;
+  const height = UI_CONSTANTS.POPUP_HEIGHT;
+
+  // Position in top-right of the current window, with some padding
+  // If window dimensions aren't available, use reasonable defaults
+  const left = currentWindow.left !== undefined && currentWindow.width !== undefined
+    ? currentWindow.left + currentWindow.width - width - UI_CONSTANTS.POPUP_RIGHT_OFFSET
+    : undefined; // Let Chrome position it
+  const top = currentWindow.top !== undefined
+    ? currentWindow.top + UI_CONSTANTS.POPUP_TOP_OFFSET
+    : undefined; // Let Chrome position it
+
+  await chrome.windows.create({
+    url: popupUrl,
+    type: 'popup',
+    width,
+    height,
+    left,
+    top,
+    focused: true,
+  });
+}
 
 /**
  * Emit a wallet event to all tabs
@@ -62,17 +114,19 @@ function touchActivity(method?: string) {
 
 /**
  * Check if message is from popup/extension page (not content script)
- * Content scripts have sender.tab set; popup/options pages don't
+ * Extension pages have chrome-extension:// URLs; content scripts have web URLs
  */
 function isFromPopup(sender: chrome.runtime.MessageSender): boolean {
-  return !sender.tab;
+  // Check if the sender URL is from our extension
+  const url = sender.url || '';
+  const extensionId = chrome.runtime.id;
+  return url.startsWith(`chrome-extension://${extensionId}/`);
 }
 
 /**
  * Handle messages from content script and popup
  */
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  console.log('[Background] Received message:', msg);
   (async () => {
     const { payload } = msg || {};
     touchActivity(payload?.method);
@@ -87,12 +141,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       // Provider methods (called from injected provider via content script)
       case PROVIDER_METHODS.REQUEST_ACCOUNTS:
         if (vault.isLocked()) {
-          console.log('[Background] Vault is locked, sending error');
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
         const address = vault.getAddress();
-        console.log('[Background] Sending account:', address);
         sendResponse([address]);
 
         // Emit connect event when dApp connects successfully
@@ -104,9 +156,27 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
-        sendResponse({
-          signature: await vault.signMessage(payload.params),
+
+        // Create sign message approval request
+        const newSignRequestId = crypto.randomUUID();
+        const signRequest: SignRequest = {
+          id: newSignRequestId,
+          origin: _sender.url || _sender.origin || 'unknown',
+          message: payload.params?.[0] || '',
+          timestamp: Date.now(),
+        };
+
+        // Store pending request with response callback
+        pendingRequests.set(newSignRequestId, {
+          request: signRequest,
+          sendResponse,
+          origin: signRequest.origin,
         });
+
+        // Create approval popup
+        await createApprovalPopup(newSignRequestId, 'sign-message');
+
+        // Response will be sent when user approves/rejects
         return;
 
       case PROVIDER_METHODS.SEND_TRANSACTION:
@@ -114,18 +184,34 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
-        const { to, amount, fee } = payload.params?.[0] ?? {};
+        const { to, amount, fee = DEFAULT_TRANSACTION_FEE } = payload.params?.[0] ?? {};
         if (!isNockAddress(to)) {
           sendResponse({ error: ERROR_CODES.BAD_ADDRESS });
           return;
         }
-        // TODO: Implement real transaction signing and RPC broadcast to Nockchain network
-        // For now, return a generated transaction ID until WASM signing and RPC are integrated
-        sendResponse({
-          txid: crypto.randomUUID(),
+
+        // Create transaction approval request
+        const txRequestId = crypto.randomUUID();
+        const txRequest: TransactionRequest = {
+          id: txRequestId,
+          origin: _sender.url || _sender.origin || 'unknown',
+          to,
           amount,
           fee,
+          timestamp: Date.now(),
+        };
+
+        // Store pending request with response callback
+        pendingRequests.set(txRequestId, {
+          request: txRequest,
+          sendResponse,
+          origin: txRequest.origin,
         });
+
+        // Create approval popup
+        await createApprovalPopup(txRequestId, 'transaction');
+
+        // Response will be sent when user approves/rejects
         return;
 
       // Internal methods (called from popup)
@@ -219,6 +305,88 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       case INTERNAL_METHODS.GET_BALANCE:
         // TODO: Query blockchain for balance when WASM bindings are ready
         sendResponse({ balance: 0 });
+        return;
+
+      // Approval request handlers
+      case INTERNAL_METHODS.GET_PENDING_TRANSACTION:
+        const getPendingTxId = payload.params?.[0];
+        const txPending = pendingRequests.get(getPendingTxId);
+        if (txPending && 'to' in txPending.request) {
+          sendResponse(txPending.request);
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
+      case INTERNAL_METHODS.GET_PENDING_SIGN_REQUEST:
+        const getPendingSignId = payload.params?.[0];
+        const signPending = pendingRequests.get(getPendingSignId);
+        if (signPending && 'message' in signPending.request) {
+          sendResponse(signPending.request);
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
+      case INTERNAL_METHODS.APPROVE_TRANSACTION:
+        const approveTxId = payload.params?.[0];
+        const approveTxPending = pendingRequests.get(approveTxId);
+        if (approveTxPending && 'to' in approveTxPending.request) {
+          // TODO: Implement real transaction signing and RPC broadcast to Nockchain network
+          // For now, return a generated transaction ID until WASM signing and RPC are integrated
+          const txRequest = approveTxPending.request as TransactionRequest;
+          approveTxPending.sendResponse({
+            txid: crypto.randomUUID(),
+            amount: txRequest.amount,
+            fee: txRequest.fee,
+          });
+          pendingRequests.delete(approveTxId);
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
+      case INTERNAL_METHODS.REJECT_TRANSACTION:
+        const rejectTxId = payload.params?.[0];
+        const rejectTxPending = pendingRequests.get(rejectTxId);
+        if (rejectTxPending) {
+          rejectTxPending.sendResponse({
+            error: { code: 4001, message: 'User rejected the transaction' },
+          });
+          pendingRequests.delete(rejectTxId);
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
+      case INTERNAL_METHODS.APPROVE_SIGN_MESSAGE:
+        const approveSignId = payload.params?.[0];
+        const approveSignPending = pendingRequests.get(approveSignId);
+        if (approveSignPending && 'message' in approveSignPending.request) {
+          const signRequest = approveSignPending.request as SignRequest;
+          const signature = await vault.signMessage([signRequest.message]);
+          approveSignPending.sendResponse({ signature });
+          pendingRequests.delete(approveSignId);
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
+      case INTERNAL_METHODS.REJECT_SIGN_MESSAGE:
+        const rejectSignId = payload.params?.[0];
+        const rejectSignPending = pendingRequests.get(rejectSignId);
+        if (rejectSignPending) {
+          rejectSignPending.sendResponse({
+            error: { code: 4001, message: 'User rejected the signature request' },
+          });
+          pendingRequests.delete(rejectSignId);
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
         return;
 
       default:

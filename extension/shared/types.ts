@@ -86,3 +86,21 @@ export interface SignRequest {
   /** Request timestamp */
   timestamp: number;
 }
+
+/**
+ * Pending transaction approval request from a dApp
+ */
+export interface TransactionRequest {
+  /** Unique request ID */
+  id: string;
+  /** Origin of the requesting site (e.g., "https://app.example.com") */
+  origin: string;
+  /** Recipient address */
+  to: string;
+  /** Amount in nicks */
+  amount: number;
+  /** Transaction fee in nicks */
+  fee: number;
+  /** Request timestamp */
+  timestamp: number;
+}

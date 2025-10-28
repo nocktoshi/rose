@@ -1,0 +1,74 @@
+/**
+ * useApprovalDetection - Detect and handle approval requests from URL hash
+ *
+ * This hook monitors the URL hash for approval request parameters and automatically
+ * fetches the corresponding request data from the background script, then navigates
+ * to the appropriate approval screen when the wallet is unlocked.
+ *
+ * @param walletAddress - The current wallet address (null if not initialized)
+ * @param walletLocked - Whether the wallet is currently locked
+ * @param setPendingTransactionRequest - Function to set pending transaction request
+ * @param setPendingSignRequest - Function to set pending sign request
+ * @param navigate - Navigation function to switch screens
+ */
+
+import { useEffect } from 'react';
+import { send } from '../utils/messaging';
+import { INTERNAL_METHODS, APPROVAL_CONSTANTS } from '../../shared/constants';
+import type { TransactionRequest, SignRequest } from '../../shared/types';
+import type { Screen } from '../store';
+
+interface UseApprovalDetectionProps {
+  walletAddress: string | null;
+  walletLocked: boolean;
+  setPendingTransactionRequest: (request: TransactionRequest | null) => void;
+  setPendingSignRequest: (request: SignRequest | null) => void;
+  navigate: (screen: Screen) => void;
+}
+
+export function useApprovalDetection({
+  walletAddress,
+  walletLocked,
+  setPendingTransactionRequest,
+  setPendingSignRequest,
+  navigate,
+}: UseApprovalDetectionProps) {
+  useEffect(() => {
+    // Wait for wallet state to be initialized
+    if (walletAddress === null) return;
+
+    const hash = window.location.hash.slice(1); // Remove '#'
+
+    if (hash.startsWith(APPROVAL_CONSTANTS.TRANSACTION_HASH_PREFIX)) {
+      const requestId = hash.replace(APPROVAL_CONSTANTS.TRANSACTION_HASH_PREFIX, '');
+
+      // Fetch pending transaction request from background
+      send<TransactionRequest>(INTERNAL_METHODS.GET_PENDING_TRANSACTION, [requestId])
+        .then((request) => {
+          if (request && !('error' in request)) {
+            setPendingTransactionRequest(request);
+            // Only navigate if wallet is unlocked
+            if (!walletLocked) {
+              navigate('approve-transaction');
+            }
+          }
+        })
+        .catch(console.error);
+    } else if (hash.startsWith(APPROVAL_CONSTANTS.SIGN_MESSAGE_HASH_PREFIX)) {
+      const requestId = hash.replace(APPROVAL_CONSTANTS.SIGN_MESSAGE_HASH_PREFIX, '');
+
+      // Fetch pending sign request from background
+      send<SignRequest>(INTERNAL_METHODS.GET_PENDING_SIGN_REQUEST, [requestId])
+        .then((request) => {
+          if (request && !('error' in request)) {
+            setPendingSignRequest(request);
+            // Only navigate if wallet is unlocked
+            if (!walletLocked) {
+              navigate('sign-message');
+            }
+          }
+        })
+        .catch(console.error);
+    }
+  }, [walletAddress, walletLocked, setPendingTransactionRequest, setPendingSignRequest, navigate]);
+}

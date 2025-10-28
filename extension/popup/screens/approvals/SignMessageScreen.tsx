@@ -2,35 +2,49 @@
  * Sign Message Screen - Approve or reject message signing requests from dApps
  */
 
-import { useStore } from '../../store';
-import { ScreenContainer } from '../../components/ScreenContainer';
-import { ChevronLeftIcon } from '../../components/icons/ChevronLeftIcon';
-import { Alert } from '../../components/Alert';
-import { truncateAddress } from '../../utils/format';
+import { useStore } from "../../store";
+import { ScreenContainer } from "../../components/ScreenContainer";
+import { ChevronLeftIcon } from "../../components/icons/ChevronLeftIcon";
+import { Alert } from "../../components/Alert";
+import { truncateAddress } from "../../utils/format";
+import { send } from "../../utils/messaging";
+import { INTERNAL_METHODS } from "../../../shared/constants";
+import { useAutoRejectOnClose } from "../../hooks/useAutoRejectOnClose";
 
 export function SignMessageScreen() {
-  const { navigate, pendingSignRequest, setPendingSignRequest, wallet } = useStore();
+  const { navigate, pendingSignRequest, setPendingSignRequest, wallet } =
+    useStore();
 
   if (!pendingSignRequest) {
     // No pending request, redirect to home
-    navigate('home');
+    navigate("home");
     return null;
   }
 
-  const { origin, message } = pendingSignRequest;
+  const { id, origin, message } = pendingSignRequest;
   const currentAccount = wallet.currentAccount;
 
-  function handleDecline() {
-    // TODO: Send rejection response to background script
-    setPendingSignRequest(null);
-    navigate('home');
+  // Auto-reject when window closes without user action
+  useAutoRejectOnClose(id, INTERNAL_METHODS.REJECT_SIGN_MESSAGE);
+
+  async function handleDecline() {
+    try {
+      await send(INTERNAL_METHODS.REJECT_SIGN_MESSAGE, [id]);
+      setPendingSignRequest(null);
+      window.close(); // Close approval popup
+    } catch (error) {
+      console.error("Failed to reject sign message:", error);
+    }
   }
 
   async function handleSign() {
-    // TODO: Send approval to background script which will call vault.signMessage
-    // For now, just clear the request
-    setPendingSignRequest(null);
-    navigate('home');
+    try {
+      await send(INTERNAL_METHODS.APPROVE_SIGN_MESSAGE, [id]);
+      setPendingSignRequest(null);
+      window.close(); // Close approval popup
+    } catch (error) {
+      console.error("Failed to approve sign message:", error);
+    }
   }
 
   return (
@@ -48,7 +62,9 @@ export function SignMessageScreen() {
 
       {/* Site Origin */}
       <div className="mb-6">
-        <label className="text-sm text-gray-400 block mb-2">Requesting Site</label>
+        <label className="text-sm text-gray-400 block mb-2">
+          Requesting Site
+        </label>
         <div className="bg-gray-800 rounded-lg p-3">
           <p className="text-sm font-medium break-all">{origin}</p>
         </div>
@@ -66,9 +82,13 @@ export function SignMessageScreen() {
 
       {/* Account Info */}
       <div className="mb-6">
-        <label className="text-sm text-gray-400 block mb-2">Signing Account</label>
+        <label className="text-sm text-gray-400 block mb-2">
+          Signing Account
+        </label>
         <div className="bg-gray-800 rounded-lg p-3">
-          <p className="text-sm font-medium">{currentAccount?.name || 'Unknown'}</p>
+          <p className="text-sm font-medium">
+            {currentAccount?.name || "Unknown"}
+          </p>
           <p className="text-xs text-gray-500 font-mono mt-1">
             {truncateAddress(currentAccount?.address)}
           </p>
@@ -76,10 +96,10 @@ export function SignMessageScreen() {
       </div>
 
       {/* Warning */}
-      <Alert type="warning" className="mb-6">
+      {/* <Alert type="warning" className="mb-6">
         Only sign messages you understand from sites you trust. Your signature can be used to
         authorize actions on your behalf.
-      </Alert>
+      </Alert> */}
 
       {/* Action Buttons */}
       <div className="flex gap-3 mt-auto">

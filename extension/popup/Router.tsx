@@ -19,6 +19,7 @@ import { SendScreen } from './screens/transactions/SendScreen';
 import { SentScreen } from './screens/transactions/SentScreen';
 import { ReceiveScreen } from './screens/transactions/ReceiveScreen';
 import { SignMessageScreen } from './screens/approvals/SignMessageScreen';
+import { TransactionApprovalScreen } from './screens/approvals/TransactionApprovalScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { RecoveryPhraseScreen } from './screens/RecoveryPhraseScreen';
 
@@ -64,6 +65,8 @@ export function Router() {
     // Approvals
     case 'sign-message':
       return <SignMessageScreen />;
+    case 'approve-transaction':
+      return <TransactionApprovalScreen />;
 
     // System
     case 'locked':
