@@ -7,6 +7,10 @@
 @import "@fontsource/inter/400.css";
 @import "@fontsource/inter/500.css";
 
+/* Import screen styles */
+@import "./screens/HomeScreenNew.css";
+@import "./screens/SendScreenNew.css";
+
 @theme {
   /* ============================================================================
      DESIGN TOKENS - Fort Nock Design System
@@ -65,6 +69,29 @@
   /* Shadows */
   --shadow-xs: 0 0 4px 0 #05050514;
   --shadow-md: 0 4px 12px 0 #0505051f;
+
+  /* Custom Figma Colors - Light Mode */
+  --color-fn-bg: #EBEBE9;
+  --color-fn-card: #FFFFFF;
+  --color-fn-ink: #000000;
+  --color-fn-sub: #707070;
+  --color-fn-yellow: #FFC413;
+  --color-fn-green: #369929;
+  --color-fn-line: #E0E0E0;
+  --color-fn-line-muted: #DADAD8;
+  --color-fn-overlay: rgba(0,0,0,0.6);
+  --color-fn-overlay-light: rgba(0,0,0,0.2);
+
+  /* Custom Border Radius */
+  --radius-card: 12px;
+  --radius-sheet: 12px;
+  --radius-tile: 8px;
+
+  /* Custom Shadows */
+  --shadow-card: 0 6px 18px rgba(0,0,0,0.08);
+
+  /* Font Display (Lora) */
+  --font-display: "Lora", Georgia, serif;
 }
 
 /* ============================================================================
@@ -74,7 +101,7 @@
 
 html.light {
   /* Light Mode Greyscale */
-  --color-bg: #ebebe9;
+  --color-bg: #ffffff;
   --color-surface-900: #f2f2f0;
   --color-surface-800: #ebebe9;
   --color-surface-700: #dadad8;
