@@ -4,12 +4,14 @@
 
 import { encryptGCM, decryptGCM, deriveKeyPBKDF2, rand, PBKDF2_ITERATIONS } from "./webcrypto";
 import { generateMnemonic, deriveAddress, validateMnemonic } from "./wallet-crypto";
-import { ERROR_CODES, STORAGE_KEYS } from "./constants";
+import { ERROR_CODES, STORAGE_KEYS, ACCOUNT_COLORS } from "./constants";
 import { Account } from "./types";
 import { buildPayment, createSinglePKHSpendCondition, calculateNoteDataHash, type Note } from "./transaction-builder";
 import { digestBytesToString } from "./address-encoding";
 import initCryptoWasm, { signDigest, tip5Hash } from '../lib/nbx-crypto/nbx_crypto.js';
-import { deriveMasterKeyFromMnemonic } from '../lib/nbx-nockchain-types/nbx_nockchain_types.js';
+import initNockchainTypesWasm, { deriveMasterKeyFromMnemonic } from '../lib/nbx-nockchain-types/nbx_nockchain_types.js';
+import { queryV1Balance } from "./balance-query";
+import { createBrowserClient } from "./rpc-client-browser";
 
 /**
  * Versioned encrypted vault format
@@ -71,6 +73,7 @@ export class Vault {
       name: "Account 1",
       address: await deriveAddress(words, 0),
       index: 0,
+      createdAt: Date.now(),
     };
 
     // Generate PBKDF2 salt and derive encryption key
@@ -249,10 +252,15 @@ export class Vault {
     const nextIndex = this.state.accounts.length;
     const accountName = name || `Account ${nextIndex + 1}`;
 
+    // Pick a random color from available account colors
+    const randomColor = ACCOUNT_COLORS[Math.floor(Math.random() * ACCOUNT_COLORS.length)];
+
     const newAccount: Account = {
       name: accountName,
       address: await deriveAddress(this.mnemonic, nextIndex),
       index: nextIndex,
+      iconColor: randomColor,
+      createdAt: Date.now(),
     };
 
     const updatedAccounts = [...this.state.accounts, newAccount];
@@ -335,6 +343,50 @@ export class Vault {
   }
 
   /**
+   * Hides an account from the UI
+   * - Auto-switches to first visible account if hiding current account
+   * - Prevents hiding if it's the last visible account
+   */
+  async hideAccount(index: number): Promise<{ ok: boolean; switchedTo?: number } | { error: string }> {
+    if (this.state.locked) {
+      return { error: ERROR_CODES.LOCKED };
+    }
+
+    if (index < 0 || index >= this.state.accounts.length) {
+      return { error: ERROR_CODES.INVALID_ACCOUNT_INDEX };
+    }
+
+    // Check if this is the last visible account
+    const visibleAccounts = this.state.accounts.filter(acc => !acc.hidden);
+    if (visibleAccounts.length <= 1) {
+      return { error: ERROR_CODES.CANNOT_HIDE_LAST_ACCOUNT };
+    }
+
+    // Mark account as hidden
+    this.state.accounts[index].hidden = true;
+
+    let switchedTo: number | undefined;
+
+    // If hiding the current account, switch to first visible account
+    if (this.state.currentAccountIndex === index) {
+      const firstVisibleIndex = this.state.accounts.findIndex(acc => !acc.hidden);
+      if (firstVisibleIndex !== -1) {
+        this.state.currentAccountIndex = firstVisibleIndex;
+        switchedTo = firstVisibleIndex;
+        await chrome.storage.local.set({
+          [STORAGE_KEYS.CURRENT_ACCOUNT_INDEX]: firstVisibleIndex,
+        });
+      }
+    }
+
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.ACCOUNTS]: this.state.accounts,
+    });
+
+    return { ok: true, switchedTo };
+  }
+
+  /**
    * Gets the mnemonic phrase (only when unlocked)
    * Requires password verification for security
    */
@@ -379,10 +431,16 @@ export class Vault {
       throw new Error("Wallet is locked");
     }
 
-    // Initialize WASM module
-    // In service worker context, we need to provide the explicit URL
+    // Initialize WASM modules
+    // In service worker context, we need to provide the explicit URLs
+    // Both init functions are idempotent - they return immediately if already initialized
     const cryptoWasmUrl = chrome.runtime.getURL('lib/nbx-crypto/nbx_crypto_bg.wasm');
-    await initCryptoWasm({ module_or_path: cryptoWasmUrl });
+    const nockchainTypesWasmUrl = chrome.runtime.getURL('lib/nbx-nockchain-types/nbx_nockchain_types_bg.wasm');
+
+    await Promise.all([
+      initCryptoWasm({ module_or_path: cryptoWasmUrl }),
+      initNockchainTypesWasm({ module_or_path: nockchainTypesWasmUrl })
+    ]);
 
     const msg = (Array.isArray(params) ? params[0] : params) ?? "";
     const msgBytes = new TextEncoder().encode(String(msg));
@@ -430,9 +488,16 @@ export class Vault {
       throw new Error("No account selected");
     }
 
-    // Initialize crypto WASM module
+    // Initialize WASM modules
+    // In service worker context, we need to provide the explicit URLs
+    // Both init functions are idempotent - they return immediately if already initialized
     const cryptoWasmUrl = chrome.runtime.getURL('lib/nbx-crypto/nbx_crypto_bg.wasm');
-    await initCryptoWasm({ module_or_path: cryptoWasmUrl });
+    const nockchainTypesWasmUrl = chrome.runtime.getURL('lib/nbx-nockchain-types/nbx_nockchain_types_bg.wasm');
+
+    await Promise.all([
+      initCryptoWasm({ module_or_path: cryptoWasmUrl }),
+      initNockchainTypesWasm({ module_or_path: nockchainTypesWasmUrl })
+    ]);
 
     // Derive the account's private and public keys
     const masterKey = deriveMasterKeyFromMnemonic(this.mnemonic, "");
@@ -445,26 +510,43 @@ export class Vault {
     }
 
     try {
-      // Create spend condition for this account
-      const spendCondition = await createSinglePKHSpendCondition(accountKey.public_key);
+      // Create RPC client
+      const rpcClient = createBrowserClient();
 
-      // Calculate note data hash for the spend condition
-      const noteDataHash = await calculateNoteDataHash(spendCondition);
+      console.log('[Vault] Fetching UTXOs for', currentAccount.address.slice(0, 20) + '...');
+      const balanceResult = await queryV1Balance(currentAccount.address, rpcClient);
 
-      // TODO: Query actual UTXOs from blockchain via RPC
-      // For now, create a mock V1 UTXO for testing purposes
-      // This will be replaced with real balance query when RPC is ready
-      const mockNote: Note = {
-        originPage: 0,
-        nameFirst: digestBytesToString(new Uint8Array(40).fill(0)), // Mock 40-byte name as base58 string
-        nameLast: digestBytesToString(new Uint8Array(40).fill(1)),  // Mock 40-byte name as base58 string
-        noteDataHash: digestBytesToString(noteDataHash),            // Note data hash as base58 string
-        assets: amount + fee + 1000, // Ensure enough for tx + change
-      };
+      if (balanceResult.utxoCount === 0) {
+        throw new Error('No UTXOs available. Your wallet may have zero balance.');
+      }
+
+      console.log(`[Vault] Found ${balanceResult.utxoCount} UTXOs (${balanceResult.simpleNotes.length} simple, ${balanceResult.coinbaseNotes.length} coinbase)`);
+
+      // Combine simple and coinbase notes
+      const notes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
+
+      // Calculate total amount needed (amount + fee)
+      const totalNeeded = amount + fee;
+
+      // UTXO selection: find a note with sufficient balance
+      // Simple strategy: use the first note that has enough funds
+      const selectedNote = notes.find(note => note.assets >= totalNeeded);
+
+      if (!selectedNote) {
+        // Calculate total balance
+        const totalBalance = notes.reduce((sum, note) => sum + note.assets, 0);
+        throw new Error(
+          `Insufficient balance. Need ${totalNeeded} nicks (${amount} + ${fee} fee), ` +
+          `but wallet only has ${totalBalance} nicks across ${notes.length} UTXOs. ` +
+          `Multi-UTXO transactions not yet implemented.`
+        );
+      }
+
+      console.log('[Vault] Selected UTXO with', selectedNote.assets, 'nicks');
 
       // Build and sign the transaction
       const constructedTx = await buildPayment(
-        mockNote,
+        selectedNote,
         to, // Recipient PKH digest string
         amount,
         accountKey.public_key, // For creating spend condition
