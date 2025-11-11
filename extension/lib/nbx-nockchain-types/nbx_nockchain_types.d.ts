@@ -1,202 +1,238 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * WASM-compatible Input wrapper (links a Note to a Spend)
+ * Derive the first-name from a lock hash
+ *
+ * This implements the v1 first-name derivation algorithm:
+ * first-name = hash([true, lock-hash])
+ *
+ * Arguments:
+ * - lock_hash: Base58-encoded digest string (the hash of a lock structure)
+ *
+ * Returns:
+ * - Base58-encoded digest string representing the first-name
  */
-export class WasmInput {
+export function deriveFirstNameFromLockHash(lock_hash: string): string;
+/**
+ * Derive the first-name for a simple PKH-locked note
+ *
+ * Creates a 1-of-1 PKH lock and derives the first-name from it.
+ * Use this for querying regular transaction outputs.
+ *
+ * Arguments:
+ * - pkh_hash: Base58-encoded digest string (TIP5 hash of the public key)
+ *
+ * Returns:
+ * - Base58-encoded digest string representing the first-name
+ */
+export function deriveSimpleFirstName(pkh_hash: string): string;
+/**
+ * Derive the first-name for a coinbase (mining reward) note
+ *
+ * Creates a coinbase lock which includes both a PKH lock and a 100-block timelock.
+ * Use this for querying mining rewards.
+ *
+ * Arguments:
+ * - pkh_hash: Base58-encoded digest string (TIP5 hash of the public key)
+ *
+ * Returns:
+ * - Base58-encoded digest string representing the first-name
+ */
+export function deriveCoinbaseFirstName(pkh_hash: string): string;
+/**
+ * Derive master key from seed bytes
+ */
+export function deriveMasterKey(seed: Uint8Array): WasmExtendedKey;
+/**
+ * Derive master key from BIP39 mnemonic phrase
+ */
+export function deriveMasterKeyFromMnemonic(mnemonic: string, passphrase?: string | null): WasmExtendedKey;
+export class WasmDigest {
+  free(): void;
+  [Symbol.dispose](): void;
+  constructor(value: string);
+  readonly value: string;
+}
+export class WasmExtendedKey {
+  private constructor();
   free(): void;
   [Symbol.dispose](): void;
   /**
-   * Create an input by linking a note (UTXO) to a spend
+   * Derive a child key at the given index
    */
-  constructor(note: WasmNote, spend: WasmSpend);
-  /**
-   * Get the input's value (amount from the note)
-   */
-  readonly value: number;
-  /**
-   * Get the fee from the spend
-   */
-  readonly fee: number;
+  deriveChild(index: number): WasmExtendedKey;
+  readonly private_key: Uint8Array | undefined;
+  readonly public_key: Uint8Array;
+  readonly chain_code: Uint8Array;
 }
-/**
- * WASM-compatible Note wrapper (represents a UTXO)
- */
+export class WasmLockPrimitive {
+  private constructor();
+  free(): void;
+  [Symbol.dispose](): void;
+  static newPkh(pkh: WasmPkh): WasmLockPrimitive;
+  static newTim(tim: WasmLockTim): WasmLockPrimitive;
+  static newBrn(): WasmLockPrimitive;
+}
+export class WasmLockTim {
+  free(): void;
+  [Symbol.dispose](): void;
+  constructor(rel: WasmTimelockRange, abs: WasmTimelockRange);
+  static coinbase(): WasmLockTim;
+  readonly rel: WasmTimelockRange;
+  readonly abs: WasmTimelockRange;
+}
+export class WasmName {
+  free(): void;
+  [Symbol.dispose](): void;
+  constructor(first: string, last: string);
+  readonly first: string;
+  readonly last: string;
+}
 export class WasmNote {
   free(): void;
   [Symbol.dispose](): void;
-  /**
-   * Create a note from its constituent parts
-   *
-   * This is typically constructed from data received via RPC query.
-   *
-   * Arguments:
-   * - version: 0, 1, or 2
-   * - origin_page: block height where note was created (u64)
-   * - timelock_min: minimum timelock block height (or null for none)
-   * - timelock_max: maximum timelock block height (or null for none)
-   * - name_first: 40 bytes (first digest of name)
-   * - name_last: 40 bytes (last digest of name)
-   * - lock_pubkeys: JavaScript Array of Uint8Arrays (each 97 bytes)
-   * - lock_keys_required: how many signatures needed (for multisig)
-   * - source_hash: 40 bytes (hash of source transaction)
-   * - source_is_coinbase: boolean
-   * - assets: amount in nicks
-   */
-  constructor(version: number, origin_page: bigint, timelock_min: bigint | null | undefined, timelock_max: bigint | null | undefined, name_first: Uint8Array, name_last: Uint8Array, lock_pubkeys: any[], lock_keys_required: bigint, source_hash: Uint8Array, source_is_coinbase: boolean, assets: number);
-  /**
-   * Get the note's name (first part) as 40 bytes
-   */
-  getNameFirst(): Uint8Array;
-  /**
-   * Get the note's name (last part) as 40 bytes
-   */
-  getNameLast(): Uint8Array;
-  /**
-   * Get the note's amount
-   */
+  constructor(version: WasmVersion, origin_page: number, name: WasmName, note_data_hash: WasmDigest, assets: number);
+  hash(): WasmDigest;
+  readonly version: WasmVersion;
+  readonly originPage: number;
+  readonly name: WasmName;
+  readonly noteDataHash: WasmDigest;
   readonly assets: number;
 }
-/**
- * WASM-compatible RawTx wrapper (complete transaction)
- */
+export class WasmPkh {
+  free(): void;
+  [Symbol.dispose](): void;
+  constructor(m: bigint, hashes: string[]);
+  static single(hash: string): WasmPkh;
+  readonly m: bigint;
+  readonly hashes: string[];
+}
 export class WasmRawTx {
+  private constructor();
   free(): void;
   [Symbol.dispose](): void;
-  /**
-   * Create a complete transaction from inputs
-   *
-   * This calculates the transaction ID and aggregates fees/timelocks
-   */
-  constructor(inputs: WasmInput[]);
-  /**
-   * Get the transaction ID (40 bytes)
-   */
-  getTxId(): Uint8Array;
-  /**
-   * Get total fees for this transaction
-   */
-  getTotalFees(): number;
-  /**
-   * Get number of inputs
-   */
-  getInputCount(): number;
-  /**
-   * Serialize transaction to bytes for network broadcast
-   *
-   * Returns the transaction serialized in the network wire format
-   * TODO: Implement proper network serialization format
-   */
-  serialize(): Uint8Array;
+  readonly version: WasmVersion;
+  readonly id: WasmDigest;
 }
-/**
- * WASM-compatible Seed wrapper
- */
 export class WasmSeed {
+  private constructor();
   free(): void;
   [Symbol.dispose](): void;
-  /**
-   * Create a simple seed (payment to a single pubkey)
-   *
-   * Arguments:
-   * - recipient_pubkey: 97 bytes
-   * - amount: amount in nicks (smallest unit)
-   * - parent_hash: 40 bytes (5 belts × 8 bytes)
-   */
-  constructor(recipient_pubkey: Uint8Array, amount: number, parent_hash: Uint8Array);
-  /**
-   * Create a seed with timelock
-   */
-  static newWithTimelock(recipient_pubkey: Uint8Array, amount: number, parent_hash: Uint8Array, relative_min?: bigint | null, relative_max?: bigint | null): WasmSeed;
-  /**
-   * Get the hash of this seed (for debugging)
-   */
-  getHash(): Uint8Array;
-  /**
-   * Get the amount
-   */
-  readonly amount: number;
+  static newSinglePkh(pkh: WasmDigest, gift: number, parent_hash: WasmDigest): WasmSeed;
+  readonly lockRoot: WasmDigest;
+  readonly gift: number;
+  readonly parentHash: WasmDigest;
 }
-/**
- * WASM-compatible Spend wrapper
- */
-export class WasmSpend {
+export class WasmSpendCondition {
+  free(): void;
+  [Symbol.dispose](): void;
+  constructor(primitives: WasmLockPrimitive[]);
+  static newPkh(pkh: WasmPkh): WasmSpendCondition;
+  hash(): WasmDigest;
+}
+export class WasmTimelockRange {
+  free(): void;
+  [Symbol.dispose](): void;
+  constructor(min?: number | null, max?: number | null);
+  readonly min: number | undefined;
+  readonly max: number | undefined;
+}
+export class WasmTxBuilder {
+  private constructor();
   free(): void;
   [Symbol.dispose](): void;
   /**
-   * Create a new spend (unsigned)
-   *
-   * Takes an array of WasmSeed objects and a fee amount
+   * Create a simple transaction builder
    */
-  constructor(seeds: WasmSeed[], fee: number);
+  static newSimple(notes: WasmNote[], spend_condition: WasmSpendCondition, recipient: WasmDigest, gift: number, fee: number, refund_pkh: WasmDigest): WasmTxBuilder;
   /**
-   * Get the signing digest for this spend
-   *
-   * Returns 40 bytes (5 belts) that should be signed with the private key
+   * Sign the transaction with a private key
    */
-  getSigningDigest(): Uint8Array;
-  /**
-   * Add a signature to this spend
-   *
-   * Arguments:
-   * - public_key: 97 bytes
-   * - signature_json: JSON string with format {"chal": "...", "sig": "..."}
-   */
-  addSignature(public_key: Uint8Array, signature_json: string): void;
-  /**
-   * Sign this spend with a private key (convenience method)
-   *
-   * This is equivalent to calling getSigningDigest, signing externally,
-   * and then calling addSignature.
-   */
-  sign(private_key_bytes: Uint8Array): void;
-  /**
-   * Get number of signatures
-   */
-  signatureCount(): number;
-  /**
-   * Get the fee amount
-   */
-  readonly fee: number;
+  sign(signing_key_bytes: Uint8Array): WasmRawTx;
+}
+export class WasmVersion {
+  free(): void;
+  [Symbol.dispose](): void;
+  constructor(version: number);
+  static V0(): WasmVersion;
+  static V1(): WasmVersion;
+  static V2(): WasmVersion;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly __wbg_wasmseed_free: (a: number, b: number) => void;
-  readonly wasmseed_new: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
-  readonly wasmseed_newWithTimelock: (a: number, b: number, c: number, d: number, e: number, f: number, g: bigint, h: number, i: bigint) => [number, number, number];
-  readonly wasmseed_amount: (a: number) => number;
-  readonly wasmseed_getHash: (a: number) => [number, number];
-  readonly __wbg_wasmspend_free: (a: number, b: number) => void;
-  readonly wasmspend_new: (a: number, b: number, c: number) => number;
-  readonly wasmspend_getSigningDigest: (a: number) => [number, number];
-  readonly wasmspend_addSignature: (a: number, b: number, c: number, d: number, e: number) => [number, number];
-  readonly wasmspend_sign: (a: number, b: number, c: number) => [number, number];
-  readonly wasmspend_signatureCount: (a: number) => number;
-  readonly wasmspend_fee: (a: number) => number;
+  readonly __wbg_wasmdigest_free: (a: number, b: number) => void;
+  readonly wasmdigest_new: (a: number, b: number) => number;
+  readonly wasmdigest_value: (a: number) => [number, number];
+  readonly __wbg_wasmversion_free: (a: number, b: number) => void;
+  readonly wasmversion_new: (a: number) => number;
+  readonly wasmversion_V0: () => number;
+  readonly wasmversion_V1: () => number;
+  readonly wasmversion_V2: () => number;
+  readonly __wbg_wasmname_free: (a: number, b: number) => void;
+  readonly wasmname_new: (a: number, b: number, c: number, d: number) => number;
+  readonly wasmname_first: (a: number) => [number, number];
+  readonly wasmname_last: (a: number) => [number, number];
+  readonly __wbg_wasmtimelockrange_free: (a: number, b: number) => void;
+  readonly wasmtimelockrange_new: (a: number, b: number) => number;
+  readonly wasmtimelockrange_min: (a: number) => number;
+  readonly wasmtimelockrange_max: (a: number) => number;
   readonly __wbg_wasmnote_free: (a: number, b: number) => void;
-  readonly wasmnote_new: (a: number, b: bigint, c: number, d: bigint, e: number, f: bigint, g: number, h: number, i: number, j: number, k: number, l: number, m: bigint, n: number, o: number, p: number, q: number) => [number, number, number];
-  readonly wasmnote_getNameFirst: (a: number) => [number, number];
-  readonly wasmnote_getNameLast: (a: number) => [number, number];
-  readonly __wbg_wasminput_free: (a: number, b: number) => void;
-  readonly wasminput_new: (a: number, b: number) => number;
-  readonly wasminput_value: (a: number) => number;
-  readonly wasminput_fee: (a: number) => number;
-  readonly __wbg_wasmrawtx_free: (a: number, b: number) => void;
-  readonly wasmrawtx_new: (a: number, b: number) => [number, number, number];
-  readonly wasmrawtx_getTxId: (a: number) => [number, number];
-  readonly wasmrawtx_getTotalFees: (a: number) => number;
-  readonly wasmrawtx_getInputCount: (a: number) => number;
-  readonly wasmrawtx_serialize: (a: number) => [number, number, number, number];
+  readonly wasmnote_new: (a: number, b: number, c: number, d: number, e: number) => number;
+  readonly wasmnote_version: (a: number) => number;
+  readonly wasmnote_originPage: (a: number) => number;
+  readonly wasmnote_name: (a: number) => number;
+  readonly wasmnote_noteDataHash: (a: number) => number;
   readonly wasmnote_assets: (a: number) => number;
-  readonly __wbindgen_export_0: WebAssembly.Table;
+  readonly wasmnote_hash: (a: number) => number;
+  readonly __wbg_wasmpkh_free: (a: number, b: number) => void;
+  readonly wasmpkh_new: (a: bigint, b: number, c: number) => number;
+  readonly wasmpkh_single: (a: number, b: number) => number;
+  readonly wasmpkh_m: (a: number) => bigint;
+  readonly wasmpkh_hashes: (a: number) => [number, number];
+  readonly __wbg_wasmlocktim_free: (a: number, b: number) => void;
+  readonly wasmlocktim_new: (a: number, b: number) => number;
+  readonly wasmlocktim_coinbase: () => number;
+  readonly wasmlocktim_rel: (a: number) => number;
+  readonly wasmlocktim_abs: (a: number) => number;
+  readonly __wbg_wasmlockprimitive_free: (a: number, b: number) => void;
+  readonly wasmlockprimitive_newPkh: (a: number) => number;
+  readonly wasmlockprimitive_newTim: (a: number) => number;
+  readonly wasmlockprimitive_newBrn: () => number;
+  readonly __wbg_wasmspendcondition_free: (a: number, b: number) => void;
+  readonly wasmspendcondition_new: (a: number, b: number) => number;
+  readonly wasmspendcondition_newPkh: (a: number) => number;
+  readonly wasmspendcondition_hash: (a: number) => [number, number, number];
+  readonly __wbg_wasmseed_free: (a: number, b: number) => void;
+  readonly wasmseed_newSinglePkh: (a: number, b: number, c: number) => number;
+  readonly wasmseed_lockRoot: (a: number) => number;
+  readonly wasmseed_gift: (a: number) => number;
+  readonly wasmseed_parentHash: (a: number) => number;
+  readonly __wbg_wasmtxbuilder_free: (a: number, b: number) => void;
+  readonly wasmtxbuilder_newSimple: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+  readonly wasmtxbuilder_sign: (a: number, b: number, c: number) => [number, number, number];
+  readonly __wbg_wasmrawtx_free: (a: number, b: number) => void;
+  readonly wasmrawtx_version: (a: number) => number;
+  readonly wasmrawtx_id: (a: number) => number;
+  readonly deriveFirstNameFromLockHash: (a: number, b: number) => [number, number];
+  readonly deriveSimpleFirstName: (a: number, b: number) => [number, number];
+  readonly deriveCoinbaseFirstName: (a: number, b: number) => [number, number];
+  readonly __wbg_wasmextendedkey_free: (a: number, b: number) => void;
+  readonly wasmextendedkey_private_key: (a: number) => [number, number];
+  readonly wasmextendedkey_public_key: (a: number) => [number, number];
+  readonly wasmextendedkey_chain_code: (a: number) => [number, number];
+  readonly wasmextendedkey_deriveChild: (a: number, b: number) => [number, number, number];
+  readonly deriveMasterKey: (a: number, b: number) => number;
+  readonly deriveMasterKeyFromMnemonic: (a: number, b: number, c: number, d: number) => [number, number, number];
   readonly __wbindgen_malloc: (a: number, b: number) => number;
-  readonly __externref_table_dealloc: (a: number) => void;
+  readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+  readonly __wbindgen_export_2: WebAssembly.Table;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __externref_table_alloc: () => number;
-  readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+  readonly __externref_drop_slice: (a: number, b: number) => void;
+  readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_start: () => void;
 }
 

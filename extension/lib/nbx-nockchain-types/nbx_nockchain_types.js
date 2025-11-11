@@ -1,5 +1,7 @@
 let wasm;
 
+let WASM_VECTOR_LEN = 0;
+
 let cachedUint8ArrayMemory0 = null;
 
 function getUint8ArrayMemory0() {
@@ -7,76 +9,6 @@ function getUint8ArrayMemory0() {
         cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
     }
     return cachedUint8ArrayMemory0;
-}
-
-function getArrayU8FromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
-}
-
-let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
-
-cachedTextDecoder.decode();
-
-const MAX_SAFARI_DECODE_BYTES = 2146435072;
-let numBytesDecoded = 0;
-function decodeText(ptr, len) {
-    numBytesDecoded += len;
-    if (numBytesDecoded >= MAX_SAFARI_DECODE_BYTES) {
-        cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
-        cachedTextDecoder.decode();
-        numBytesDecoded = len;
-    }
-    return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
-}
-
-function getStringFromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return decodeText(ptr, len);
-}
-
-let WASM_VECTOR_LEN = 0;
-
-function passArray8ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 1, 1) >>> 0;
-    getUint8ArrayMemory0().set(arg, ptr / 1);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
-}
-
-function takeFromExternrefTable0(idx) {
-    const value = wasm.__wbindgen_export_0.get(idx);
-    wasm.__externref_table_dealloc(idx);
-    return value;
-}
-
-function isLikeNone(x) {
-    return x === undefined || x === null;
-}
-
-let cachedDataViewMemory0 = null;
-
-function getDataViewMemory0() {
-    if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || (cachedDataViewMemory0.buffer.detached === undefined && cachedDataViewMemory0.buffer !== wasm.memory.buffer)) {
-        cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
-    }
-    return cachedDataViewMemory0;
-}
-
-function addToExternrefTable0(obj) {
-    const idx = wasm.__externref_table_alloc();
-    wasm.__wbindgen_export_0.set(idx, obj);
-    return idx;
-}
-
-function passArrayJsValueToWasm0(array, malloc) {
-    const ptr = malloc(array.length * 4, 4) >>> 0;
-    for (let i = 0; i < array.length; i++) {
-        const add = addToExternrefTable0(array[i]);
-        getDataViewMemory0().setUint32(ptr + 4 * i, add, true);
-    }
-    WASM_VECTOR_LEN = array.length;
-    return ptr;
 }
 
 const cachedTextEncoder = new TextEncoder();
@@ -131,22 +63,346 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 
+function isLikeNone(x) {
+    return x === undefined || x === null;
+}
+
+let cachedDataViewMemory0 = null;
+
+function getDataViewMemory0() {
+    if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || (cachedDataViewMemory0.buffer.detached === undefined && cachedDataViewMemory0.buffer !== wasm.memory.buffer)) {
+        cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
+    }
+    return cachedDataViewMemory0;
+}
+
+let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+
+cachedTextDecoder.decode();
+
+const MAX_SAFARI_DECODE_BYTES = 2146435072;
+let numBytesDecoded = 0;
+function decodeText(ptr, len) {
+    numBytesDecoded += len;
+    if (numBytesDecoded >= MAX_SAFARI_DECODE_BYTES) {
+        cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+        cachedTextDecoder.decode();
+        numBytesDecoded = len;
+    }
+    return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
+}
+
+function getStringFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return decodeText(ptr, len);
+}
+
 function _assertClass(instance, klass) {
     if (!(instance instanceof klass)) {
         throw new Error(`expected instance of ${klass.name}`);
     }
 }
 
-const WasmInputFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_wasminput_free(ptr >>> 0, 1));
+function addToExternrefTable0(obj) {
+    const idx = wasm.__externref_table_alloc();
+    wasm.__wbindgen_export_2.set(idx, obj);
+    return idx;
+}
+
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    for (let i = 0; i < array.length; i++) {
+        const add = addToExternrefTable0(array[i]);
+        getDataViewMemory0().setUint32(ptr + 4 * i, add, true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
+}
+
+function getArrayJsValueFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    const mem = getDataViewMemory0();
+    const result = [];
+    for (let i = ptr; i < ptr + 4 * len; i += 4) {
+        result.push(wasm.__wbindgen_export_2.get(mem.getUint32(i, true)));
+    }
+    wasm.__externref_drop_slice(ptr, len);
+    return result;
+}
+
+function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_export_2.get(idx);
+    wasm.__externref_table_dealloc(idx);
+    return value;
+}
+
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
 /**
- * WASM-compatible Input wrapper (links a Note to a Spend)
+ * Derive the first-name from a lock hash
+ *
+ * This implements the v1 first-name derivation algorithm:
+ * first-name = hash([true, lock-hash])
+ *
+ * Arguments:
+ * - lock_hash: Base58-encoded digest string (the hash of a lock structure)
+ *
+ * Returns:
+ * - Base58-encoded digest string representing the first-name
+ * @param {string} lock_hash
+ * @returns {string}
  */
-export class WasmInput {
+export function deriveFirstNameFromLockHash(lock_hash) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passStringToWasm0(lock_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.deriveFirstNameFromLockHash(ptr0, len0);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+}
+
+/**
+ * Derive the first-name for a simple PKH-locked note
+ *
+ * Creates a 1-of-1 PKH lock and derives the first-name from it.
+ * Use this for querying regular transaction outputs.
+ *
+ * Arguments:
+ * - pkh_hash: Base58-encoded digest string (TIP5 hash of the public key)
+ *
+ * Returns:
+ * - Base58-encoded digest string representing the first-name
+ * @param {string} pkh_hash
+ * @returns {string}
+ */
+export function deriveSimpleFirstName(pkh_hash) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passStringToWasm0(pkh_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.deriveSimpleFirstName(ptr0, len0);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+}
+
+/**
+ * Derive the first-name for a coinbase (mining reward) note
+ *
+ * Creates a coinbase lock which includes both a PKH lock and a 100-block timelock.
+ * Use this for querying mining rewards.
+ *
+ * Arguments:
+ * - pkh_hash: Base58-encoded digest string (TIP5 hash of the public key)
+ *
+ * Returns:
+ * - Base58-encoded digest string representing the first-name
+ * @param {string} pkh_hash
+ * @returns {string}
+ */
+export function deriveCoinbaseFirstName(pkh_hash) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passStringToWasm0(pkh_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.deriveCoinbaseFirstName(ptr0, len0);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+}
+
+function getArrayU8FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
+}
+/**
+ * Derive master key from seed bytes
+ * @param {Uint8Array} seed
+ * @returns {WasmExtendedKey}
+ */
+export function deriveMasterKey(seed) {
+    const ptr0 = passArray8ToWasm0(seed, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.deriveMasterKey(ptr0, len0);
+    return WasmExtendedKey.__wrap(ret);
+}
+
+/**
+ * Derive master key from BIP39 mnemonic phrase
+ * @param {string} mnemonic
+ * @param {string | null} [passphrase]
+ * @returns {WasmExtendedKey}
+ */
+export function deriveMasterKeyFromMnemonic(mnemonic, passphrase) {
+    const ptr0 = passStringToWasm0(mnemonic, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    var ptr1 = isLikeNone(passphrase) ? 0 : passStringToWasm0(passphrase, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    const ret = wasm.deriveMasterKeyFromMnemonic(ptr0, len0, ptr1, len1);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return WasmExtendedKey.__wrap(ret[0]);
+}
+
+const WasmDigestFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmdigest_free(ptr >>> 0, 1));
+
+export class WasmDigest {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmDigest.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmDigestFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmDigestFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmdigest_free(ptr, 0);
+    }
+    /**
+     * @param {string} value
+     */
+    constructor(value) {
+        const ptr0 = passStringToWasm0(value, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmdigest_new(ptr0, len0);
+        this.__wbg_ptr = ret >>> 0;
+        WasmDigestFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * @returns {string}
+     */
+    get value() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.wasmdigest_value(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+}
+if (Symbol.dispose) WasmDigest.prototype[Symbol.dispose] = WasmDigest.prototype.free;
+
+const WasmExtendedKeyFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmextendedkey_free(ptr >>> 0, 1));
+
+export class WasmExtendedKey {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmExtendedKey.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmExtendedKeyFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmExtendedKeyFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmextendedkey_free(ptr, 0);
+    }
+    /**
+     * @returns {Uint8Array | undefined}
+     */
+    get private_key() {
+        const ret = wasm.wasmextendedkey_private_key(this.__wbg_ptr);
+        let v1;
+        if (ret[0] !== 0) {
+            v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+            wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        }
+        return v1;
+    }
+    /**
+     * @returns {Uint8Array}
+     */
+    get public_key() {
+        const ret = wasm.wasmextendedkey_public_key(this.__wbg_ptr);
+        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        return v1;
+    }
+    /**
+     * @returns {Uint8Array}
+     */
+    get chain_code() {
+        const ret = wasm.wasmextendedkey_chain_code(this.__wbg_ptr);
+        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        return v1;
+    }
+    /**
+     * Derive a child key at the given index
+     * @param {number} index
+     * @returns {WasmExtendedKey}
+     */
+    deriveChild(index) {
+        const ret = wasm.wasmextendedkey_deriveChild(this.__wbg_ptr, index);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return WasmExtendedKey.__wrap(ret[0]);
+    }
+}
+if (Symbol.dispose) WasmExtendedKey.prototype[Symbol.dispose] = WasmExtendedKey.prototype.free;
+
+const WasmLockPrimitiveFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmlockprimitive_free(ptr >>> 0, 1));
+
+export class WasmLockPrimitive {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmLockPrimitive.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmLockPrimitiveFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
 
     static __unwrap(jsValue) {
-        if (!(jsValue instanceof WasmInput)) {
+        if (!(jsValue instanceof WasmLockPrimitive)) {
             return 0;
         }
         return jsValue.__destroy_into_raw();
@@ -155,55 +411,191 @@ export class WasmInput {
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        WasmInputFinalization.unregister(this);
+        WasmLockPrimitiveFinalization.unregister(this);
         return ptr;
     }
 
     free() {
         const ptr = this.__destroy_into_raw();
-        wasm.__wbg_wasminput_free(ptr, 0);
+        wasm.__wbg_wasmlockprimitive_free(ptr, 0);
     }
     /**
-     * Create an input by linking a note (UTXO) to a spend
-     * @param {WasmNote} note
-     * @param {WasmSpend} spend
+     * @param {WasmPkh} pkh
+     * @returns {WasmLockPrimitive}
      */
-    constructor(note, spend) {
-        _assertClass(note, WasmNote);
-        var ptr0 = note.__destroy_into_raw();
-        _assertClass(spend, WasmSpend);
-        var ptr1 = spend.__destroy_into_raw();
-        const ret = wasm.wasminput_new(ptr0, ptr1);
+    static newPkh(pkh) {
+        _assertClass(pkh, WasmPkh);
+        var ptr0 = pkh.__destroy_into_raw();
+        const ret = wasm.wasmlockprimitive_newPkh(ptr0);
+        return WasmLockPrimitive.__wrap(ret);
+    }
+    /**
+     * @param {WasmLockTim} tim
+     * @returns {WasmLockPrimitive}
+     */
+    static newTim(tim) {
+        _assertClass(tim, WasmLockTim);
+        var ptr0 = tim.__destroy_into_raw();
+        const ret = wasm.wasmlockprimitive_newTim(ptr0);
+        return WasmLockPrimitive.__wrap(ret);
+    }
+    /**
+     * @returns {WasmLockPrimitive}
+     */
+    static newBrn() {
+        const ret = wasm.wasmlockprimitive_newBrn();
+        return WasmLockPrimitive.__wrap(ret);
+    }
+}
+if (Symbol.dispose) WasmLockPrimitive.prototype[Symbol.dispose] = WasmLockPrimitive.prototype.free;
+
+const WasmLockTimFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmlocktim_free(ptr >>> 0, 1));
+
+export class WasmLockTim {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmLockTim.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmLockTimFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmLockTimFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmlocktim_free(ptr, 0);
+    }
+    /**
+     * @param {WasmTimelockRange} rel
+     * @param {WasmTimelockRange} abs
+     */
+    constructor(rel, abs) {
+        _assertClass(rel, WasmTimelockRange);
+        var ptr0 = rel.__destroy_into_raw();
+        _assertClass(abs, WasmTimelockRange);
+        var ptr1 = abs.__destroy_into_raw();
+        const ret = wasm.wasmlocktim_new(ptr0, ptr1);
         this.__wbg_ptr = ret >>> 0;
-        WasmInputFinalization.register(this, this.__wbg_ptr, this);
+        WasmLockTimFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
-     * Get the input's value (amount from the note)
-     * @returns {number}
+     * @returns {WasmLockTim}
      */
-    get value() {
-        const ret = wasm.wasminput_value(this.__wbg_ptr);
-        return ret >>> 0;
+    static coinbase() {
+        const ret = wasm.wasmlocktim_coinbase();
+        return WasmLockTim.__wrap(ret);
     }
     /**
-     * Get the fee from the spend
-     * @returns {number}
+     * @returns {WasmTimelockRange}
      */
-    get fee() {
-        const ret = wasm.wasminput_fee(this.__wbg_ptr);
-        return ret >>> 0;
+    get rel() {
+        const ret = wasm.wasmlocktim_rel(this.__wbg_ptr);
+        return WasmTimelockRange.__wrap(ret);
+    }
+    /**
+     * @returns {WasmTimelockRange}
+     */
+    get abs() {
+        const ret = wasm.wasmlocktim_abs(this.__wbg_ptr);
+        return WasmTimelockRange.__wrap(ret);
     }
 }
-if (Symbol.dispose) WasmInput.prototype[Symbol.dispose] = WasmInput.prototype.free;
+if (Symbol.dispose) WasmLockTim.prototype[Symbol.dispose] = WasmLockTim.prototype.free;
+
+const WasmNameFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmname_free(ptr >>> 0, 1));
+
+export class WasmName {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmName.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmNameFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmNameFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmname_free(ptr, 0);
+    }
+    /**
+     * @param {string} first
+     * @param {string} last
+     */
+    constructor(first, last) {
+        const ptr0 = passStringToWasm0(first, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(last, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmname_new(ptr0, len0, ptr1, len1);
+        this.__wbg_ptr = ret >>> 0;
+        WasmNameFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * @returns {string}
+     */
+    get first() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.wasmname_first(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @returns {string}
+     */
+    get last() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.wasmname_last(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+}
+if (Symbol.dispose) WasmName.prototype[Symbol.dispose] = WasmName.prototype.free;
 
 const WasmNoteFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_wasmnote_free(ptr >>> 0, 1));
-/**
- * WASM-compatible Note wrapper (represents a UTXO)
- */
+
 export class WasmNote {
+
+    static __unwrap(jsValue) {
+        if (!(jsValue instanceof WasmNote)) {
+            return 0;
+        }
+        return jsValue.__destroy_into_raw();
+    }
 
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
@@ -217,89 +609,148 @@ export class WasmNote {
         wasm.__wbg_wasmnote_free(ptr, 0);
     }
     /**
-     * Create a note from its constituent parts
-     *
-     * This is typically constructed from data received via RPC query.
-     *
-     * Arguments:
-     * - version: 0, 1, or 2
-     * - origin_page: block height where note was created (u64)
-     * - timelock_min: minimum timelock block height (or null for none)
-     * - timelock_max: maximum timelock block height (or null for none)
-     * - name_first: 40 bytes (first digest of name)
-     * - name_last: 40 bytes (last digest of name)
-     * - lock_pubkeys: JavaScript Array of Uint8Arrays (each 97 bytes)
-     * - lock_keys_required: how many signatures needed (for multisig)
-     * - source_hash: 40 bytes (hash of source transaction)
-     * - source_is_coinbase: boolean
-     * - assets: amount in nicks
-     * @param {number} version
-     * @param {bigint} origin_page
-     * @param {bigint | null | undefined} timelock_min
-     * @param {bigint | null | undefined} timelock_max
-     * @param {Uint8Array} name_first
-     * @param {Uint8Array} name_last
-     * @param {any[]} lock_pubkeys
-     * @param {bigint} lock_keys_required
-     * @param {Uint8Array} source_hash
-     * @param {boolean} source_is_coinbase
+     * @param {WasmVersion} version
+     * @param {number} origin_page
+     * @param {WasmName} name
+     * @param {WasmDigest} note_data_hash
      * @param {number} assets
      */
-    constructor(version, origin_page, timelock_min, timelock_max, name_first, name_last, lock_pubkeys, lock_keys_required, source_hash, source_is_coinbase, assets) {
-        const ptr0 = passArray8ToWasm0(name_first, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passArray8ToWasm0(name_last, wasm.__wbindgen_malloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passArrayJsValueToWasm0(lock_pubkeys, wasm.__wbindgen_malloc);
-        const len2 = WASM_VECTOR_LEN;
-        const ptr3 = passArray8ToWasm0(source_hash, wasm.__wbindgen_malloc);
-        const len3 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmnote_new(version, origin_page, !isLikeNone(timelock_min), isLikeNone(timelock_min) ? BigInt(0) : timelock_min, !isLikeNone(timelock_max), isLikeNone(timelock_max) ? BigInt(0) : timelock_max, ptr0, len0, ptr1, len1, ptr2, len2, lock_keys_required, ptr3, len3, source_is_coinbase, assets);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        this.__wbg_ptr = ret[0] >>> 0;
+    constructor(version, origin_page, name, note_data_hash, assets) {
+        _assertClass(version, WasmVersion);
+        var ptr0 = version.__destroy_into_raw();
+        _assertClass(name, WasmName);
+        var ptr1 = name.__destroy_into_raw();
+        _assertClass(note_data_hash, WasmDigest);
+        var ptr2 = note_data_hash.__destroy_into_raw();
+        const ret = wasm.wasmnote_new(ptr0, origin_page, ptr1, ptr2, assets);
+        this.__wbg_ptr = ret >>> 0;
         WasmNoteFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
-     * Get the note's amount
+     * @returns {WasmVersion}
+     */
+    get version() {
+        const ret = wasm.wasmnote_version(this.__wbg_ptr);
+        return WasmVersion.__wrap(ret);
+    }
+    /**
      * @returns {number}
      */
-    get assets() {
-        const ret = wasm.wasminput_value(this.__wbg_ptr);
+    get originPage() {
+        const ret = wasm.wasmnote_originPage(this.__wbg_ptr);
         return ret >>> 0;
     }
     /**
-     * Get the note's name (first part) as 40 bytes
-     * @returns {Uint8Array}
+     * @returns {WasmName}
      */
-    getNameFirst() {
-        const ret = wasm.wasmnote_getNameFirst(this.__wbg_ptr);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
+    get name() {
+        const ret = wasm.wasmnote_name(this.__wbg_ptr);
+        return WasmName.__wrap(ret);
     }
     /**
-     * Get the note's name (last part) as 40 bytes
-     * @returns {Uint8Array}
+     * @returns {WasmDigest}
      */
-    getNameLast() {
-        const ret = wasm.wasmnote_getNameLast(this.__wbg_ptr);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
+    get noteDataHash() {
+        const ret = wasm.wasmnote_noteDataHash(this.__wbg_ptr);
+        return WasmDigest.__wrap(ret);
+    }
+    /**
+     * @returns {number}
+     */
+    get assets() {
+        const ret = wasm.wasmnote_assets(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {WasmDigest}
+     */
+    hash() {
+        const ret = wasm.wasmnote_hash(this.__wbg_ptr);
+        return WasmDigest.__wrap(ret);
     }
 }
 if (Symbol.dispose) WasmNote.prototype[Symbol.dispose] = WasmNote.prototype.free;
 
+const WasmPkhFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmpkh_free(ptr >>> 0, 1));
+
+export class WasmPkh {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmPkh.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmPkhFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmPkhFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmpkh_free(ptr, 0);
+    }
+    /**
+     * @param {bigint} m
+     * @param {string[]} hashes
+     */
+    constructor(m, hashes) {
+        const ptr0 = passArrayJsValueToWasm0(hashes, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmpkh_new(m, ptr0, len0);
+        this.__wbg_ptr = ret >>> 0;
+        WasmPkhFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * @param {string} hash
+     * @returns {WasmPkh}
+     */
+    static single(hash) {
+        const ptr0 = passStringToWasm0(hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmpkh_single(ptr0, len0);
+        return WasmPkh.__wrap(ret);
+    }
+    /**
+     * @returns {bigint}
+     */
+    get m() {
+        const ret = wasm.wasmpkh_m(this.__wbg_ptr);
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * @returns {string[]}
+     */
+    get hashes() {
+        const ret = wasm.wasmpkh_hashes(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+}
+if (Symbol.dispose) WasmPkh.prototype[Symbol.dispose] = WasmPkh.prototype.free;
+
 const WasmRawTxFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_wasmrawtx_free(ptr >>> 0, 1));
-/**
- * WASM-compatible RawTx wrapper (complete transaction)
- */
+
 export class WasmRawTx {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmRawTx.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmRawTxFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
 
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
@@ -313,63 +764,18 @@ export class WasmRawTx {
         wasm.__wbg_wasmrawtx_free(ptr, 0);
     }
     /**
-     * Create a complete transaction from inputs
-     *
-     * This calculates the transaction ID and aggregates fees/timelocks
-     * @param {WasmInput[]} inputs
+     * @returns {WasmVersion}
      */
-    constructor(inputs) {
-        const ptr0 = passArrayJsValueToWasm0(inputs, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmrawtx_new(ptr0, len0);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        this.__wbg_ptr = ret[0] >>> 0;
-        WasmRawTxFinalization.register(this, this.__wbg_ptr, this);
-        return this;
+    get version() {
+        const ret = wasm.wasmrawtx_version(this.__wbg_ptr);
+        return WasmVersion.__wrap(ret);
     }
     /**
-     * Get the transaction ID (40 bytes)
-     * @returns {Uint8Array}
+     * @returns {WasmDigest}
      */
-    getTxId() {
-        const ret = wasm.wasmrawtx_getTxId(this.__wbg_ptr);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
-    }
-    /**
-     * Get total fees for this transaction
-     * @returns {number}
-     */
-    getTotalFees() {
-        const ret = wasm.wasmrawtx_getTotalFees(this.__wbg_ptr);
-        return ret >>> 0;
-    }
-    /**
-     * Get number of inputs
-     * @returns {number}
-     */
-    getInputCount() {
-        const ret = wasm.wasmrawtx_getInputCount(this.__wbg_ptr);
-        return ret >>> 0;
-    }
-    /**
-     * Serialize transaction to bytes for network broadcast
-     *
-     * Returns the transaction serialized in the network wire format
-     * TODO: Implement proper network serialization format
-     * @returns {Uint8Array}
-     */
-    serialize() {
-        const ret = wasm.wasmrawtx_serialize(this.__wbg_ptr);
-        if (ret[3]) {
-            throw takeFromExternrefTable0(ret[2]);
-        }
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
+    get id() {
+        const ret = wasm.wasmrawtx_id(this.__wbg_ptr);
+        return WasmDigest.__wrap(ret);
     }
 }
 if (Symbol.dispose) WasmRawTx.prototype[Symbol.dispose] = WasmRawTx.prototype.free;
@@ -377,9 +783,7 @@ if (Symbol.dispose) WasmRawTx.prototype[Symbol.dispose] = WasmRawTx.prototype.fr
 const WasmSeedFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_wasmseed_free(ptr >>> 0, 1));
-/**
- * WASM-compatible Seed wrapper
- */
+
 export class WasmSeed {
 
     static __wrap(ptr) {
@@ -388,13 +792,6 @@ export class WasmSeed {
         obj.__wbg_ptr = ptr;
         WasmSeedFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
-    }
-
-    static __unwrap(jsValue) {
-        if (!(jsValue instanceof WasmSeed)) {
-            return 0;
-        }
-        return jsValue.__destroy_into_raw();
     }
 
     __destroy_into_raw() {
@@ -409,168 +806,277 @@ export class WasmSeed {
         wasm.__wbg_wasmseed_free(ptr, 0);
     }
     /**
-     * Create a simple seed (payment to a single pubkey)
-     *
-     * Arguments:
-     * - recipient_pubkey: 97 bytes
-     * - amount: amount in nicks (smallest unit)
-     * - parent_hash: 40 bytes (5 belts × 8 bytes)
-     * @param {Uint8Array} recipient_pubkey
-     * @param {number} amount
-     * @param {Uint8Array} parent_hash
-     */
-    constructor(recipient_pubkey, amount, parent_hash) {
-        const ptr0 = passArray8ToWasm0(recipient_pubkey, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passArray8ToWasm0(parent_hash, wasm.__wbindgen_malloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmseed_new(ptr0, len0, amount, ptr1, len1);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        this.__wbg_ptr = ret[0] >>> 0;
-        WasmSeedFinalization.register(this, this.__wbg_ptr, this);
-        return this;
-    }
-    /**
-     * Create a seed with timelock
-     * @param {Uint8Array} recipient_pubkey
-     * @param {number} amount
-     * @param {Uint8Array} parent_hash
-     * @param {bigint | null} [relative_min]
-     * @param {bigint | null} [relative_max]
+     * @param {WasmDigest} pkh
+     * @param {number} gift
+     * @param {WasmDigest} parent_hash
      * @returns {WasmSeed}
      */
-    static newWithTimelock(recipient_pubkey, amount, parent_hash, relative_min, relative_max) {
-        const ptr0 = passArray8ToWasm0(recipient_pubkey, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passArray8ToWasm0(parent_hash, wasm.__wbindgen_malloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmseed_newWithTimelock(ptr0, len0, amount, ptr1, len1, !isLikeNone(relative_min), isLikeNone(relative_min) ? BigInt(0) : relative_min, !isLikeNone(relative_max), isLikeNone(relative_max) ? BigInt(0) : relative_max);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        return WasmSeed.__wrap(ret[0]);
+    static newSinglePkh(pkh, gift, parent_hash) {
+        _assertClass(pkh, WasmDigest);
+        var ptr0 = pkh.__destroy_into_raw();
+        _assertClass(parent_hash, WasmDigest);
+        var ptr1 = parent_hash.__destroy_into_raw();
+        const ret = wasm.wasmseed_newSinglePkh(ptr0, gift, ptr1);
+        return WasmSeed.__wrap(ret);
     }
     /**
-     * Get the amount
+     * @returns {WasmDigest}
+     */
+    get lockRoot() {
+        const ret = wasm.wasmseed_lockRoot(this.__wbg_ptr);
+        return WasmDigest.__wrap(ret);
+    }
+    /**
      * @returns {number}
      */
-    get amount() {
-        const ret = wasm.wasmseed_amount(this.__wbg_ptr);
+    get gift() {
+        const ret = wasm.wasmseed_gift(this.__wbg_ptr);
         return ret >>> 0;
     }
     /**
-     * Get the hash of this seed (for debugging)
-     * @returns {Uint8Array}
+     * @returns {WasmDigest}
      */
-    getHash() {
-        const ret = wasm.wasmseed_getHash(this.__wbg_ptr);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
+    get parentHash() {
+        const ret = wasm.wasmseed_parentHash(this.__wbg_ptr);
+        return WasmDigest.__wrap(ret);
     }
 }
 if (Symbol.dispose) WasmSeed.prototype[Symbol.dispose] = WasmSeed.prototype.free;
 
-const WasmSpendFinalization = (typeof FinalizationRegistry === 'undefined')
+const WasmSpendConditionFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_wasmspend_free(ptr >>> 0, 1));
-/**
- * WASM-compatible Spend wrapper
- */
-export class WasmSpend {
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmspendcondition_free(ptr >>> 0, 1));
+
+export class WasmSpendCondition {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmSpendCondition.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmSpendConditionFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
 
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        WasmSpendFinalization.unregister(this);
+        WasmSpendConditionFinalization.unregister(this);
         return ptr;
     }
 
     free() {
         const ptr = this.__destroy_into_raw();
-        wasm.__wbg_wasmspend_free(ptr, 0);
+        wasm.__wbg_wasmspendcondition_free(ptr, 0);
     }
     /**
-     * Create a new spend (unsigned)
-     *
-     * Takes an array of WasmSeed objects and a fee amount
-     * @param {WasmSeed[]} seeds
-     * @param {number} fee
+     * @param {WasmLockPrimitive[]} primitives
      */
-    constructor(seeds, fee) {
-        const ptr0 = passArrayJsValueToWasm0(seeds, wasm.__wbindgen_malloc);
+    constructor(primitives) {
+        const ptr0 = passArrayJsValueToWasm0(primitives, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmspend_new(ptr0, len0, fee);
+        const ret = wasm.wasmspendcondition_new(ptr0, len0);
         this.__wbg_ptr = ret >>> 0;
-        WasmSpendFinalization.register(this, this.__wbg_ptr, this);
+        WasmSpendConditionFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
-     * Get the signing digest for this spend
-     *
-     * Returns 40 bytes (5 belts) that should be signed with the private key
-     * @returns {Uint8Array}
+     * @param {WasmPkh} pkh
+     * @returns {WasmSpendCondition}
      */
-    getSigningDigest() {
-        const ret = wasm.wasmspend_getSigningDigest(this.__wbg_ptr);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
+    static newPkh(pkh) {
+        _assertClass(pkh, WasmPkh);
+        var ptr0 = pkh.__destroy_into_raw();
+        const ret = wasm.wasmspendcondition_newPkh(ptr0);
+        return WasmSpendCondition.__wrap(ret);
     }
     /**
-     * Add a signature to this spend
-     *
-     * Arguments:
-     * - public_key: 97 bytes
-     * - signature_json: JSON string with format {"chal": "...", "sig": "..."}
-     * @param {Uint8Array} public_key
-     * @param {string} signature_json
+     * @returns {WasmDigest}
      */
-    addSignature(public_key, signature_json) {
-        const ptr0 = passArray8ToWasm0(public_key, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(signature_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmspend_addSignature(this.__wbg_ptr, ptr0, len0, ptr1, len1);
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
+    hash() {
+        const ret = wasm.wasmspendcondition_hash(this.__wbg_ptr);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
         }
-    }
-    /**
-     * Sign this spend with a private key (convenience method)
-     *
-     * This is equivalent to calling getSigningDigest, signing externally,
-     * and then calling addSignature.
-     * @param {Uint8Array} private_key_bytes
-     */
-    sign(private_key_bytes) {
-        const ptr0 = passArray8ToWasm0(private_key_bytes, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmspend_sign(this.__wbg_ptr, ptr0, len0);
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
-        }
-    }
-    /**
-     * Get number of signatures
-     * @returns {number}
-     */
-    signatureCount() {
-        const ret = wasm.wasmspend_signatureCount(this.__wbg_ptr);
-        return ret >>> 0;
-    }
-    /**
-     * Get the fee amount
-     * @returns {number}
-     */
-    get fee() {
-        const ret = wasm.wasmspend_fee(this.__wbg_ptr);
-        return ret >>> 0;
+        return WasmDigest.__wrap(ret[0]);
     }
 }
-if (Symbol.dispose) WasmSpend.prototype[Symbol.dispose] = WasmSpend.prototype.free;
+if (Symbol.dispose) WasmSpendCondition.prototype[Symbol.dispose] = WasmSpendCondition.prototype.free;
+
+const WasmTimelockRangeFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmtimelockrange_free(ptr >>> 0, 1));
+
+export class WasmTimelockRange {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmTimelockRange.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmTimelockRangeFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmTimelockRangeFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmtimelockrange_free(ptr, 0);
+    }
+    /**
+     * @param {number | null} [min]
+     * @param {number | null} [max]
+     */
+    constructor(min, max) {
+        const ret = wasm.wasmtimelockrange_new(isLikeNone(min) ? 0x100000001 : (min) >>> 0, isLikeNone(max) ? 0x100000001 : (max) >>> 0);
+        this.__wbg_ptr = ret >>> 0;
+        WasmTimelockRangeFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * @returns {number | undefined}
+     */
+    get min() {
+        const ret = wasm.wasmtimelockrange_min(this.__wbg_ptr);
+        return ret === 0x100000001 ? undefined : ret;
+    }
+    /**
+     * @returns {number | undefined}
+     */
+    get max() {
+        const ret = wasm.wasmtimelockrange_max(this.__wbg_ptr);
+        return ret === 0x100000001 ? undefined : ret;
+    }
+}
+if (Symbol.dispose) WasmTimelockRange.prototype[Symbol.dispose] = WasmTimelockRange.prototype.free;
+
+const WasmTxBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmtxbuilder_free(ptr >>> 0, 1));
+
+export class WasmTxBuilder {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmTxBuilder.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmTxBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmTxBuilderFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmtxbuilder_free(ptr, 0);
+    }
+    /**
+     * Create a simple transaction builder
+     * @param {WasmNote[]} notes
+     * @param {WasmSpendCondition} spend_condition
+     * @param {WasmDigest} recipient
+     * @param {number} gift
+     * @param {number} fee
+     * @param {WasmDigest} refund_pkh
+     * @returns {WasmTxBuilder}
+     */
+    static newSimple(notes, spend_condition, recipient, gift, fee, refund_pkh) {
+        const ptr0 = passArrayJsValueToWasm0(notes, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        _assertClass(spend_condition, WasmSpendCondition);
+        _assertClass(recipient, WasmDigest);
+        var ptr1 = recipient.__destroy_into_raw();
+        _assertClass(refund_pkh, WasmDigest);
+        var ptr2 = refund_pkh.__destroy_into_raw();
+        const ret = wasm.wasmtxbuilder_newSimple(ptr0, len0, spend_condition.__wbg_ptr, ptr1, gift, fee, ptr2);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return WasmTxBuilder.__wrap(ret[0]);
+    }
+    /**
+     * Sign the transaction with a private key
+     * @param {Uint8Array} signing_key_bytes
+     * @returns {WasmRawTx}
+     */
+    sign(signing_key_bytes) {
+        const ptr0 = passArray8ToWasm0(signing_key_bytes, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmtxbuilder_sign(this.__wbg_ptr, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return WasmRawTx.__wrap(ret[0]);
+    }
+}
+if (Symbol.dispose) WasmTxBuilder.prototype[Symbol.dispose] = WasmTxBuilder.prototype.free;
+
+const WasmVersionFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmversion_free(ptr >>> 0, 1));
+
+export class WasmVersion {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(WasmVersion.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmVersionFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmVersionFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmversion_free(ptr, 0);
+    }
+    /**
+     * @param {number} version
+     */
+    constructor(version) {
+        const ret = wasm.wasmversion_new(version);
+        this.__wbg_ptr = ret >>> 0;
+        WasmVersionFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * @returns {WasmVersion}
+     */
+    static V0() {
+        const ret = wasm.wasmversion_V0();
+        return WasmVersion.__wrap(ret);
+    }
+    /**
+     * @returns {WasmVersion}
+     */
+    static V1() {
+        const ret = wasm.wasmversion_V1();
+        return WasmVersion.__wrap(ret);
+    }
+    /**
+     * @returns {WasmVersion}
+     */
+    static V2() {
+        const ret = wasm.wasmversion_V2();
+        return WasmVersion.__wrap(ret);
+    }
+}
+if (Symbol.dispose) WasmVersion.prototype[Symbol.dispose] = WasmVersion.prototype.free;
 
 const EXPECTED_RESPONSE_TYPES = new Set(['basic', 'cors', 'default']);
 
@@ -610,20 +1116,21 @@ async function __wbg_load(module, imports) {
 function __wbg_get_imports() {
     const imports = {};
     imports.wbg = {};
-    imports.wbg.__wbg_length_6bb7e81f9d7713e4 = function(arg0) {
-        const ret = arg0.length;
+    imports.wbg.__wbg_wasmlockprimitive_unwrap = function(arg0) {
+        const ret = WasmLockPrimitive.__unwrap(arg0);
         return ret;
     };
-    imports.wbg.__wbg_prototypesetcall_3d4a26c1ed734349 = function(arg0, arg1, arg2) {
-        Uint8Array.prototype.set.call(getArrayU8FromWasm0(arg0, arg1), arg2);
-    };
-    imports.wbg.__wbg_wasminput_unwrap = function(arg0) {
-        const ret = WasmInput.__unwrap(arg0);
+    imports.wbg.__wbg_wasmnote_unwrap = function(arg0) {
+        const ret = WasmNote.__unwrap(arg0);
         return ret;
     };
-    imports.wbg.__wbg_wasmseed_unwrap = function(arg0) {
-        const ret = WasmSeed.__unwrap(arg0);
-        return ret;
+    imports.wbg.__wbg_wbindgenstringget_0f16a6ddddef376f = function(arg0, arg1) {
+        const obj = arg1;
+        const ret = typeof(obj) === 'string' ? obj : undefined;
+        var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+        getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
     };
     imports.wbg.__wbg_wbindgenthrow_451ec1a8469d7eb6 = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
@@ -634,7 +1141,7 @@ function __wbg_get_imports() {
         return ret;
     };
     imports.wbg.__wbindgen_init_externref_table = function() {
-        const table = wasm.__wbindgen_export_0;
+        const table = wasm.__wbindgen_export_2;
         const offset = table.grow(4);
         table.set(0, undefined);
         table.set(offset + 0, undefined);
