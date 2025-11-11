@@ -53,28 +53,35 @@ export function SignMessageScreen() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={handleDecline}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="transition-colors"
+          style={{ color: 'var(--color-text-primary)' }}
         >
           <ChevronLeftIcon />
         </button>
-        <h2 className="text-xl font-semibold">Sign Message</h2>
+        <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          Sign Message
+        </h2>
       </div>
 
       {/* Site Origin */}
       <div className="mb-6">
-        <label className="text-sm text-gray-400 block mb-2">
+        <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
           Requesting Site
         </label>
-        <div className="bg-gray-800 rounded-lg p-3">
-          <p className="text-sm font-medium break-all">{origin}</p>
+        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+          <p className="text-sm font-medium break-all" style={{ color: 'var(--color-text-primary)' }}>
+            {origin}
+          </p>
         </div>
       </div>
 
       {/* Message Content */}
       <div className="mb-6">
-        <label className="text-sm text-gray-400 block mb-2">Message</label>
-        <div className="bg-gray-800 rounded-lg p-4 max-h-48 overflow-y-auto">
-          <pre className="text-sm whitespace-pre-wrap break-words font-mono">
+        <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
+          Message
+        </label>
+        <div className="rounded-lg p-4 max-h-48 overflow-y-auto" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+          <pre className="text-sm whitespace-pre-wrap break-words font-mono" style={{ color: 'var(--color-text-primary)' }}>
             {message}
           </pre>
         </div>
@@ -82,14 +89,14 @@ export function SignMessageScreen() {
 
       {/* Account Info */}
       <div className="mb-6">
-        <label className="text-sm text-gray-400 block mb-2">
+        <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
           Signing Account
         </label>
-        <div className="bg-gray-800 rounded-lg p-3">
-          <p className="text-sm font-medium">
+        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+          <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
             {currentAccount?.name || "Unknown"}
           </p>
-          <p className="text-xs text-gray-500 font-mono mt-1">
+          <p className="text-xs font-mono mt-1" style={{ color: 'var(--color-text-muted)' }}>
             {truncateAddress(currentAccount?.address)}
           </p>
         </div>

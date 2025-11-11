@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { STORAGE_KEYS, INTERNAL_METHODS } from '../../shared/constants';
 import { send } from '../utils/messaging';
 import FortNockLogo from '../assets/fort-nock-logo.svg';
-import CloseIcon from '../assets/close-x-icon.svg';
+import { CloseIcon } from '../components/icons/CloseIcon';
 
 export function WalletPermissionsScreen() {
   const { navigate } = useStore();
@@ -33,9 +33,15 @@ export function WalletPermissionsScreen() {
   }
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black overflow-y-auto">
+    <div
+      className="w-[357px] h-[600px] flex flex-col overflow-y-auto"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <div className="w-8 h-8 flex items-center justify-center shrink-0">
           <img src={FortNockLogo} alt="Fort Nock" className="w-6 h-6" />
         </div>
@@ -45,10 +51,13 @@ export function WalletPermissionsScreen() {
         <button
           type="button"
           onClick={handleClose}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 shrink-0"
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 shrink-0"
+          style={{ color: 'var(--color-text-primary)' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
           aria-label="Close"
         >
-          <img src={CloseIcon} alt="" className="w-4 h-4" />
+          <CloseIcon />
         </button>
       </header>
 
@@ -59,12 +68,19 @@ export function WalletPermissionsScreen() {
             approvedOrigins.map(origin => (
               <div
                 key={origin}
-                className="flex items-center justify-between p-2 rounded-lg transition-colors hover:bg-[#F2F2F0]"
+                className="flex items-center justify-between p-2 rounded-lg transition-colors"
+                onMouseEnter={e =>
+                  (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')
+                }
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <div className="flex items-center gap-2.5 flex-1 min-w-0">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
                     {/* Site icon placeholder (first letter) */}
-                    <div className="w-5 h-5 flex items-center justify-center text-[12px] font-semibold text-[#707070]">
+                    <div
+                      className="w-5 h-5 flex items-center justify-center text-[12px] font-semibold"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       {origin.charAt(0).toUpperCase()}
                     </div>
                   </div>
@@ -77,8 +93,12 @@ export function WalletPermissionsScreen() {
                   type="button"
                   title="Revoke permissions"
                   onClick={() => handleRevoke(origin)}
-                  className="w-8 h-8 bg-[#FFE5E3] rounded-lg flex items-center justify-center p-1.5 transition-colors hover:bg-[#FFD0CC] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 shrink-0"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 transition-colors focus:outline-none focus-visible:ring-2 shrink-0"
+                  style={{ backgroundColor: 'var(--color-red-light)' }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                 >
+                  {/* TODO */}
                   <img
                     src={CloseIcon}
                     alt="Revoke"
@@ -89,7 +109,10 @@ export function WalletPermissionsScreen() {
             ))
           ) : (
             <div className="flex items-center justify-center text-center px-4 py-10">
-              <p className="m-0 text-sm font-normal leading-[18px] tracking-[0.14px] text-[#707070]">
+              <p
+                className="m-0 text-sm font-normal leading-[18px] tracking-[0.14px]"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 No connected sites
               </p>
             </div>

@@ -20,24 +20,41 @@ export function ReceiveScreen() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate('home')}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="transition-colors"
+          style={{ color: 'var(--color-text-primary)' }}
         >
           <ChevronLeftIcon />
         </button>
-        <h2 className="text-xl font-semibold">Receive NOCK</h2>
+        <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          Receive NOCK
+        </h2>
       </div>
 
       {/* Address section */}
       <div className="mb-6">
-        <h3 className="text-center text-gray-300 mb-4">Your Address</h3>
-        <div className="bg-gray-800 rounded-lg p-4 mb-4">
-          <p className="text-sm font-mono break-all text-gray-200">{address}</p>
+        <h3 className="text-center mb-4" style={{ color: 'var(--color-text-primary)' }}>
+          Your Address
+        </h3>
+        <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+          <p className="text-sm font-mono break-all" style={{ color: 'var(--color-text-primary)' }}>
+            {address}
+          </p>
         </div>
 
         {/* Copy button */}
         <button
           onClick={() => copyToClipboard(address)}
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+          style={{
+            backgroundColor: 'var(--color-primary)',
+            color: '#000'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '0.9';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '1';
+          }}
         >
           <CopyIcon />
           {copied ? 'Copied!' : 'Copy Address'}
@@ -45,9 +62,11 @@ export function ReceiveScreen() {
       </div>
 
       {/* Instructions */}
-      <div className="bg-gray-900 rounded-lg p-4 mb-6">
-        <h4 className="text-sm font-semibold mb-2">How to receive NOCK:</h4>
-        <ul className="text-sm text-gray-400 space-y-1">
+      <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: 'var(--color-surface-900)' }}>
+        <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
+          How to receive NOCK:
+        </h4>
+        <ul className="text-sm space-y-1" style={{ color: 'var(--color-text-muted)' }}>
           <li>• Share this address with the sender</li>
           <li>• Transactions will appear in your wallet</li>
         </ul>

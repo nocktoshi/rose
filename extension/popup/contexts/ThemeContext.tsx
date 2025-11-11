@@ -17,7 +17,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const STORAGE_KEY = 'fort-nock-theme';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
+  const [theme, setThemeState] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
   // Load theme from storage on mount
@@ -27,6 +27,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (savedTheme) {
         setThemeState(savedTheme);
         applyTheme(savedTheme);
+      } else {
+        // No saved theme, apply the default light theme
+        applyTheme('light');
       }
       setMounted(true);
     });

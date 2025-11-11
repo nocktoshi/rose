@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useStore } from '../store';
 import { truncateAddress } from '../utils/format';
 import { AccountIcon } from '../components/AccountIcon';
+import { send } from '../utils/messaging';
+import { INTERNAL_METHODS } from '../../shared/constants';
 import FortNockLogo40 from '../assets/fort-nock-logo-40.svg';
-import ArrowLeftIcon from '../assets/arrow-left-icon.svg';
-import ArrowRightIcon from '../assets/arrow-right-icon.svg';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 
 export function SendReviewScreen() {
   const { navigate, wallet, lastTransaction } = useStore();
@@ -26,39 +29,102 @@ export function SendReviewScreen() {
   const toAddress = truncateAddress(lastTransaction.to);
   const networkFee = `${lastTransaction.fee} NOCK`;
 
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState('');
+
   function handleBack() {
     navigate('send');
   }
   function handleCancel() {
     navigate('send');
   }
-  function handleSend() {
-    console.log('Sending transaction...');
+  async function handleSend() {
+    if (!lastTransaction) return;
+
+    // TODO: Wire up transaction broadcasting
+    /*
+    setIsSending(true);
+    setError('');
+
+    try {
+      console.log('[SendReview] Signing transaction...');
+
+      // Call vault to sign transaction (will fetch UTXOs and build real tx)
+      const result = await send<{ txid?: string; error?: string }>(
+        INTERNAL_METHODS.SIGN_TRANSACTION,
+        [lastTransaction.to, lastTransaction.amount, lastTransaction.fee]
+      );
+
+      if (result?.error) {
+        setError(result.error);
+        setIsSending(false);
+        return;
+      }
+
+      if (result?.txid) {
+        console.log('[SendReview] Transaction signed! txid:', result.txid);
+
+        // Update lastTransaction with real txid
+        useStore.getState().setLastTransaction({
+          ...lastTransaction,
+          txid: result.txid,
+        });
+
+        // Navigate to success screen
+        navigate('send-submitted');
+      }
+    } catch (err) {
+      console.error('[SendReview] Error signing transaction:', err);
+      setError(err instanceof Error ? err.message : 'Failed to sign transaction');
+      setIsSending(false);
+    }
+    */
+
+    // Temporary: Just navigate to success screen for styling
+    useStore.getState().setLastTransaction({
+      ...lastTransaction,
+      txid: 'mock-txid-' + Date.now(),
+    });
     navigate('send-submitted');
   }
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black">
+    <div
+      className="w-[357px] h-[600px] flex flex-col"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <button
           type="button"
           onClick={handleBack}
           aria-label="Back"
-          className="w-8 h-8 rounded-lg p-2 flex items-center justify-center transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+          className="w-8 h-8 rounded-lg p-2 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2"
+          style={{ backgroundColor: 'transparent' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <img src={ArrowLeftIcon} alt="" className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">Review</h1>
         <div className="w-8 h-8" />
       </header>
 
       {/* Content */}
-      <div className="flex flex-col justify-between h-[536px] bg-white">
+      <div
+        className="flex flex-col justify-between h-[536px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <div className="flex flex-col gap-8 px-4 py-2">
           {/* Amount Section */}
           <div className="flex flex-col items-center gap-3 w-full">
-            <div className="w-10 h-10 rounded-lg bg-white grid place-items-center">
+            <div
+              className="w-10 h-10 rounded-lg grid place-items-center"
+              style={{ backgroundColor: 'var(--color-surface-800)' }}
+            >
               <AccountIcon
                 styleId={currentAccount?.iconStyleId}
                 color={currentAccount?.iconColor}
@@ -67,9 +133,12 @@ export function SendReviewScreen() {
             </div>
             <div className="flex flex-col items-center gap-0.5 w-full text-center">
               <h2 className="m-0 font-[Lora] text-[36px] font-semibold leading-10 tracking-[-0.72px]">
-                {amount} <span className="text-[#707070]">NOCK</span>
+                {amount} <span style={{ color: 'var(--color-text-muted)' }}>NOCK</span>
               </h2>
-              <p className="m-0 text-[13px] font-medium leading-[18px] tracking-[0.26px] text-[#707070]">
+              <p
+                className="m-0 text-[13px] font-medium leading-[18px] tracking-[0.26px]"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 {usdValue}
               </p>
             </div>
@@ -78,26 +147,38 @@ export function SendReviewScreen() {
           {/* Details */}
           <div className="flex flex-col gap-2 w-full">
             {/* From/To */}
-            <div className="bg-[#F2F2F0] rounded-lg p-3 flex items-center gap-2.5">
+            <div
+              className="rounded-lg p-3 flex items-center gap-2.5"
+              style={{ backgroundColor: 'var(--color-surface-800)' }}
+            >
               <div className="flex-1 flex flex-col gap-1 min-w-0">
                 <div className="text-sm font-medium leading-[18px] tracking-[0.14px]">From</div>
-                <div className="text-[13px] leading-[18px] tracking-[0.26px] text-[#707070] truncate">
+                <div
+                  className="text-[13px] leading-[18px] tracking-[0.26px] truncate"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   {fromAddress}
                 </div>
               </div>
               <div className="p-1 shrink-0">
-                <img src={ArrowRightIcon} alt="" className="h-4 w-auto" />
+                <ChevronRightIcon className="w-4 h-4" />
               </div>
               <div className="flex-1 flex flex-col gap-1 min-w-0">
                 <div className="text-sm font-medium leading-[18px] tracking-[0.14px]">To</div>
-                <div className="text-[13px] leading-[18px] tracking-[0.26px] text-[#707070] truncate">
+                <div
+                  className="text-[13px] leading-[18px] tracking-[0.26px] truncate"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   {toAddress}
                 </div>
               </div>
             </div>
 
             {/* Network fee */}
-            <div className="bg-[#F2F2F0] rounded-lg px-3 py-5">
+            <div
+              className="rounded-lg px-3 py-5"
+              style={{ backgroundColor: 'var(--color-surface-800)' }}
+            >
               <div className="flex items-center justify-between w-full">
                 <div className="text-sm font-medium leading-[18px] tracking-[0.14px]">
                   Network fee
@@ -111,20 +192,33 @@ export function SendReviewScreen() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 px-4 py-3 border-t border-[#EBEBE9]">
+        <div
+          className="flex gap-3 px-4 py-3"
+          style={{ borderTop: '1px solid var(--color-divider)' }}
+        >
           <button
             type="button"
             onClick={handleCancel}
-            className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] bg-[#EBEBE9] text-black transition-opacity hover:opacity-90 active:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+            className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity focus:outline-none focus-visible:ring-2"
+            style={{
+              backgroundColor: 'var(--color-surface-800)',
+              color: 'var(--color-text-primary)',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSend}
-            className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] bg-black text-white transition-opacity hover:opacity-90 active:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+            disabled={isSending}
+            className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity focus:outline-none focus-visible:ring-2"
+            style={{ backgroundColor: 'var(--color-primary)', color: '#000' }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
-            Send
+            {isSending ? 'Sending...' : 'Send'}
           </button>
         </div>
       </div>

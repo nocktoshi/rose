@@ -15,7 +15,7 @@
 
   /* Brand Colors */
   --color-primary: #ffc413;
-  --color-green: #4ccd3c;
+  --color-green: #7fcc48;
   --color-red: #ff7373;
   --color-red-light: #412322;
 
@@ -35,7 +35,7 @@
   --color-tx-icon: #222222;
 
   /* Modals */
-  --color-modal-overlay: #050505cc;
+  --color-modal-overlay: #05050533;
   --color-popover: #05050566;
 
   /* Font Families */
@@ -118,7 +118,7 @@ html.light {
   --color-tx-icon: #f2f2f0;
 
   /* Modals Light Mode */
-  --color-modal-overlay: #00000066;
+  --color-modal-overlay: #00000014;
   --color-popover: #ffffff66;
 }
 
@@ -130,6 +130,11 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   letter-spacing: var(--letter-spacing-normal);
+}
+
+/* Ensure all buttons show pointer cursor */
+button {
+  cursor: pointer;
 }
 
 /* Hide scrollbars globally */

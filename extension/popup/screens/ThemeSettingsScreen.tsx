@@ -1,6 +1,6 @@
 import { useStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
-import ArrowLeftIcon from '../assets/arrow-left-icon.svg';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 
 export function ThemeSettingsScreen() {
   const { navigate } = useStore();
@@ -28,36 +28,55 @@ export function ThemeSettingsScreen() {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex items-center justify-between p-3 rounded-lg transition-colors text-left w-full ${
-        disabled
-          ? 'opacity-60 cursor-not-allowed'
-          : 'cursor-pointer hover:bg-[#E5E5E3] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20'
+      className={`flex items-center justify-between p-3 rounded-lg transition-colors text-left w-full focus:outline-none focus-visible:ring-2 ${
+        disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
       }`}
+      style={{
+        backgroundColor: disabled ? 'transparent' : 'transparent',
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.backgroundColor = 'var(--color-surface-800)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+      }}
       role="radio"
       aria-checked={!!selected}
     >
       <span className="text-sm font-medium leading-[18px] tracking-[0.14px] flex-1">{label}</span>
       <span
-        className={`w-6 h-6 rounded-full border border-[#DADAD8] bg-white flex items-center justify-center shrink-0 transition-all ${
-          selected ? 'bg-[#FFC413] border-[#FFC413]' : ''
-        }`}
+        className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all"
+        style={{
+          border: `1px solid ${selected ? 'var(--color-primary)' : 'var(--color-surface-700)'}`,
+          backgroundColor: selected ? 'var(--color-primary)' : 'var(--color-bg)',
+        }}
       >
-        {selected && <span className="w-3 h-3 rounded-full bg-black" />}
+        {selected && <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#000' }} />}
       </span>
     </button>
   );
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black overflow-y-auto">
+    <div
+      className="w-[357px] h-[600px] flex flex-col overflow-y-auto"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <button
           type="button"
           onClick={handleBack}
           aria-label="Back"
-          className="w-8 h-8 bg-transparent rounded-lg p-2 flex items-center justify-center shrink-0 transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+          className="w-8 h-8 bg-transparent rounded-lg p-2 flex items-center justify-center shrink-0 transition-colors focus:outline-none focus-visible:ring-2"
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <img src={ArrowLeftIcon} alt="" className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">
           Theme settings

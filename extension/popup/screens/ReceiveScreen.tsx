@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store';
 import FortNockLogo40 from '../assets/fort-nock-logo-40.svg';
-import ArrowLeftIcon from '../assets/arrow-left-icon.svg';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 
 export function ReceiveScreen() {
   const { navigate, wallet } = useStore();
@@ -28,48 +28,69 @@ export function ReceiveScreen() {
   }
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black overflow-y-auto">
+    <div
+      className="w-[357px] h-[600px] flex flex-col overflow-y-auto"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <button
           type="button"
           onClick={handleBack}
           aria-label="Back"
-          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
+          style={{ backgroundColor: 'transparent' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <img src={ArrowLeftIcon} alt="" className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">Receive NOCK</h1>
         <div className="w-8 h-8" />
       </header>
 
       {/* Content */}
-      <div className="flex flex-col gap-2 h-[536px] bg-white">
+      <div className="flex flex-col gap-2 h-[536px]" style={{ backgroundColor: 'var(--color-bg)' }}>
         <div className="flex flex-col gap-8 px-4 py-2">
           {/* Intro */}
           <div className="flex flex-col items-center gap-3 w-full">
             <img src={FortNockLogo40} alt="Fort Nock" className="w-10 h-10" />
 
-            <h2 className="m-0 text-2xl font-medium leading-7 tracking-[-0.48px] text-center font-display">
+            <h2
+              className="m-0 text-2xl font-medium leading-7 tracking-[-0.48px] text-center font-display"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
               Your address
             </h2>
           </div>
 
           {/* Address + Copy */}
           <div className="flex flex-col gap-4 w-full">
-            <div className="bg-[#F2F2F0] rounded-lg px-3 pt-5 pb-3 flex flex-col items-center gap-5">
+            <div
+              className="rounded-lg px-3 pt-5 pb-3 flex flex-col items-center gap-5"
+              style={{ backgroundColor: 'var(--color-surface-800)' }}
+            >
               <div className="text-sm leading-[18px] tracking-[0.14px] font-medium text-center break-words">
-                <span className="text-black">{addressStart}</span>
-                <span className="text-[#707070]">{addressMiddle.substring(0, 18)}</span>
+                <span style={{ color: 'var(--color-text-primary)' }}>{addressStart}</span>
+                <span style={{ color: 'var(--color-text-muted)' }}>{addressMiddle.substring(0, 18)}</span>
                 <br />
-                <span className="text-[#707070]">{addressMiddle.substring(18)}</span>
-                <span className="text-black">{addressEnd}</span>
+                <span style={{ color: 'var(--color-text-muted)' }}>{addressMiddle.substring(18)}</span>
+                <span style={{ color: 'var(--color-text-primary)' }}>{addressEnd}</span>
               </div>
 
               <button
                 type="button"
                 onClick={handleCopyAddress}
-                className="inline-flex items-center justify-center gap-[6px] py-[7px] pr-3 pl-4 bg-transparent border border-black rounded-full text-sm font-medium leading-[18px] tracking-[0.14px] transition hover:bg-[#F2F2F0] active:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+                className="inline-flex items-center justify-center gap-[6px] py-[7px] pr-3 pl-4 bg-transparent rounded-full text-sm font-medium leading-[18px] tracking-[0.14px] transition active:opacity-80 focus:outline-none focus-visible:ring-2"
+                style={{
+                  border: '1px solid var(--color-text-primary)',
+                  color: 'var(--color-text-primary)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-700)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <svg
                   width="16"
@@ -89,15 +110,27 @@ export function ReceiveScreen() {
             </div>
 
             {/* Instructions */}
-            <div className="border border-[#EBEBE9] rounded-lg p-3 flex flex-col gap-2.5">
-              <h3 className="m-0 text-sm font-medium leading-[18px] tracking-[0.14px] font-display">
+            <div
+              className="rounded-lg p-3 flex flex-col gap-2.5"
+              style={{ border: '1px solid var(--color-divider)' }}
+            >
+              <h3
+                className="m-0 text-sm font-medium leading-[18px] tracking-[0.14px] font-display"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
                 How to receive NOCK:
               </h3>
               <ul className="m-0 p-0 flex flex-col">
-                <li className="text-[13px] leading-[18px] tracking-[0.26px] font-medium text-black relative pl-0 before:content-['•'] before:mr-1 before:text-black before:inline-block">
+                <li
+                  className="text-[13px] leading-[18px] tracking-[0.26px] font-medium relative pl-0 before:content-['•'] before:mr-1 before:inline-block"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   Share this address with the sender
                 </li>
-                <li className="text-[13px] leading-[18px] tracking-[0.26px] font-medium text-black relative pl-0 before:content-['•'] before:mr-1 before:text-black before:inline-block">
+                <li
+                  className="text-[13px] leading-[18px] tracking-[0.26px] font-medium relative pl-0 before:content-['•'] before:mr-1 before:inline-block"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   Transactions will appear in your wallet
                 </li>
               </ul>

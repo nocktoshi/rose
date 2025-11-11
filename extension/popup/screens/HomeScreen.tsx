@@ -12,6 +12,7 @@ import { SendPaperPlaneIcon } from '../components/icons/SendPaperPlaneIcon';
 import { ReceiveCircleIcon } from '../components/icons/ReceiveCircleIcon';
 import { ReceiveArrowIcon } from '../components/icons/ReceiveArrowIcon';
 import { SentArrowIcon } from '../components/icons/SentArrowIcon';
+import { ArrowUpRightIcon } from '../components/icons/ArrowUpRightIcon';
 
 import WalletDropdownArrow from '../assets/wallet-dropdown-arrow.svg';
 import GreenStatusDot from '../assets/green-status-dot.svg';
@@ -23,7 +24,6 @@ import PermissionsIcon from '../assets/permissions-icon.svg';
 import FeedbackIcon from '../assets/feedback-icon.svg';
 import CopyIcon from '../assets/copy-icon.svg';
 import SettingsGearIcon from '../assets/settings-gear-icon.svg';
-import ArrowUpRightIcon from '../assets/arrow-up-right-icon.svg';
 
 import './HomeScreen.tailwind.css';
 
@@ -70,8 +70,8 @@ export function HomeScreen() {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Get accounts from vault
-  const accounts = wallet.accounts || [];
+  // Get accounts from vault (filter out hidden accounts)
+  const accounts = (wallet.accounts || []).filter(acc => !acc.hidden);
   const currentAccount = wallet.currentAccount || accounts[0];
 
   // Account switching handler
@@ -133,38 +133,66 @@ export function HomeScreen() {
           type: 'receive' as const,
           from: '89dF3w...sw5Lvw',
           amount: '+100 NOCK',
-          usdValue: '7.42$',
+          usdValue: '$7.42',
         },
         {
           type: 'receive' as const,
           from: '89dF3w...sw5Lvw',
           amount: '+100 NOCK',
-          usdValue: '7.42$',
+          usdValue: '$7.42',
+        },
+        {
+          type: 'receive' as const,
+          from: '89dF3w...sw5Lvw',
+          amount: '+100 NOCK',
+          usdValue: '$7.42',
         },
       ],
     },
     {
       date: '25 Oct 2025',
       items: [
-        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '14.84$' },
+        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
       ],
     },
     {
       date: '21 Oct 2025',
       items: [
-        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '14.84$' },
+        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
+      ],
+    },
+    {
+      date: '21 Oct 2025',
+      items: [
+        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
+      ],
+    },
+    {
+      date: '21 Oct 2025',
+      items: [
+        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
+      ],
+    },
+    {
+      date: '21 Oct 2025',
+      items: [
+        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
       ],
     },
   ];
 
   return (
-    <div className="w-[357px] h-[600px] bg-fn-bg text-fn-ink overflow-hidden relative">
+    <div
+      className="w-[357px] h-[600px] overflow-hidden relative"
+      style={{ backgroundColor: 'var(--color-home-fill)', color: 'var(--color-text-primary)' }}
+    >
       {/* Scroll container */}
-      <div ref={scrollContainerRef} className="relative h-full overflow-y-auto scroll-thin">
+      <div ref={scrollContainerRef} className="relative h-full overflow-y-auto scroll-thin flex flex-col">
         {/* Sticky header */}
         <header
           ref={headerRef}
-          className="sticky top-0 z-40 bg-fn-bg/95 backdrop-blur supports-[backdrop-filter]:bg-fn-bg/80"
+          className="sticky top-0 z-40 backdrop-blur"
+          style={{ backgroundColor: 'var(--color-home-fill)' }}
         >
           <div className="px-4 py-3 flex items-center justify-between min-h-[64px]">
             <button
@@ -172,7 +200,10 @@ export function HomeScreen() {
               onClick={() => setWalletDropdownOpen(o => !o)}
               aria-label="Wallet menu"
             >
-              <div className="relative h-10 w-10 rounded-tile bg-white grid place-items-center">
+              <div
+                className="relative h-10 w-10 rounded-tile grid place-items-center"
+                style={{ backgroundColor: 'var(--color-bg)' }}
+              >
                 <AccountIcon
                   styleId={currentAccount?.iconStyleId}
                   color={currentAccount?.iconColor}
@@ -185,11 +216,17 @@ export function HomeScreen() {
                 />
               </div>
               <div className="flex flex-col min-w-0">
-                <div className="font-sans text-[14px] font-medium leading-[18px] tracking-[0.14px] flex items-center gap-1">
+                <div
+                  className="font-sans text-[14px] font-medium leading-[18px] tracking-[0.14px] flex items-center gap-1"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {walletName}
                   <img src={WalletDropdownArrow} alt="" className="h-3 w-3" />
                 </div>
-                <div className="font-sans text-[13px] leading-[18px] tracking-[0.26px] text-fn-sub flex items-center gap-2">
+                <div
+                  className="font-sans text-[13px] leading-[18px] tracking-[0.26px] flex items-center gap-2"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   <span className="truncate">{walletAddress}</span>
                   <button
                     className="shrink-0 opacity-70 hover:opacity-40"
@@ -225,59 +262,93 @@ export function HomeScreen() {
         {/* Wallet dropdown */}
         {walletDropdownOpen && (
           <>
+            <div className="fixed inset-0 z-40" onClick={() => setWalletDropdownOpen(false)} />
             <div
-              className="fixed inset-0 bg-fn-overlayLight z-50"
-              onClick={() => setWalletDropdownOpen(false)}
-            />
-            <div className="fixed top-[64px] left-2 right-2 bg-white border border-[#DADAD8] rounded-xl shadow-lg z-50 max-h-[400px] overflow-y-auto">
+              className="fixed top-[64px] left-2 right-2 rounded-xl z-50 max-h-[400px] overflow-y-auto"
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                border: '1px solid var(--color-surface-700)',
+                boxShadow: '0 4px 12px 0 rgba(5, 5, 5, 0.12)',
+              }}
+            >
               <div className="p-2">
-                {accounts.map(account => (
-                  <button
-                    key={account.index}
-                    onClick={() => handleSwitchAccount(account.index)}
-                    className={`wallet-dropdown-item w-full flex items-center gap-2 p-2 rounded-tile border ${
-                      currentAccount?.index === account.index
-                        ? 'border-black'
-                        : 'border-transparent'
-                    } hover:bg-[#E5E5E3]`}
-                  >
-                    <div className="h-10 w-10 rounded-tile bg-white grid place-items-center">
-                      <AccountIcon
-                        styleId={account.iconStyleId}
-                        color={account.iconColor}
-                        className="h-6 w-6"
-                      />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="text-[14px] leading-[18px] font-medium">{account.name}</div>
-                      <div className="text-[13px] leading-[18px] text-fn-sub tracking-[0.26px]">
-                        {truncateAddress(account.address)}
-                      </div>
-                    </div>
-                    <div className="wallet-balance text-[14px] font-medium whitespace-nowrap">
-                      {wallet.balance.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{' '}
-                      NOCK
-                    </div>
-                    <div
-                      className="wallet-settings-icon h-10 w-10 rounded-tile bg-[#DADAD8] hidden items-center justify-center"
-                      onClick={e => {
-                        e.stopPropagation();
-                        setWalletDropdownOpen(false);
-                        navigate('wallet-settings');
+                {accounts.map(account => {
+                  const isSelected = currentAccount?.index === account.index;
+                  const showSelection = accounts.length > 1 && isSelected;
+                  return (
+                    <button
+                      key={account.index}
+                      onClick={() => handleSwitchAccount(account.index)}
+                      className="wallet-dropdown-item w-full flex items-center gap-2 p-2 rounded-tile border transition"
+                      style={{
+                        backgroundColor: showSelection ? 'var(--color-bg)' : 'transparent',
+                        borderColor: showSelection ? 'var(--color-text-primary)' : 'transparent',
+                      }}
+                      onMouseEnter={e => {
+                        if (!showSelection) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-surface-900)';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!showSelection) {
+                          e.currentTarget.style.backgroundColor = showSelection ? 'var(--color-bg)' : 'transparent';
+                        }
                       }}
                     >
-                      <img src={SettingsGearIcon} alt="Settings" className="h-5 w-5" />
-                    </div>
-                  </button>
-                ))}
+                      <div
+                        className="h-10 w-10 rounded-tile grid place-items-center"
+                        style={{ backgroundColor: 'var(--color-bg)' }}
+                      >
+                        <AccountIcon
+                          styleId={account.iconStyleId}
+                          color={account.iconColor}
+                          className="h-6 w-6"
+                        />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div
+                          className="text-[14px] leading-[18px] font-medium"
+                          style={{ color: 'var(--color-text-primary)' }}
+                        >
+                          {account.name}
+                        </div>
+                        <div
+                          className="text-[13px] leading-[18px] tracking-[0.26px]"
+                          style={{ color: 'var(--color-text-muted)' }}
+                        >
+                          {truncateAddress(account.address)}
+                        </div>
+                      </div>
+                      <div
+                        className="wallet-balance text-[14px] font-medium whitespace-nowrap"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
+                        {wallet.balance.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{' '}
+                        NOCK
+                      </div>
+                      <div
+                        className="wallet-settings-icon h-10 w-10 rounded-tile hidden items-center justify-center"
+                        style={{ backgroundColor: 'var(--color-surface-700)' }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          setWalletDropdownOpen(false);
+                          navigate('wallet-settings');
+                        }}
+                      >
+                        <img src={SettingsGearIcon} alt="Settings" className="h-5 w-5" />
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="h-px bg-fn-bg" />
+              <div className="h-px" style={{ backgroundColor: 'var(--color-divider)' }} />
               <div className="p-2">
                 <button
-                  className="w-full h-12 bg-black text-white font-medium rounded-lg"
+                  className="w-full h-12 font-medium rounded-lg"
+                  style={{ backgroundColor: 'var(--color-text-primary)', color: 'var(--color-bg)' }}
                   onClick={handleAddAccount}
                 >
                   Add account
@@ -290,11 +361,15 @@ export function HomeScreen() {
         {/* Settings dropdown */}
         {settingsDropdownOpen && (
           <>
+            <div className="fixed inset-0 z-40" onClick={() => setSettingsDropdownOpen(false)} />
             <div
-              className="fixed inset-0 bg-fn-overlay z-50"
-              onClick={() => setSettingsDropdownOpen(false)}
-            />
-            <div className="fixed top-[64px] right-2 w-[245px] bg-white border border-fn-lineMuted rounded-lgx p-2 z-50 flex flex-col gap-1">
+              className="fixed top-[64px] right-2 w-[245px] rounded-xl p-2 z-50 flex flex-col gap-1"
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                border: '1px solid var(--color-surface-700)',
+                boxShadow: '0 4px 12px 0 rgba(5, 5, 5, 0.12)',
+              }}
+            >
               <DropdownItem icon={ExplorerIcon} label="View on explorer" onClick={() => {}} />
               <DropdownItem
                 icon={PermissionsIcon}
@@ -312,24 +387,34 @@ export function HomeScreen() {
                   navigate('settings');
                 }}
               />
-              <div className="h-px bg-fn-bg my-1" />
+              <div className="h-px my-1" style={{ backgroundColor: 'var(--color-divider)' }} />
               <DropdownItem icon={FeedbackIcon} label="Wallet feedback" onClick={() => {}} />
             </div>
           </>
         )}
 
         {/* Sticky balance block (lower z) */}
-        <div className="sticky top-[var(--header-h)] z-10 px-4 pt-1 bg-fn-bg">
+        <div
+          className="sticky top-[var(--header-h)] z-10 px-4 pt-1"
+          style={{ backgroundColor: 'var(--color-home-fill)' }}
+        >
           <div className="mb-3">
             <div className="flex items-baseline gap-[6px]">
-              <div className="font-display font-semibold text-[36px] leading-[40px] tracking-[-0.72px]">
+              <div
+                className="font-display font-semibold text-[36px] leading-[40px] tracking-[-0.72px]"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
                 {balanceHidden ? '••••••' : balance}
               </div>
-              <div className="font-display text-[24px] leading-[28px] tracking-[-0.48px] text-[#707070]">
+              <div
+                className="font-display text-[24px] leading-[28px] tracking-[-0.48px]"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 NOCK
               </div>
               <button
-                className="ml-1 text-black/40 hover:text-black/60"
+                className="ml-1"
+                style={{ color: 'var(--color-text-muted)' }}
                 onClick={() => setBalanceHidden(b => !b)}
                 aria-label="Toggle balance visibility"
               >
@@ -340,7 +425,10 @@ export function HomeScreen() {
                 )}
               </button>
             </div>
-            <div className="mt-1 text-[13px] font-medium leading-[18px] text-fn-green flex items-center gap-1">
+            <div
+              className="mt-1 text-[13px] font-medium leading-[18px] flex items-center gap-1"
+              style={{ color: 'var(--color-green)' }}
+            >
               <img src={TrendUpArrow} alt="" className="h-4 w-4" />
               <span>{balanceHidden ? '••••• •••••' : `${usdValue}$ (${percentChange}%)`}</span>
             </div>
@@ -349,14 +437,19 @@ export function HomeScreen() {
           {/* Actions */}
           <div className="grid grid-cols-2 gap-2 mb-3">
             <button
-              className="rounded-card bg-fn-yellow shadow-card flex flex-col items-start justify-center gap-4 p-3 font-sans text-[14px] font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+              className="rounded-card shadow-card flex flex-col items-start justify-center gap-4 p-3 font-sans text-[14px] font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+              style={{ backgroundColor: 'var(--color-primary)', color: '#000' }}
               onClick={() => navigate('send')}
             >
               <SendPaperPlaneIcon className="h-5 w-5" />
               Send
             </button>
             <button
-              className="rounded-card bg-white border border-fn-line shadow-card flex flex-col items-start justify-center gap-4 p-3 font-sans text-[14px] font-medium transition-all hover:bg-[#F8F8F8] active:scale-[0.98]"
+              className="rounded-card shadow-card flex flex-col items-start justify-center gap-4 p-3 font-sans text-[14px] font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+              style={{
+                backgroundColor: 'var(--color-home-accent)',
+                color: 'var(--color-text-primary)',
+              }}
               onClick={() => navigate('receive')}
             >
               <ReceiveCircleIcon className="h-5 w-5" />
@@ -365,18 +458,40 @@ export function HomeScreen() {
           </div>
         </div>
 
-        {/* Transactions sheet that scrolls OVER actions (higher z) */}
         <section
-          className={`relative z-20 bg-white shadow-card rounded-xl transition-all duration-300 ${
+          className={`relative z-20 shadow-card rounded-xl transition-all duration-300 flex-1 ${
             isTransactionsStuck ? '' : 'mx-2 mt-4'
           }`}
+          style={{
+            backgroundColor: 'var(--color-home-accent)',
+            border: '1px solid var(--color-divider)',
+          }}
         >
           {/* Sticky header inside the sheet (matches scroll state 2) */}
-          <div className="sticky top-[var(--header-h)] z-10 px-4 py-3 bg-white border-b border-black/10 rounded-t-xl">
+          <div
+            className="sticky top-[var(--header-h)] z-10 px-4 py-3 rounded-t-xl"
+            style={{
+              backgroundColor: 'var(--color-home-accent)',
+              borderBottom: '1px solid var(--color-divider)',
+            }}
+          >
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-[14px] font-medium">Recent Transactions</h2>
-              <button className="text-[12px] font-medium border border-black rounded-full pl-[10px] pr-[14px] py-[5px] hover:bg-black/5 flex items-center gap-[4px]">
-                <img src={ArrowUpRightIcon} alt="" className="h-[12px] w-[12px]" />
+              <h2
+                className="font-display text-[14px] font-medium"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Recent Transactions
+              </h2>
+              <button
+                className="text-[12px] font-medium rounded-full pl-[12px] pr-[16px] py-[3px] flex items-center gap-[4px] transition-opacity"
+                style={{
+                  border: '1px solid var(--color-text-primary)',
+                  color: 'var(--color-text-primary)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              >
+                <ArrowUpRightIcon className="h-[10px] w-[10px]" />
                 View all
               </button>
             </div>
@@ -385,37 +500,66 @@ export function HomeScreen() {
           {/* Groups */}
           <div className="px-4 pb-6">
             {transactions.map((group, idx) => (
-              <div key={idx} className={idx === 0 ? 'pt-4' : 'pt-4 border-t border-black/10'}>
-                <div className="font-display font-medium text-[14px] leading-[18px] tracking-[0.14px] text-black/50 mb-3">
+              <div
+                key={idx}
+                className={idx === 0 ? 'pt-4' : 'pt-4'}
+                style={idx !== 0 ? { borderTop: '1px solid var(--color-divider)' } : undefined}
+              >
+                <div
+                  className="font-display font-medium text-[14px] leading-[18px] tracking-[0.14px] mb-3"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   {group.date}
                 </div>
-                <div className="divide-y divide-black/5">
+                <div>
                   {group.items.map((t, i) => (
                     <button
                       key={i}
-                      className="w-full flex items-center gap-3 py-3 rounded-lg hover:bg-black/[0.03] px-2 -mx-2"
+                      className="w-full flex items-center gap-3 py-3 rounded-lg px-2 -mx-2"
                       onClick={() => navigate('tx-details')}
                     >
-                      <div className="h-10 w-10 rounded-full bg-black/8 grid place-items-center text-black/70">
+                      <div
+                        className="h-10 w-10 rounded-full grid place-items-center"
+                        style={{ backgroundColor: 'var(--color-tx-icon)' }}
+                      >
                         {t.type === 'receive' ? (
-                          <ReceiveArrowIcon className="h-4 w-4" />
+                          <ReceiveArrowIcon
+                            className="h-4 w-4"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          />
                         ) : (
-                          <SentArrowIcon className="h-4 w-4" />
+                          <SentArrowIcon
+                            className="h-4 w-4"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          />
                         )}
                       </div>
                       <div className="flex-1 text-left">
-                        <div className="text-[14px] font-medium">
+                        <div
+                          className="text-[14px] font-medium"
+                          style={{ color: 'var(--color-text-primary)' }}
+                        >
                           {t.type === 'receive' ? 'Receive' : 'Sent'}
                         </div>
-                        <div className="text-[12px] text-black/50">From {t.from}</div>
+                        <div className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
+                          From {t.from}
+                        </div>
                       </div>
                       <div className="text-right">
                         <div
-                          className={`text-[14px] font-medium ${t.type === 'receive' ? 'text-fn-green' : 'text-fn-ink'}`}
+                          className="text-[14px] font-medium"
+                          style={{
+                            color:
+                              t.type === 'receive'
+                                ? 'var(--color-green)'
+                                : 'var(--color-text-primary)',
+                          }}
                         >
                           {t.amount}
                         </div>
-                        <div className="text-[12px] text-black/50">{t.usdValue}</div>
+                        <div className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
+                          {t.usdValue}
+                        </div>
                       </div>
                     </button>
                   ))}
@@ -443,12 +587,24 @@ function DropdownItem({
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-2 p-2 rounded-tile hover:bg-[#E5E5E3] text-left"
+      className="w-full flex items-center gap-2 p-2 rounded-lg text-left transition-colors"
+      style={{ backgroundColor: 'transparent' }}
+      onMouseEnter={e => {
+        e.currentTarget.style.backgroundColor = 'var(--color-surface-900)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+      }}
     >
-      <div className="h-8 w-8 rounded-tile bg-[#EBEBE9] grid place-items-center">
+      <div
+        className="h-8 w-8 rounded-tile grid place-items-center"
+        style={{ backgroundColor: 'var(--color-surface-800)' }}
+      >
         <img src={icon} className="h-5 w-5" alt="" />
       </div>
-      <span className="text-[14px] font-medium">{label}</span>
+      <span className="text-[14px] font-medium" style={{ color: 'var(--color-text-primary)' }}>
+        {label}
+      </span>
     </button>
   );
 }

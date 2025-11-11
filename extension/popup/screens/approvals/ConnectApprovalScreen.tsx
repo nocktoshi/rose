@@ -61,11 +61,14 @@ export function ConnectApprovalScreen() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={handleReject}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="transition-colors"
+          style={{ color: 'var(--color-text-primary)' }}
         >
           <ChevronLeftIcon />
         </button>
-        <h2 className="text-xl font-semibold">Connect Request</h2>
+        <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          Connect Request
+        </h2>
       </div>
 
       {/* Site Info */}
@@ -75,22 +78,26 @@ export function ConnectApprovalScreen() {
             {domain.charAt(0).toUpperCase()}
           </span>
         </div>
-        <h3 className="text-lg font-semibold mb-1">{domain}</h3>
-        <p className="text-sm text-gray-400 break-all">{origin}</p>
+        <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>
+          {domain}
+        </h3>
+        <p className="text-sm break-all" style={{ color: 'var(--color-text-muted)' }}>
+          {origin}
+        </p>
       </div>
 
       {/* Permission Info */}
-      <div className="mb-6 bg-gray-800 rounded-lg p-4">
-        <p className="text-sm text-gray-300 mb-3">
+      <div className="mb-6 rounded-lg p-4" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+        <p className="text-sm mb-3" style={{ color: 'var(--color-text-primary)' }}>
           This site is requesting permission to:
         </p>
         <ul className="space-y-2">
-          <li className="flex items-start gap-2 text-sm">
-            <span className="text-green-500 mt-0.5">✓</span>
+          <li className="flex items-start gap-2 text-sm" style={{ color: 'var(--color-text-primary)' }}>
+            <span className="mt-0.5" style={{ color: 'var(--color-green)' }}>✓</span>
             <span>View your wallet address</span>
           </li>
-          <li className="flex items-start gap-2 text-sm">
-            <span className="text-green-500 mt-0.5">✓</span>
+          <li className="flex items-start gap-2 text-sm" style={{ color: 'var(--color-text-primary)' }}>
+            <span className="mt-0.5" style={{ color: 'var(--color-green)' }}>✓</span>
             <span>Request approval for transactions</span>
           </li>
         </ul>
@@ -98,14 +105,14 @@ export function ConnectApprovalScreen() {
 
       {/* Account Info */}
       <div className="mb-6">
-        <label className="text-sm text-gray-400 block mb-2">
+        <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
           Connecting Account
         </label>
-        <div className="bg-gray-800 rounded-lg p-3">
-          <p className="text-sm font-medium">
+        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+          <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
             {currentAccount?.name || "Unknown"}
           </p>
-          <p className="text-xs text-gray-500 font-mono mt-1">
+          <p className="text-xs font-mono mt-1" style={{ color: 'var(--color-text-muted)' }}>
             {truncateAddress(currentAccount?.address)}
           </p>
         </div>

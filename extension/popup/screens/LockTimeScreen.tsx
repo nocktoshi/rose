@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { send } from '../utils/messaging';
 import { INTERNAL_METHODS } from '../../shared/constants';
-import ArrowLeftIcon from '../assets/arrow-left-icon.svg';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 
 type LockTimeOption = '1min' | '5min' | '10min' | '15min' | '30min' | '1hour' | '4hours' | 'never';
 
@@ -75,16 +75,25 @@ export function LockTimeScreen() {
   ];
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black overflow-y-auto">
+    <div
+      className="w-[357px] h-[600px] flex flex-col overflow-y-auto"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <button
           type="button"
           onClick={handleBack}
           aria-label="Back"
-          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
+          style={{ color: 'var(--color-text-primary)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <img src={ArrowLeftIcon} alt="" className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
 
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">Lock time</h1>
@@ -101,9 +110,9 @@ export function LockTimeScreen() {
               key={option.value}
               type="button"
               onClick={() => handleTimeSelect(option.value)}
-              className={`flex items-center justify-between p-3 rounded-lg text-left transition-colors hover:bg-[#F2F2F0] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${
-                selected ? 'bg-transparent' : ''
-              }`}
+              className="flex items-center justify-between p-3 rounded-lg text-left transition-colors focus:outline-none focus-visible:ring-2"
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               role="radio"
               aria-checked={selected}
             >
@@ -113,12 +122,18 @@ export function LockTimeScreen() {
 
               {/* Radio */}
               <span
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                  selected ? 'border-black' : 'border-[#DADAD8]'
-                }`}
+                className="w-5 h-5 rounded-full flex items-center justify-center transition-colors"
+                style={{
+                  border: `2px solid ${selected ? 'var(--color-primary)' : 'var(--color-surface-700)'}`,
+                }}
                 aria-hidden="true"
               >
-                {selected && <span className="w-2.5 h-2.5 rounded-full bg-black" />}
+                {selected && (
+                  <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: 'var(--color-primary)' }}
+                  />
+                )}
               </span>
             </button>
           );

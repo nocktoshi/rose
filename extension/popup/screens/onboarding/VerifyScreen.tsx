@@ -2,18 +2,36 @@
  * Onboarding Verify Screen - Verify user wrote down mnemonic correctly
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useStore } from "../../store";
 import { Alert } from "../../components/Alert";
 import lockIcon from "../../assets/lock-icon.svg";
 
-// Positions to test (0-indexed)
-const TEST_POSITIONS = [3, 6, 13, 15, 20, 22]; // Words at positions 4, 7, 14, 16, 21, 23
+/**
+ * Generates 6 unique random positions from 0-23 for seed phrase verification
+ */
+function generateRandomPositions(): number[] {
+  const positions = Array.from({ length: 24 }, (_, i) => i);
+  const selected: number[] = [];
+
+  // Fisher-Yates shuffle and take first 6
+  for (let i = positions.length - 1; i > 0 && selected.length < 6; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [positions[i], positions[j]] = [positions[j], positions[i]];
+    selected.push(positions[i]);
+  }
+
+  // Sort selected positions so they appear in order
+  return selected.sort((a, b) => a - b);
+}
 
 export function VerifyScreen() {
   const { onboardingMnemonic, navigate, setOnboardingMnemonic } = useStore();
   const [inputs, setInputs] = useState<Record<number, string>>({});
   const [error, setError] = useState<string>("");
+
+  // Generate random positions once per mnemonic (stable across re-renders)
+  const testPositions = useMemo(() => generateRandomPositions(), [onboardingMnemonic]);
 
   if (!onboardingMnemonic) {
     return (
@@ -34,14 +52,14 @@ export function VerifyScreen() {
 
   function handleVerify() {
     // Check if all positions are filled
-    const allFilled = TEST_POSITIONS.every((pos) => inputs[pos]?.length > 0);
+    const allFilled = testPositions.every((pos) => inputs[pos]?.length > 0);
     if (!allFilled) {
       setError("Please fill in all word fields");
       return;
     }
 
     // Verify all words are correct
-    const allCorrect = TEST_POSITIONS.every(
+    const allCorrect = testPositions.every(
       (pos) => inputs[pos] === words[pos].toLowerCase()
     );
 
@@ -130,7 +148,7 @@ export function VerifyScreen() {
               <div key={row} className="flex gap-2 w-full">
                 {[0, 1].map((col) => {
                   const index = row * 2 + col;
-                  const position = TEST_POSITIONS[index];
+                  const position = testPositions[index];
                   const wordNumber = position + 1;
 
                   return (

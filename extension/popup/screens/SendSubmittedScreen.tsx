@@ -1,9 +1,10 @@
 import { useStore } from '../store';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { SendPaperPlaneIcon } from '../components/icons/SendPaperPlaneIcon';
+import { PlusIcon } from '../components/icons/PlusIcon';
 
 export function SendSubmittedScreen() {
-  const { navigate } = useStore();
+  const { navigate, lastTransaction } = useStore();
 
   function handleBack() {
     navigate('home');
@@ -12,12 +13,18 @@ export function SendSubmittedScreen() {
     navigate('home'); // show transactions on home
   }
 
-  // TODO: Replace with real transaction data from lastTransaction
-  const sentAmount = '2,500';
-  const sentUsdValue = '$250.00';
+  // Get real transaction data
+  const sentAmount =
+    lastTransaction?.amount.toLocaleString('en-US', {
+      maximumFractionDigits: 0,
+    }) || '0';
+  const sentUsdValue = '$0.00'; // TODO: Get from real price feed when available
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col" style={{ backgroundColor: 'var(--color-bg)' }}>
+    <div
+      className="w-[357px] h-[600px] flex flex-col"
+      style={{ backgroundColor: 'var(--color-bg)' }}
+    >
       {/* Header */}
       <header
         className="flex items-center justify-between px-4 py-3 min-h-[64px]"
@@ -30,7 +37,7 @@ export function SendSubmittedScreen() {
           className="w-8 h-8 p-2 rounded-lg flex items-center justify-center hover:opacity-70 transition-opacity"
           style={{ color: 'var(--color-text-primary)' }}
         >
-          <ChevronLeftIcon className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
         <h1
           className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]"
@@ -43,10 +50,10 @@ export function SendSubmittedScreen() {
 
       {/* Content */}
       <div
-        className="flex flex-col justify-between h-[536px]"
+        className="flex flex-col h-[536px]"
         style={{ backgroundColor: 'var(--color-bg)' }}
       >
-        <div className="flex flex-col gap-8 px-4 py-2">
+        <div className="flex flex-col gap-8 px-4 py-2 flex-1">
           {/* Success Section */}
           <div className="flex flex-col items-center gap-3 w-full">
             <div
@@ -103,6 +110,24 @@ export function SendSubmittedScreen() {
           </div>
         </div>
 
+        {/* Activity Log Button */}
+        <div className="px-4 pb-2">
+          <button
+            type="button"
+            onClick={handleViewActivity}
+            className="w-full rounded-lg p-3 flex items-center justify-between transition-opacity hover:opacity-80"
+            style={{ backgroundColor: 'var(--color-surface-800)' }}
+          >
+            <span
+              className="text-sm font-medium leading-[18px] tracking-[0.14px]"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Activity log
+            </span>
+            <PlusIcon className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* Action Button */}
         <div className="flex gap-3 px-4 py-3 w-full">
           <button
@@ -111,10 +136,10 @@ export function SendSubmittedScreen() {
             className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity hover:opacity-90 active:opacity-80"
             style={{
               color: 'var(--color-bg)',
-              backgroundColor: 'var(--color-text-primary)'
+              backgroundColor: 'var(--color-text-primary)',
             }}
           >
-            View activity
+            Back to overview
           </button>
         </div>
       </div>

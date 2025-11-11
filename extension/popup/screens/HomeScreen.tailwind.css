@@ -31,6 +31,9 @@ body,
 .wallet-dropdown-item .wallet-settings-icon {
   display: none;
 }
+.wallet-dropdown-item:hover {
+  background-color: var(--color-surface-900);
+}
 .wallet-dropdown-item:hover .wallet-balance {
   display: none;
 }

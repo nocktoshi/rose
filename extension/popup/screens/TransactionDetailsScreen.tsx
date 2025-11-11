@@ -1,7 +1,7 @@
 import { useStore } from '../store';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 import FortNockLogo40 from '../assets/fort-nock-logo-40.svg';
-import ArrowRightIcon from '../assets/arrow-right-icon.svg';
 
 export function TransactionDetailsScreen() {
   const { navigate } = useStore();
@@ -33,22 +33,31 @@ export function TransactionDetailsScreen() {
 
   const statusColor =
     status === 'Confirmed'
-      ? 'text-[#369929]'
+      ? 'var(--color-green)'
       : status === 'Pending'
-        ? 'text-[#CE8A1D]'
-        : 'text-[#D43131]';
+        ? '#CE8A1D'
+        : 'var(--color-red)';
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black">
+    <div
+      className="w-[357px] h-[600px] flex flex-col"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <button
           type="button"
           onClick={handleBack}
-          className="w-8 h-8 flex items-center justify-center p-2 rounded-lg transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+          className="w-8 h-8 flex items-center justify-center p-2 rounded-lg transition-opacity focus:outline-none focus-visible:ring-2"
+          style={{ color: 'var(--color-text-primary)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
           aria-label="Back"
         >
-          <ChevronLeftIcon className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">
           {transactionType === 'sent' ? 'Sent' : 'Received'}
@@ -57,17 +66,23 @@ export function TransactionDetailsScreen() {
       </header>
 
       {/* Content */}
-      <div className="flex flex-col gap-2 h-[536px] bg-white overflow-y-auto">
+      <div className="flex flex-col gap-2 h-[536px] overflow-y-auto" style={{ backgroundColor: 'var(--color-bg)' }}>
         <div className="flex flex-col gap-8 px-4 py-2">
           {/* Amount Section */}
           <div className="flex flex-col items-center gap-3">
             <img src={FortNockLogo40} alt="Fort Nock" className="w-10 h-10" />
             <div className="flex flex-col items-center gap-0.5 text-center">
-              <h2 className="m-0 font-[Lora] text-[36px] font-semibold leading-10 tracking-[-0.72px]">
+              <h2
+                className="m-0 font-[Lora] text-[36px] font-semibold leading-10 tracking-[-0.72px]"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
                 {transactionType === 'sent' ? '-' : '+'}
-                {amount} <span className="text-[#707070]">NOCK</span>
+                {amount} <span style={{ color: 'var(--color-text-muted)' }}>NOCK</span>
               </h2>
-              <p className="m-0 text-[13px] font-medium leading-[18px] tracking-[0.26px]">
+              <p
+                className="m-0 text-[13px] font-medium leading-[18px] tracking-[0.26px]"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 {usdValue}
               </p>
             </div>
@@ -76,28 +91,36 @@ export function TransactionDetailsScreen() {
           {/* Transaction Details */}
           <div className="flex flex-col gap-2">
             {/* Status */}
-            <div className="bg-[#F2F2F0] rounded-lg px-3 py-5">
+            <div className="rounded-lg px-3 py-5" style={{ backgroundColor: 'var(--color-surface-800)' }}>
               <div className="flex items-center justify-between text-sm font-medium leading-[18px] tracking-[0.14px]">
-                <div className="text-black">Status</div>
-                <div className={`whitespace-nowrap ${statusColor}`}>{status}</div>
+                <div style={{ color: 'var(--color-text-primary)' }}>Status</div>
+                <div className="whitespace-nowrap" style={{ color: statusColor }}>
+                  {status}
+                </div>
               </div>
             </div>
 
             {/* From / To */}
-            <div className="bg-[#F2F2F0] rounded-lg p-3">
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
               <div className="flex items-center gap-2.5">
                 <div className="flex-1 flex flex-col gap-1 min-w-0">
                   <div className="text-sm font-medium leading-[18px] tracking-[0.14px]">From</div>
-                  <div className="text-[13px] leading-[18px] tracking-[0.26px] text-[#707070] truncate">
+                  <div
+                    className="text-[13px] leading-[18px] tracking-[0.26px] truncate"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     {fromAddress}
                   </div>
                 </div>
                 <div className="p-1 shrink-0">
-                  <img src={ArrowRightIcon} alt="" className="w-4 h-4" />
+                  <ChevronRightIcon className="w-4 h-4" />
                 </div>
                 <div className="flex-1 flex flex-col gap-1 min-w-0">
                   <div className="text-sm font-medium leading-[18px] tracking-[0.14px]">To</div>
-                  <div className="text-[13px] leading-[18px] tracking-[0.26px] text-[#707070] truncate">
+                  <div
+                    className="text-[13px] leading-[18px] tracking-[0.26px] truncate"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     {toAddress}
                   </div>
                 </div>
@@ -105,17 +128,24 @@ export function TransactionDetailsScreen() {
             </div>
 
             {/* Fee and Total */}
-            <div className="bg-[#F2F2F0] rounded-lg px-3 py-3 flex flex-col gap-3">
+            <div className="rounded-lg px-3 py-3 flex flex-col gap-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
               <div className="flex items-center justify-between text-sm font-medium leading-[18px] tracking-[0.14px]">
-                <div className="text-[#000] opacity-70">Network fee</div>
-                <div className="text-[#707070] whitespace-nowrap">{networkFee}</div>
+                <div style={{ color: 'var(--color-text-primary)', opacity: 0.7 }}>Network fee</div>
+                <div className="whitespace-nowrap" style={{ color: 'var(--color-text-muted)' }}>
+                  {networkFee}
+                </div>
               </div>
-              <div className="h-px w-full bg-[#EBEBE9]" />
+              <div className="h-px w-full" style={{ backgroundColor: 'var(--color-divider)' }} />
               <div className="flex items-center justify-between text-sm font-medium leading-[18px] tracking-[0.14px]">
-                <div className="text-black">Total</div>
+                <div style={{ color: 'var(--color-text-primary)' }}>Total</div>
                 <div className="flex flex-col items-end gap-1 w-[75px]">
-                  <div className="text-black whitespace-nowrap">{total}</div>
-                  <div className="text-[13px] leading-[18px] tracking-[0.26px] text-[#707070] whitespace-nowrap">
+                  <div className="whitespace-nowrap" style={{ color: 'var(--color-text-primary)' }}>
+                    {total}
+                  </div>
+                  <div
+                    className="text-[13px] leading-[18px] tracking-[0.26px] whitespace-nowrap"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     {totalUsd}
                   </div>
                 </div>
@@ -127,14 +157,26 @@ export function TransactionDetailsScreen() {
               <button
                 type="button"
                 onClick={handleViewExplorer}
-                className="flex-1 py-[7px] px-3 bg-transparent border border-[#DADAD8] rounded-full text-sm font-medium leading-[18px] tracking-[0.14px] transition-colors hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 whitespace-nowrap"
+                className="flex-1 py-[7px] px-3 bg-transparent rounded-full text-sm font-medium leading-[18px] tracking-[0.14px] transition-colors focus:outline-none focus-visible:ring-2 whitespace-nowrap"
+                style={{
+                  border: '1px solid var(--color-surface-700)',
+                  color: 'var(--color-text-primary)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 View on explorer
               </button>
               <button
                 type="button"
                 onClick={handleCopyTransactionId}
-                className="flex-1 py-[7px] px-3 bg-transparent border border-[#DADAD8] rounded-full text-sm font-medium leading-[18px] tracking-[0.14px] transition-colors hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 whitespace-nowrap"
+                className="flex-1 py-[7px] px-3 bg-transparent rounded-full text-sm font-medium leading-[18px] tracking-[0.14px] transition-colors focus:outline-none focus-visible:ring-2 whitespace-nowrap"
+                style={{
+                  border: '1px solid var(--color-surface-700)',
+                  color: 'var(--color-text-primary)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 Copy transaction ID
               </button>
@@ -145,7 +187,13 @@ export function TransactionDetailsScreen() {
           <button
             type="button"
             onClick={handleActivityLog}
-            className="flex items-center justify-between p-3 bg-[#EBEBE9] rounded-lg transition-colors hover:bg-[#E0E0DE] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+            className="flex items-center justify-between p-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
+            style={{
+              backgroundColor: 'var(--color-surface-800)',
+              color: 'var(--color-text-primary)',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-700)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
           >
             <div className="text-sm font-medium leading-[18px] tracking-[0.14px]">Activity log</div>
             <div className="text-[20px] leading-none">+</div>

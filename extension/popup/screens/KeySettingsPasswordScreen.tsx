@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import { send } from '../utils/messaging';
 import { INTERNAL_METHODS, ERROR_CODES } from '../../shared/constants';
 import FortNockLogo96 from '../assets/fort-nock-logo-96.svg';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { EyeIcon } from '../components/icons/EyeIcon';
 import { EyeOffIcon } from '../components/icons/EyeOffIcon';
 
@@ -12,6 +13,10 @@ export function KeySettingsPasswordScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  function handleBack() {
+    navigate('settings');
+  }
 
   async function handleConfirm() {
     if (!password) {
@@ -49,20 +54,43 @@ export function KeySettingsPasswordScreen() {
   }
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black overflow-y-auto">
-      <div className="flex h-full flex-col justify-between px-4 py-8">
-        {/* Header */}
+    <div
+      className="w-[357px] h-[600px] flex flex-col overflow-y-auto"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
+      {/* Header */}
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
+        <button
+          type="button"
+          onClick={handleBack}
+          aria-label="Back"
+          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
+          style={{ backgroundColor: 'transparent', color: 'var(--color-text-primary)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        >
+          <ChevronLeftIcon className="w-5 h-5" />
+        </button>
+        <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">
+          Key settings
+        </h1>
+        <div className="w-8 h-8" />
+      </header>
+
+      <div className="flex flex-1 flex-col justify-between px-4 py-8">
+        {/* Content */}
         <div className="flex flex-col items-center gap-3 w-full">
           <img src={FortNockLogo96} alt="Fort Nock" className="w-24 h-24" />
 
-          <div className="flex flex-col items-center gap-2 w-full">
-            <h1 className="m-0 text-2xl font-medium leading-7 tracking-[-0.48px] text-center font-display">
-              Key settings
-            </h1>
-            <p className="m-0 text-[13px] leading-[18px] tracking-[0.26px] text-[#707070] text-center">
-              Please re-enter your password to see your keys
-            </p>
-          </div>
+          <p
+            className="m-0 text-[13px] leading-[18px] tracking-[0.26px] text-center"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Please re-enter your password to see your keys
+          </p>
         </div>
 
         {/* Form */}
@@ -75,7 +103,11 @@ export function KeySettingsPasswordScreen() {
             <div className="relative w-full">
               <input
                 type={showPassword ? 'text' : 'password'}
-                className="w-full h-[52px] bg-transparent border border-[#DADAD8] rounded-lg pl-3 pr-10 py-4 outline-none transition-colors text-sm leading-[18px] tracking-[0.14px] font-medium placeholder:text-[#AAAAAA] focus:border-[#FFC413]"
+                className="w-full h-[52px] bg-transparent rounded-lg pl-3 pr-10 py-4 outline-none transition-colors text-sm leading-[18px] tracking-[0.14px] font-medium"
+                style={{
+                  border: '1px solid var(--color-surface-700)',
+                  color: 'var(--color-text-primary)',
+                }}
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => {
@@ -85,12 +117,17 @@ export function KeySettingsPasswordScreen() {
                 onKeyDown={e => {
                   if (e.key === 'Enter') handleConfirm();
                 }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-surface-700)')}
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center text-[#707070] hover:text-black transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center transition-colors"
+                style={{ color: 'var(--color-text-muted)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
@@ -101,20 +138,28 @@ export function KeySettingsPasswordScreen() {
               </button>
             </div>
 
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {error && (
+              <p className="text-xs" style={{ color: 'var(--color-red)' }}>
+                {error}
+              </p>
+            )}
           </div>
 
           <button
             onClick={handleConfirm}
             disabled={isLoading}
-            className="w-full h-12 bg-black text-white rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity hover:opacity-90 active:opacity-80 disabled:opacity-50"
+            className="w-full h-12 rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity hover:opacity-90 active:opacity-80 disabled:opacity-50"
+            style={{ backgroundColor: 'var(--color-primary)', color: '#000' }}
           >
             {isLoading ? 'Verifying...' : 'Confirm'}
           </button>
         </div>
 
         {/* Warning */}
-        <p className="m-0 text-[13px] leading-[18px] tracking-[0.26px] text-[#707070] text-center">
+        <p
+          className="m-0 text-[13px] leading-[18px] tracking-[0.26px] text-center"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
           Warning: Never disclose this key. Anyone with your private keys can steal any assets held
           in your account.
         </p>

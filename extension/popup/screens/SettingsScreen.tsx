@@ -3,8 +3,8 @@ import FortNockLogo from '../assets/fort-nock-logo.svg';
 import ThemeIcon from '../assets/theme-icon.svg';
 import KeyIcon from '../assets/key-icon.svg';
 import ClockIcon from '../assets/clock-icon.svg';
-import ArrowRightIcon from '../assets/arrow-right-icon.svg';
-import CloseIcon from '../assets/close-x-icon.svg';
+import { CloseIcon } from '../components/icons/CloseIcon';
+import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 import AboutIcon from '../assets/settings-gear-icon.svg';
 
 export function SettingsScreen() {
@@ -30,26 +30,40 @@ export function SettingsScreen() {
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-between p-2 rounded-lg transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+      className="flex items-center justify-between p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
+      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
     >
       <div className="flex items-center gap-2.5 flex-1">
-        <div className="w-8 h-8 bg-[#EBEBE9] rounded-lg flex items-center justify-center shrink-0">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          style={{ backgroundColor: 'var(--color-surface-800)' }}
+        >
           <img src={icon} alt="" className="w-5 h-5 object-contain" />
         </div>
-        <span className="text-sm font-medium leading-[18px] tracking-[0.14px] text-black">
+        <span
+          className="text-sm font-medium leading-[18px] tracking-[0.14px]"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {label}
         </span>
       </div>
       <div className="w-4 h-4 p-1 shrink-0">
-        <img src={ArrowRightIcon} alt="" className="w-4 h-4" />
+        <ChevronRightIcon className="w-4 h-4" />
       </div>
     </button>
   );
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black overflow-y-auto">
+    <div
+      className="w-[357px] h-[600px] flex flex-col overflow-y-auto"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <div className="w-8 h-8 flex items-center justify-center shrink-0">
           <img src={FortNockLogo} alt="Fort Nock" className="w-6 h-6" />
         </div>
@@ -58,9 +72,12 @@ export function SettingsScreen() {
           type="button"
           onClick={handleClose}
           aria-label="Close"
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 shrink-0"
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 shrink-0"
+          style={{ color: 'var(--color-text-primary)' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <img src={CloseIcon} alt="" className="w-4 h-4" />
+          <CloseIcon />
         </button>
       </header>
 
@@ -76,11 +93,20 @@ export function SettingsScreen() {
 
         {/* Footer */}
         <div className="px-4">
-          <div className="flex flex-col items-center justify-center gap-2 py-4 border-t border-[#EBEBE9]">
-            <p className="m-0 text-[12px] leading-4 tracking-[0.24px] text-[#707070] text-center">
+          <div
+            className="flex flex-col items-center justify-center gap-2 py-4"
+            style={{ borderTop: '1px solid var(--color-divider)' }}
+          >
+            <p
+              className="m-0 text-[12px] leading-4 tracking-[0.24px] text-center"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Version 1.0.0
             </p>
-            <p className="m-0 text-[12px] leading-4 tracking-[0.24px] text-[#707070] text-center">
+            <p
+              className="m-0 text-[12px] leading-4 tracking-[0.24px] text-center"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Extension ID: nock_wallet_v1
             </p>
           </div>

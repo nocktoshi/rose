@@ -54,6 +54,9 @@ export const INTERNAL_METHODS = {
   /** Update account styling (icon and color) */
   UPDATE_ACCOUNT_STYLING: "wallet:updateAccountStyling",
 
+  /** Hide an account from the UI */
+  HIDE_ACCOUNT: "wallet:hideAccount",
+
   /** Get mnemonic phrase (requires password verification) */
   GET_MNEMONIC: "wallet:getMnemonic",
 
@@ -101,6 +104,9 @@ export const INTERNAL_METHODS = {
 
   /** Revoke origin permissions */
   REVOKE_ORIGIN: "wallet:revokeOrigin",
+
+  /** Sign a transaction (internal popup-initiated transactions) */
+  SIGN_TRANSACTION: "wallet:signTransaction",
 } as const;
 
 /**
@@ -132,6 +138,9 @@ export const ERROR_CODES = {
 
   /** Invalid account index provided */
   INVALID_ACCOUNT_INDEX: "INVALID_ACCOUNT_INDEX",
+
+  /** Cannot hide the last visible account */
+  CANNOT_HIDE_LAST_ACCOUNT: "CANNOT_HIDE_LAST_ACCOUNT",
 
   /** Unsupported RPC method requested */
   METHOD_NOT_SUPPORTED: "METHOD_NOT_SUPPORTED",
@@ -223,6 +232,7 @@ export const USER_ACTIVITY_METHODS = new Set([
   INTERNAL_METHODS.CREATE_ACCOUNT,
   INTERNAL_METHODS.RENAME_ACCOUNT,
   INTERNAL_METHODS.UPDATE_ACCOUNT_STYLING,
+  INTERNAL_METHODS.HIDE_ACCOUNT,
   INTERNAL_METHODS.SET_AUTO_LOCK,
   INTERNAL_METHODS.GET_MNEMONIC, // Viewing recovery phrase is user activity
 ]);
@@ -246,6 +256,19 @@ export const UI_CONSTANTS = {
   /** Number of words in BIP-39 mnemonic */
   MNEMONIC_WORD_COUNT: 24,
 } as const;
+
+/**
+ * Account Icon Colors - Available colors for account customization
+ */
+export const ACCOUNT_COLORS = [
+  '#2C9AEF', // blue
+  '#EF2C2F', // red
+  '#FFC413', // yellow (primary)
+  '#96B839', // green
+  '#3C2CEF', // purple
+  '#EF2CB1', // pink/magenta
+  '#2C6AEF', // darker blue
+] as const;
 
 /**
  * Approval Request Constants - URL hash prefixes for approval flows

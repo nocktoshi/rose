@@ -1,6 +1,6 @@
 import { useStore } from '../store';
 import FortNockLogo96 from '../assets/fort-nock-logo-96.svg';
-import ArrowLeftIcon from '../assets/arrow-left-icon.svg';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 
 /**
  * AboutScreen
@@ -21,20 +21,29 @@ export function AboutScreen() {
   }
 
   function handleVisitWebsite() {
-    window.open('https://example.com', '_blank');
+    window.open('https://nockbox.org', '_blank');
   }
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black overflow-y-auto font-sans">
+    <div
+      className="w-[357px] h-[600px] flex flex-col overflow-y-auto font-sans"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <button
           type="button"
           onClick={handleBack}
           aria-label="Back"
-          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg flex-shrink-0 cursor-pointer transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg flex-shrink-0 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2"
+          style={{ color: 'var(--color-text-primary)' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <img src={ArrowLeftIcon} alt="" className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
 
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">About</h1>
@@ -52,15 +61,21 @@ export function AboutScreen() {
           <p className="m-0 text-base font-medium leading-[22px] tracking-[0.16px] text-center">
             Iris Version 1.0.0
           </p>
-          <p className="m-0 text-[13px] leading-[18px] tracking-[0.26px] text-[#707070] text-center">
+          <p
+            className="m-0 text-[13px] leading-[18px] tracking-[0.26px] text-center"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             Extension ID: nock_wallet_v1
           </p>
         </div>
 
-        <div className="w-full h-px bg-[#EBEBE9]" />
+        <div className="w-full h-px" style={{ backgroundColor: 'var(--color-divider)' }} />
 
         <div className="w-full flex flex-col gap-3">
-          <h2 className="m-0 text-sm font-medium leading-[18px] tracking-[0.14px] text-[#707070]">
+          <h2
+            className="m-0 text-sm font-medium leading-[18px] tracking-[0.14px]"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             Links
           </h2>
 
@@ -68,7 +83,7 @@ export function AboutScreen() {
             <button
               type="button"
               onClick={handlePrivacyPolicy}
-              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
             >
               Privacy policy
             </button>
@@ -76,7 +91,7 @@ export function AboutScreen() {
             <button
               type="button"
               onClick={handleTermsOfUse}
-              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
             >
               Terms of use
             </button>
@@ -84,7 +99,7 @@ export function AboutScreen() {
             <button
               type="button"
               onClick={handleVisitWebsite}
-              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
             >
               Visit our website
             </button>

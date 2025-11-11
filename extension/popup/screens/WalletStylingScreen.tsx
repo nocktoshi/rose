@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { send } from '../utils/messaging';
-import { INTERNAL_METHODS } from '../../shared/constants';
+import { INTERNAL_METHODS, ACCOUNT_COLORS } from '../../shared/constants';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 
 // Icons
 import WalletStyle1 from '../assets/wallet-icon-style-1.svg';
@@ -31,6 +32,8 @@ export function WalletStylingScreen() {
   const [selectedStyle, setSelectedStyle] = useState(currentAccount?.iconStyleId || 1);
   const [selectedColor, setSelectedColor] = useState(currentAccount?.iconColor || '#FFC413');
   const [svgContent, setSvgContent] = useState<string>('');
+  const [colorScrollIndex, setColorScrollIndex] = useState(0);
+  const colorScrollRef = useRef<HTMLDivElement>(null);
 
   const iconStyles = [
     { id: 1, icon: WalletStyle1 },
@@ -50,27 +53,20 @@ export function WalletStylingScreen() {
     { id: 15, icon: WalletStyle15 },
   ];
 
-  const colors = [
-    '#FFC413',
-    '#EF5A2C',
-    '#7B00FF',
-    '#CE8A1D',
-    '#96B839',
-    '#228937',
-    '#47AE9D',
-    '#2CCEEF',
-    '#EF2C2F',
-    '#EF2CB1',
-    '#3C2CEF',
-    '#2C9AEF',
-    '#2C6AEF',
-  ];
+  // Use shared color constants
+  const colors = ACCOUNT_COLORS;
 
   // Sync state when current account changes
   useEffect(() => {
     if (currentAccount) {
       setSelectedStyle(currentAccount.iconStyleId || 1);
-      setSelectedColor(currentAccount.iconColor || '#FFC413');
+      const color = currentAccount.iconColor || '#FFC413';
+      setSelectedColor(color);
+      // Set initial scroll index to the selected color
+      const colorIndex = colors.findIndex(c => c.toUpperCase() === color.toUpperCase());
+      if (colorIndex !== -1) {
+        setColorScrollIndex(colorIndex);
+      }
     }
   }, [currentAccount?.index]);
 
@@ -107,7 +103,11 @@ export function WalletStylingScreen() {
           ? { ...acc, iconStyleId: styleId, iconColor: selectedColor }
           : acc
       );
-      const updatedCurrentAccount = { ...currentAccount, iconStyleId: styleId, iconColor: selectedColor };
+      const updatedCurrentAccount = {
+        ...currentAccount,
+        iconStyleId: styleId,
+        iconColor: selectedColor,
+      };
 
       syncWallet({
         ...wallet,
@@ -136,7 +136,11 @@ export function WalletStylingScreen() {
           ? { ...acc, iconStyleId: selectedStyle, iconColor: color }
           : acc
       );
-      const updatedCurrentAccount = { ...currentAccount, iconStyleId: selectedStyle, iconColor: color };
+      const updatedCurrentAccount = {
+        ...currentAccount,
+        iconStyleId: selectedStyle,
+        iconColor: color,
+      };
 
       syncWallet({
         ...wallet,
@@ -152,73 +156,181 @@ export function WalletStylingScreen() {
     navigate('wallet-settings');
   }
 
+  function handleColorScrollLeft() {
+    if (colorScrollIndex > 0) {
+      setColorScrollIndex(colorScrollIndex - 1);
+    }
+  }
+
+  function handleColorScrollRight() {
+    if (colorScrollIndex < colors.length - 1) {
+      setColorScrollIndex(colorScrollIndex + 1);
+    }
+  }
+
+  // Scroll to the selected color on mount or when color changes externally
+  useEffect(() => {
+    if (colorScrollRef.current) {
+      const colorButton = colorScrollRef.current.children[colorScrollIndex] as HTMLElement;
+      if (colorButton) {
+        // Get container dimensions
+        const container = colorScrollRef.current;
+        const containerWidth = container.offsetWidth;
+        const buttonLeft = colorButton.offsetLeft;
+        const buttonWidth = colorButton.offsetWidth;
+
+        // Calculate scroll position to center the button
+        const scrollPosition = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+
+        container.scrollTo({
+          left: scrollPosition,
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [colorScrollIndex]);
+
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white text-black">
+    <div
+      className="w-[357px] h-[600px] flex flex-col"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <button
           type="button"
           onClick={handleBack}
           aria-label="Back"
-          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+          className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
+          style={{ color: 'var(--color-text-primary)' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <ChevronLeftIcon className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">Styling</h1>
         <div className="w-8 h-8" />
       </header>
 
       {/* Content */}
-      <div className="flex flex-col gap-4 h-[536px] pt-4 items-center">
+      <div className="flex flex-col gap-[20px] h-[536px] pt-[16px] px-0 pb-0">
         {/* Preview */}
         <div className="flex items-center justify-center shrink-0">
           <div className="w-24 h-24 block" dangerouslySetInnerHTML={{ __html: svgContent }} />
         </div>
 
-        {/* Selection grid */}
-        <div className="flex gap-3 px-4 py-3 flex-1 w-full min-h-0">
-          {/* Icon styles */}
-          <div className="flex-1 bg-[#F2F2F0] border border-[#F2F2F0] rounded-lg p-2 overflow-y-auto min-w-0">
-            <div className="grid grid-cols-3 gap-2">
-              {iconStyles.map(style => {
-                const selected = selectedStyle === style.id;
-                return (
-                  <button
-                    key={style.id}
-                    type="button"
-                    onClick={() => handleStyleChange(style.id)}
-                    className={`flex items-center justify-center p-2 bg-white border rounded-lg transition-colors hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${
-                      selected ? 'border-black' : 'border-transparent'
-                    } aspect-square`}
-                    aria-pressed={selected}
-                  >
-                    <img src={style.icon} alt={`Style ${style.id}`} className="w-10 h-10" />
-                  </button>
-                );
-              })}
+        {/* Inner wrapper for padding */}
+        <div className="flex flex-col gap-[32px] px-[16px] py-[12px] flex-1 min-h-0">
+          {/* Icon Styles Section */}
+          <div className="flex flex-col gap-[10px] flex-1 min-h-0">
+            <h2 className="text-sm font-medium leading-[18px] tracking-[0.14px] text-center m-0">
+              Icon style
+            </h2>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="flex flex-wrap gap-[8px] justify-center">
+                {iconStyles.map(style => {
+                  const selected = selectedStyle === style.id;
+                  return (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() => handleStyleChange(style.id)}
+                      className="flex items-center justify-center p-[10px] rounded-[12px] transition-colors focus:outline-none focus-visible:ring-2 shrink-0"
+                      style={{
+                        width: '58px',
+                        height: '58px',
+                        backgroundColor: 'var(--color-bg)',
+                        border: `1px solid ${selected ? 'var(--color-text-primary)' : 'var(--color-surface-800)'}`,
+                      }}
+                      onMouseEnter={e => {
+                        if (!selected) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-surface-900)';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!selected) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg)';
+                        }
+                      }}
+                      aria-pressed={selected}
+                    >
+                      <img src={style.icon} alt={`Style ${style.id}`} className="w-6 h-6" />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Color options */}
-          <div className="shrink-0 bg-[#F2F2F0] border border-[#F2F2F0] rounded-lg p-2 overflow-y-auto">
-            <div className="flex flex-col gap-2 items-center">
-              {colors.map(color => {
-                const selected = selectedColor === color;
-                return (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => handleColorChange(color)}
-                    className={`w-12 h-12 flex items-center justify-center bg-white border rounded-lg p-0 transition-colors hover:bg-[#F8F8F8] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${
-                      selected ? 'border-black' : 'border-transparent'
-                    }`}
-                    aria-label={`Color ${color}`}
-                    aria-pressed={selected}
-                  >
-                    <div className="w-5 h-5 rounded-full" style={{ backgroundColor: color }} />
-                  </button>
-                );
-              })}
+          {/* Icon Color Section */}
+          <div className="shrink-0 flex flex-col gap-[10px] pb-[24px]">
+            <div className="flex items-center gap-[9px]">
+              <button
+                type="button"
+                onClick={handleColorScrollLeft}
+                disabled={colorScrollIndex === 0}
+                className="p-[8px] transition-opacity focus:outline-none focus-visible:ring-2 disabled:opacity-30"
+                aria-label="Previous color"
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </button>
+              <h2 className="flex-1 text-sm font-medium leading-[18px] tracking-[0.14px] text-center m-0">
+                Icon color (TODO: FIX)
+              </h2>
+              <button
+                type="button"
+                onClick={handleColorScrollRight}
+                disabled={colorScrollIndex === colors.length - 1}
+                className="p-[8px] transition-opacity focus:outline-none focus-visible:ring-2 disabled:opacity-30"
+                aria-label="Next color"
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="overflow-hidden">
+              <div
+                ref={colorScrollRef}
+                className="flex gap-[8px] justify-center overflow-x-auto"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+              >
+                {colors.map(color => {
+                  const selected = selectedColor === color;
+                  return (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => handleColorChange(color)}
+                      className="flex items-center justify-center p-0 rounded-[12px] transition-colors focus:outline-none focus-visible:ring-2 shrink-0"
+                      style={{
+                        width: '46px',
+                        height: '46px',
+                        backgroundColor: 'var(--color-bg)',
+                        border: `1px solid ${selected ? 'var(--color-text-primary)' : 'var(--color-surface-800)'}`,
+                      }}
+                      onMouseEnter={e => {
+                        if (!selected) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-surface-900)';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!selected) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg)';
+                        }
+                      }}
+                      aria-label={`Color ${color}`}
+                      aria-pressed={selected}
+                    >
+                      <div className="w-5 h-5 rounded-full" style={{ backgroundColor: color }} />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

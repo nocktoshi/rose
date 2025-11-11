@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store';
-import ArrowLeftIcon from '../assets/arrow-left-icon.svg';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import LockIcon from '../assets/lock-icon-yellow.svg';
 
 /**
@@ -30,34 +30,43 @@ export function ViewSecretPhraseScreen() {
   }
 
   return (
-    <div className="w-[357px] h-[600px] flex flex-col bg-white">
+    <div
+      className="w-[357px] h-[600px] flex flex-col"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 min-h-[64px] bg-white">
+      <header
+        className="flex items-center justify-between px-4 py-3 min-h-[64px]"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <button
-          className="w-8 h-8 flex items-center justify-center p-2 hover:opacity-70 transition-opacity"
+          className="w-8 h-8 flex items-center justify-center p-2 transition-opacity hover:opacity-70"
           onClick={handleBack}
         >
-          <img src={ArrowLeftIcon} alt="Back" className="w-4 h-4" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
-        <h1 className="font-sans font-medium text-base text-fn-ink tracking-[0.16px] leading-[22px]">
+        <h1 className="font-sans font-medium text-base tracking-[0.16px] leading-[22px]">
           View secret phrase
         </h1>
         <div className="w-8 h-8" />
       </header>
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col justify-between pt-2 pb-0">
-        <div className="px-4 flex flex-col gap-6">
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto pt-2">
+        <div className="px-4 pb-4 flex flex-col gap-6">
           {/* Title Section */}
           <div className="flex flex-col items-center gap-3 w-full">
             <div className="w-10 h-10 flex items-center justify-center">
               <img src={LockIcon} alt="Lock" className="w-full h-full" />
             </div>
             <div className="flex flex-col gap-2 text-center w-full">
-              <h2 className="font-display font-medium text-2xl text-fn-ink tracking-[-0.48px] leading-7">
+              <h2 className="font-display font-medium text-2xl tracking-[-0.48px] leading-7">
                 View secret phrase
               </h2>
-              <p className="font-sans font-normal text-[13px] text-fn-sub tracking-[0.26px] leading-[18px]">
+              <p
+                className="font-sans font-normal text-[13px] tracking-[0.26px] leading-[18px]"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 Make sure no one is looking at your screen
               </p>
             </div>
@@ -66,7 +75,7 @@ export function ViewSecretPhraseScreen() {
           {/* Download Keyfile Link */}
           <button
             onClick={handleDownloadKeyfile}
-            className="font-sans font-medium text-sm text-fn-ink tracking-[0.14px] leading-[18px] text-center underline hover:opacity-70 transition-opacity"
+            className="font-sans font-medium text-sm tracking-[0.14px] leading-[18px] text-center underline hover:opacity-70 transition-opacity"
           >
             Download keyfile
           </button>
@@ -77,28 +86,40 @@ export function ViewSecretPhraseScreen() {
             {[0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22].map((startIndex) => (
               <div key={startIndex} className="flex gap-2">
                 {/* Left word */}
-                <div className="flex-1 bg-white border border-[#F2F2F0] rounded-lg overflow-hidden">
+                <div
+                  className="flex-1 rounded-lg overflow-hidden"
+                  style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-surface-800)' }}
+                >
                   <div className="flex items-center gap-2.5 p-2">
-                    <div className="w-7 h-7 bg-[#F2F2F0] rounded flex items-center justify-center flex-shrink-0">
-                      <span className="font-sans font-medium text-sm text-fn-ink tracking-[0.14px] leading-[18px]">
+                    <div
+                      className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: 'var(--color-surface-800)' }}
+                    >
+                      <span className="font-sans font-medium text-sm tracking-[0.14px] leading-[18px]">
                         {startIndex + 1}
                       </span>
                     </div>
-                    <span className="font-sans font-medium text-sm text-fn-ink tracking-[0.14px] leading-[18px] flex-1">
+                    <span className="font-sans font-medium text-sm tracking-[0.14px] leading-[18px] flex-1">
                       {seedPhrase[startIndex]}
                     </span>
                   </div>
                 </div>
 
                 {/* Right word */}
-                <div className="flex-1 bg-white border border-[#F2F2F0] rounded-lg overflow-hidden">
+                <div
+                  className="flex-1 rounded-lg overflow-hidden"
+                  style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-surface-800)' }}
+                >
                   <div className="flex items-center gap-2.5 p-2">
-                    <div className="w-7 h-7 bg-[#F2F2F0] rounded flex items-center justify-center flex-shrink-0">
-                      <span className="font-sans font-medium text-sm text-fn-ink tracking-[0.14px] leading-[18px]">
+                    <div
+                      className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: 'var(--color-surface-800)' }}
+                    >
+                      <span className="font-sans font-medium text-sm tracking-[0.14px] leading-[18px]">
                         {startIndex + 2}
                       </span>
                     </div>
-                    <span className="font-sans font-medium text-sm text-fn-ink tracking-[0.14px] leading-[18px] flex-1">
+                    <span className="font-sans font-medium text-sm tracking-[0.14px] leading-[18px] flex-1">
                       {seedPhrase[startIndex + 1]}
                     </span>
                   </div>
@@ -108,25 +129,43 @@ export function ViewSecretPhraseScreen() {
 
             {/* Blur Overlay */}
             {!isRevealed && (
-              <div className="absolute inset-0 backdrop-blur-[6px] bg-white/40 border border-[#F2F2F0] rounded-lg" />
+              <div
+                className="absolute inset-0 backdrop-blur-[6px] rounded-lg"
+                style={{ backgroundColor: 'var(--color-popover)', border: '1px solid var(--color-surface-900)' }}
+              />
             )}
           </div>
         </div>
+      </div>
 
-        {/* Bottom Button */}
-        <div className="border-t border-[#EBEBE9] bg-white px-4 py-3">
-          <button
-            onClick={handleReveal}
-            disabled={isRevealed}
-            className={`w-full h-12 rounded-lg font-sans font-medium text-sm tracking-[0.14px] leading-[18px] transition-opacity ${
-              isRevealed
-                ? 'bg-fn-ink/50 text-white cursor-not-allowed'
-                : 'bg-fn-ink text-white hover:opacity-90'
-            }`}
-          >
-            {isRevealed ? 'Seed phrase revealed' : 'Show seed phrase'}
-          </button>
-        </div>
+      {/* Bottom Button - Pinned to bottom */}
+      <div
+        className="px-4 py-3 shrink-0"
+        style={{ borderTop: '1px solid var(--color-divider)', backgroundColor: 'var(--color-bg)' }}
+      >
+        <button
+          onClick={handleReveal}
+          disabled={isRevealed}
+          className="w-full h-12 rounded-lg font-sans font-medium text-sm tracking-[0.14px] leading-[18px] transition-opacity"
+          style={{
+            backgroundColor: isRevealed ? 'var(--color-surface-700)' : 'var(--color-primary)',
+            color: isRevealed ? 'var(--color-text-primary)' : '#000',
+            cursor: isRevealed ? 'not-allowed' : 'pointer',
+            opacity: isRevealed ? 0.5 : 1,
+          }}
+          onMouseEnter={(e) => {
+            if (!isRevealed) {
+              e.currentTarget.style.opacity = '0.9';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isRevealed) {
+              e.currentTarget.style.opacity = '1';
+            }
+          }}
+        >
+          {isRevealed ? 'Seed phrase revealed' : 'Show seed phrase'}
+        </button>
       </div>
     </div>
   );

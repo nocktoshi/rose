@@ -62,48 +62,65 @@ export function TransactionApprovalScreen() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={handleReject}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="transition-colors"
+          style={{ color: 'var(--color-text-primary)' }}
         >
           <ChevronLeftIcon />
         </button>
-        <h2 className="text-xl font-semibold">Approve Transaction</h2>
+        <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          Approve Transaction
+        </h2>
       </div>
 
       {/* Site Origin */}
       <div className="mb-6">
-        <label className="text-sm text-gray-400 block mb-2">
+        <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
           Requesting Site
         </label>
-        <div className="bg-gray-800 rounded-lg p-3">
-          <p className="text-sm font-medium break-all">{origin}</p>
+        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+          <p className="text-sm font-medium break-all" style={{ color: 'var(--color-text-primary)' }}>
+            {origin}
+          </p>
         </div>
       </div>
 
       {/* Transaction Details */}
       <div className="mb-6 space-y-4">
         <div>
-          <label className="text-sm text-gray-400 block mb-2">Recipient</label>
-          <div className="bg-gray-800 rounded-lg p-3">
-            <p className="text-sm font-mono break-all">{to}</p>
+          <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
+            Recipient
+          </label>
+          <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+            <p className="text-sm font-mono break-all" style={{ color: 'var(--color-text-primary)' }}>
+              {to}
+            </p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm text-gray-400 block mb-2">Amount</label>
-            <div className="bg-gray-800 rounded-lg p-3">
-              <p className="text-sm font-medium">{amountNock} NOCK</p>
-              <p className="text-xs text-gray-500 mt-1">
+            <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
+              Amount
+            </label>
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+              <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                {amountNock} NOCK
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                 {amount.toLocaleString()} nicks
               </p>
             </div>
           </div>
 
           <div>
-            <label className="text-sm text-gray-400 block mb-2">Fee</label>
-            <div className="bg-gray-800 rounded-lg p-3">
-              <p className="text-sm font-medium">{feeNock} NOCK</p>
-              <p className="text-xs text-gray-500 mt-1">
+            <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
+              Fee
+            </label>
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+              <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                {feeNock} NOCK
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                 {fee.toLocaleString()} nicks
               </p>
             </div>
@@ -111,12 +128,14 @@ export function TransactionApprovalScreen() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-400 block mb-2">
+          <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
             Total (Amount + Fee)
           </label>
-          <div className="bg-gray-800 rounded-lg p-3">
-            <p className="text-lg font-semibold">{totalNock} NOCK</p>
-            <p className="text-xs text-gray-500 mt-1">
+          <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+            <p className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              {totalNock} NOCK
+            </p>
+            <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
               {(amount + fee).toLocaleString()} nicks
             </p>
           </div>
@@ -125,12 +144,14 @@ export function TransactionApprovalScreen() {
 
       {/* Sending Account */}
       <div className="mb-6">
-        <label className="text-sm text-gray-400 block mb-2">From Account</label>
-        <div className="bg-gray-800 rounded-lg p-3">
-          <p className="text-sm font-medium">
+        <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
+          From Account
+        </label>
+        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+          <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
             {currentAccount?.name || "Unknown"}
           </p>
-          <p className="text-xs text-gray-500 font-mono mt-1">
+          <p className="text-xs font-mono mt-1" style={{ color: 'var(--color-text-muted)' }}>
             {truncateAddress(currentAccount?.address)}
           </p>
         </div>

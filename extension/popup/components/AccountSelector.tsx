@@ -161,7 +161,7 @@ export function AccountSelector() {
         <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden z-50">
           {/* Account list */}
           <div className="max-h-64 overflow-y-auto no-scrollbar">
-            {wallet.accounts.map((account) => (
+            {wallet.accounts.filter(acc => !acc.hidden).map((account) => (
               <div
                 key={account.index}
                 className={`w-full flex items-center gap-2 p-3 ${

@@ -7,6 +7,7 @@ import { INTERNAL_METHODS, ERROR_CODES } from "../../../shared/constants";
 import { useStore } from "../../store";
 import { send } from "../../utils/messaging";
 import { Alert } from "../../components/Alert";
+import { ConfirmModal } from "../../components/ConfirmModal";
 import { EyeIcon } from "../../components/icons/EyeIcon";
 import { EyeOffIcon } from "../../components/icons/EyeOffIcon";
 import logoSvg from "../../assets/iris-logo.svg";
@@ -15,6 +16,7 @@ export function LockedScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { navigate, syncWallet, wallet } = useStore();
 
   async function handleUnlock() {
@@ -57,17 +59,18 @@ export function LockedScreen() {
   }
 
   function handleResetWallet() {
-    // TODO: Implement reset wallet confirmation dialog
-    if (
-      confirm(
-        "This will delete your current wallet and all data. Are you sure?"
-      )
-    ) {
-      // Clear storage and restart onboarding
-      chrome.storage.local.clear(() => {
-        window.location.reload();
-      });
-    }
+    setShowResetConfirm(true);
+  }
+
+  function confirmResetWallet() {
+    // Clear storage and restart onboarding
+    chrome.storage.local.clear(() => {
+      window.location.reload();
+    });
+  }
+
+  function cancelResetWallet() {
+    setShowResetConfirm(false);
   }
 
   return (
@@ -193,6 +196,18 @@ export function LockedScreen() {
           </button>
         </div>
       </div>
+
+      {/* Reset Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showResetConfirm}
+        title="Reset wallet"
+        message="This will delete your current wallet and all data. You will need to create a new wallet or import an existing one."
+        confirmText="Reset"
+        cancelText="Cancel"
+        onConfirm={confirmResetWallet}
+        onCancel={cancelResetWallet}
+        variant="danger"
+      />
     </div>
   );
 }

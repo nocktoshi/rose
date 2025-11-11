@@ -34,59 +34,72 @@ export function SentScreen() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate('home')}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="transition-colors"
+          style={{ color: 'var(--color-text-primary)' }}
         >
           <ChevronLeftIcon />
         </button>
-        <h2 className="text-xl font-semibold">Send NOCK</h2>
+        <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          Send NOCK
+        </h2>
       </div>
 
       {/* Success icon */}
       <div className="flex justify-center mb-6">
-        <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center">
-          <CheckIcon className="w-12 h-12 text-green-500" />
+        <div
+          className="w-24 h-24 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: 'var(--color-green-light)' }}
+        >
+          <CheckIcon className="w-12 h-12" style={{ color: 'var(--color-green)' }} />
         </div>
       </div>
 
       {/* Success message */}
-      <h3 className="text-2xl font-semibold text-center mb-2">Sent!</h3>
-      <p className="text-gray-400 text-center mb-8">
+      <h3 className="text-2xl font-semibold text-center mb-2" style={{ color: 'var(--color-text-primary)' }}>
+        Sent!
+      </h3>
+      <p className="text-center mb-8" style={{ color: 'var(--color-text-muted)' }}>
         Your transaction has been broadcast to the network
       </p>
 
       {/* Transaction details */}
-      <div className="bg-gray-800 rounded-lg p-4 mb-4 space-y-3">
+      <div className="rounded-lg p-4 mb-4 space-y-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
         <div className="flex justify-between items-center">
-          <span className="text-gray-400 text-sm">Amount</span>
-          <span className="text-white font-mono">{amount} NOCK</span>
+          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Amount</span>
+          <span className="font-mono" style={{ color: 'var(--color-text-primary)' }}>{amount} NOCK</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-gray-400 text-sm">Fee</span>
-          <span className="text-white font-mono">{fee} NOCK</span>
+          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Fee</span>
+          <span className="font-mono" style={{ color: 'var(--color-text-primary)' }}>{fee} NOCK</span>
         </div>
-        <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
-          <span className="text-gray-400 text-sm">Total</span>
-          <span className="text-white font-mono font-semibold">
+        <div className="pt-3 flex justify-between items-center" style={{ borderTop: '1px solid var(--color-divider)' }}>
+          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Total</span>
+          <span className="font-mono font-semibold" style={{ color: 'var(--color-text-primary)' }}>
             {total.toFixed(2)} NOCK
           </span>
         </div>
       </div>
 
       {/* Transaction ID */}
-      <div className="bg-gray-800 rounded-lg p-4 mb-6">
-        <p className="text-sm text-gray-400 mb-2">Transaction ID:</p>
+      <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+        <p className="text-sm mb-2" style={{ color: 'var(--color-text-muted)' }}>Transaction ID:</p>
         <button
           onClick={() => copyToClipboard(txid)}
           className="w-full text-left"
         >
-          <p className="text-sm font-mono break-all text-white mb-2">{txid}</p>
+          <p className="text-sm font-mono break-all mb-2" style={{ color: 'var(--color-text-primary)' }}>
+            {txid}
+          </p>
         </button>
         {copied && (
-          <p className="text-xs text-green-500">Copied to clipboard!</p>
+          <p className="text-xs" style={{ color: 'var(--color-green)' }}>Copied to clipboard!</p>
         )}
         <button
           onClick={handleViewDetails}
-          className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mt-2"
+          className="flex items-center gap-2 text-sm transition-colors mt-2"
+          style={{ color: 'var(--color-text-muted)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
         >
           <ArrowUpRightIcon className="w-4 h-4" />
           View Details

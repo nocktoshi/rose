@@ -38,9 +38,9 @@ export function BackupScreen() {
   }
 
   return (
-    <div className="relative w-[357px] h-[600px] bg-[var(--color-bg)]">
+    <div className="w-[357px] h-[600px] flex flex-col bg-[var(--color-bg)]">
       {/* Header with back button */}
-      <div className="flex items-center justify-between h-16 px-4 py-3 border-b border-[var(--color-divider)]">
+      <div className="flex items-center justify-between h-16 px-4 py-3 border-b border-[var(--color-divider)] shrink-0">
         <button
           onClick={() => navigate("onboarding-create")}
           className="p-2 -ml-2 hover:opacity-70 transition-opacity"
@@ -70,8 +70,8 @@ export function BackupScreen() {
       </div>
 
       {/* Main content - scrollable */}
-      <div className="h-[536px] overflow-y-auto no-scrollbar">
-        <div className="px-4 py-2 pb-24 flex flex-col gap-6">
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="px-4 py-2 pb-4 flex flex-col gap-6">
           {/* Icon and heading */}
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10">
@@ -156,21 +156,10 @@ export function BackupScreen() {
 
               {/* Blur overlay when not revealed */}
               {!isRevealed && (
-                <div className="absolute inset-0 backdrop-blur-md bg-[var(--color-popover)] rounded-lg border border-[var(--color-surface-900)] flex items-center justify-center">
-                  <button
-                    onClick={() => setIsRevealed(true)}
-                    className="h-12 px-5 py-[15px] bg-[var(--color-text-primary)] text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "var(--font-size-base)",
-                      fontWeight: 500,
-                      lineHeight: "var(--line-height-snug)",
-                      letterSpacing: "0.01em",
-                    }}
-                  >
-                    Show seed phrase
-                  </button>
-                </div>
+                <div
+                  className="absolute inset-0 backdrop-blur-[6px] rounded-lg"
+                  style={{ backgroundColor: 'var(--color-popover)', border: '1px solid var(--color-surface-900)' }}
+                />
               )}
             </div>
           </div>
@@ -212,17 +201,12 @@ export function BackupScreen() {
         </div>
       </div>
 
-      {/* Bottom buttons */}
-      <div className="absolute bottom-0 left-0 right-0 border-t border-[var(--color-surface-800)] px-4 py-3 bg-[var(--color-bg)]">
-        <div className="flex gap-3">
+      {/* Bottom buttons - Pinned to bottom */}
+      <div className="border-t border-[var(--color-surface-800)] px-4 py-3 bg-[var(--color-bg)] shrink-0">
+        {!isRevealed ? (
           <button
-            onClick={handleCopyAll}
-            disabled={!isRevealed}
-            className={`flex-1 h-12 px-5 py-[15px] rounded-lg flex items-center justify-center transition-opacity ${
-              isRevealed
-                ? "bg-[var(--color-surface-900)] text-[var(--color-text-primary)] hover:opacity-90"
-                : "bg-[var(--color-surface-700)] text-[var(--color-text-muted)] cursor-not-allowed opacity-50"
-            }`}
+            onClick={() => setIsRevealed(true)}
+            className="w-full h-12 px-5 py-[15px] bg-[var(--color-text-primary)] text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
               fontFamily: "var(--font-sans)",
               fontSize: "var(--font-size-base)",
@@ -231,27 +215,43 @@ export function BackupScreen() {
               letterSpacing: "0.01em",
             }}
           >
-            Copy all
+            Show seed phrase
           </button>
-          <button
-            onClick={handleContinue}
-            disabled={!hasConfirmed}
-            className={`flex-1 h-12 px-5 py-[15px] rounded-lg flex items-center justify-center transition-opacity ${
-              hasConfirmed
-                ? "bg-[var(--color-text-primary)] text-[var(--color-bg)] hover:opacity-90"
-                : "bg-[var(--color-surface-700)] text-[var(--color-text-muted)] cursor-not-allowed opacity-50"
-            }`}
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: "var(--font-size-base)",
-              fontWeight: 500,
-              lineHeight: "var(--line-height-snug)",
-              letterSpacing: "0.01em",
-            }}
-          >
-            Continue
-          </button>
-        </div>
+        ) : (
+          <div className="flex gap-3">
+            <button
+              onClick={handleCopyAll}
+              className="flex-1 h-12 px-5 py-[15px] rounded-lg flex items-center justify-center transition-opacity bg-[var(--color-surface-900)] text-[var(--color-text-primary)] hover:opacity-90"
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: "var(--font-size-base)",
+                fontWeight: 500,
+                lineHeight: "var(--line-height-snug)",
+                letterSpacing: "0.01em",
+              }}
+            >
+              Copy all
+            </button>
+            <button
+              onClick={handleContinue}
+              disabled={!hasConfirmed}
+              className={`flex-1 h-12 px-5 py-[15px] rounded-lg flex items-center justify-center transition-opacity ${
+                hasConfirmed
+                  ? "bg-[var(--color-text-primary)] text-[var(--color-bg)] hover:opacity-90"
+                  : "bg-[var(--color-surface-700)] text-[var(--color-text-muted)] cursor-not-allowed opacity-50"
+              }`}
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: "var(--font-size-base)",
+                fontWeight: 500,
+                lineHeight: "var(--line-height-snug)",
+                letterSpacing: "0.01em",
+              }}
+            >
+              Continue
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
