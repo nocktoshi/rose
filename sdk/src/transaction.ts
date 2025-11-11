@@ -2,6 +2,7 @@
  * Transaction builder with fluent API for constructing Nockchain transactions
  */
 
+import { base58 } from '@scure/base';
 import type { Transaction } from './types.js';
 import { InvalidAddressError, InvalidTransactionError } from './errors.js';
 
@@ -39,7 +40,7 @@ export class TransactionBuilder {
 
   /**
    * Set the recipient address for the transaction
-   * @param address - Base58-encoded Nockchain address (public key hash / PKH)
+   * @param address - Base58-encoded Nockchain V1 PKH address (40 bytes, ~54-55 chars)
    * @returns A new TransactionBuilder instance with the address set
    * @throws {InvalidAddressError} If the address format is invalid
    */
@@ -119,30 +120,26 @@ export class TransactionBuilder {
   }
 
   /**
-   * Validate a Nockchain address format
-   * Nockchain addresses are base58-encoded 97-byte public keys (132 characters)
+   * Validate a Nockchain V1 PKH address format
+   * V1 PKH addresses are TIP5 hash (40 bytes) of public key, base58-encoded
+   *
+   * Validates by decoding the base58 string and checking for exactly 40 bytes
+   * rather than relying on character count which can vary
    *
    * @param address - The address to validate
    * @returns true if valid, false otherwise
    */
   private isValidAddress(address: string): boolean {
-    // Basic validation: must be a non-empty string
-    if (!address || typeof address !== 'string') {
+    try {
+      const trimmed = (address || '').trim();
+      if (trimmed.length === 0) return false;
+
+      const bytes = base58.decode(trimmed);
+      return bytes.length === 40;
+    } catch {
+      // Invalid base58 encoding
       return false;
     }
-
-    // Nockchain addresses are exactly 132 characters (base58-encoded 97-byte public key)
-    if (address.length !== 132) {
-      return false;
-    }
-
-    // Base58 alphabet (Bitcoin-style, excluding 0, O, I, l)
-    const base58Regex = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
-    if (!base58Regex.test(address)) {
-      return false;
-    }
-
-    return true;
   }
 
   /**

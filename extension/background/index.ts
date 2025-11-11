@@ -26,6 +26,7 @@ import type {
 const vault = new Vault();
 let lastActivity = Date.now();
 let autoLockMinutes = AUTOLOCK_MINUTES;
+let manuallyLocked = false; // Track if user manually locked (don't auto-unlock)
 
 /**
  * In-memory cache of approved origins
@@ -103,6 +104,7 @@ interface PendingRequest {
   request: TransactionRequest | SignRequest | ConnectRequest;
   sendResponse: (response: any) => void;
   origin: string;
+  needsUnlock?: boolean; // Flag indicating request is waiting for wallet unlock
 }
 
 const pendingRequests = new Map<string, PendingRequest>();
@@ -239,12 +241,49 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     switch (payload?.method) {
       // Provider methods (called from injected provider via content script)
       case PROVIDER_METHODS.REQUEST_ACCOUNTS:
+        const requestAccountsOrigin = _sender.url || _sender.origin || '';
+
+        // If wallet is locked, open popup to unlock (like MetaMask does)
         if (vault.isLocked()) {
-          sendResponse({ error: ERROR_CODES.LOCKED });
+          // Clear any existing pending unlock requests from same origin to prevent duplicates
+          for (const [existingId, existingData] of pendingRequests.entries()) {
+            if (existingData.needsUnlock && existingData.origin === requestAccountsOrigin) {
+              // Reject the old request with user rejection error
+              existingData.sendResponse({ error: { code: 4001, message: 'User rejected the request' } });
+              pendingRequests.delete(existingId);
+            }
+          }
+
+          // Create a pending request that will continue after unlock
+          const unlockRequestId = crypto.randomUUID();
+          const unlockRequest: ConnectRequest = {
+            id: unlockRequestId,
+            origin: requestAccountsOrigin,
+            timestamp: Date.now(),
+          };
+
+          // Store pending request with response callback
+          // Mark it as 'needsUnlock' so we know to process it after unlock
+          pendingRequests.set(unlockRequestId, {
+            request: unlockRequest,
+            sendResponse,
+            origin: unlockRequest.origin,
+            needsUnlock: true, // Flag to indicate this is waiting for unlock
+          });
+
+          // Open popup to unlock (shows home screen with unlock prompt)
+          // Don't pass hash - just show normal unlock flow
+          await chrome.windows.create({
+            url: chrome.runtime.getURL('popup/index.html'),
+            type: 'popup',
+            width: UI_CONSTANTS.POPUP_WIDTH,
+            height: UI_CONSTANTS.POPUP_HEIGHT,
+            focused: true,
+          });
+
+          // Response will be sent after user unlocks and approves
           return;
         }
-
-        const requestAccountsOrigin = _sender.url || _sender.origin || '';
 
         // Check if origin is already approved
         if (!isOriginApproved(requestAccountsOrigin)) {
@@ -371,11 +410,39 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
         // Emit connect event when unlock succeeds
         if ('ok' in unlockResult && unlockResult.ok) {
+          // Clear manual lock flag when successfully unlocked
+          manuallyLocked = false;
           await emitWalletEvent('connect', { chainId: 'nockchain-1' });
+
+          // Process ONLY THE FIRST pending connect request that was waiting for unlock
+          // This prevents multiple popups from opening
+          for (const [requestId, pendingData] of pendingRequests.entries()) {
+            if (pendingData.needsUnlock && pendingData.request && 'origin' in pendingData.request) {
+              const connectRequest = pendingData.request as ConnectRequest;
+
+              // Check if origin needs approval
+              if (!isOriginApproved(connectRequest.origin)) {
+                // Show approval popup for this connect request
+                await createApprovalPopup(requestId, 'connect');
+                // Remove the needsUnlock flag - it's now in the approval flow
+                delete pendingData.needsUnlock;
+              } else {
+                // Origin already approved - send address immediately
+                const addr = vault.getAddress();
+                pendingData.sendResponse([addr]);
+                pendingRequests.delete(requestId);
+              }
+
+              // Only process the first one, then break
+              break;
+            }
+          }
         }
         return;
 
       case INTERNAL_METHODS.LOCK:
+        // Set manual lock flag - user explicitly locked, don't auto-unlock
+        manuallyLocked = true;
         await vault.lock();
         sendResponse({ ok: true });
 
@@ -430,6 +497,20 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             payload.params?.[2]
           )
         );
+        return;
+
+      case INTERNAL_METHODS.HIDE_ACCOUNT:
+        // params: [accountIndex]
+        const hideResult = await vault.hideAccount(payload.params?.[0]);
+        sendResponse(hideResult);
+
+        // Emit accountsChanged event to all tabs if successful
+        if ('ok' in hideResult && hideResult.ok) {
+          const currentAccount = vault.getCurrentAccount();
+          if (currentAccount) {
+            await emitWalletEvent('accountsChanged', [currentAccount.address]);
+          }
+        }
         return;
 
       case INTERNAL_METHODS.CREATE_ACCOUNT:
@@ -572,10 +653,19 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             return;
           }
 
-          const signature = await vault.signMessage([signRequest.message]);
-          approveSignPending.sendResponse({ signature });
-          pendingRequests.delete(approveSignId);
-          sendResponse({ success: true });
+          try {
+            const signature = await vault.signMessage([signRequest.message]);
+            approveSignPending.sendResponse({ signature });
+            pendingRequests.delete(approveSignId);
+            sendResponse({ success: true });
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to sign message';
+            approveSignPending.sendResponse({
+              error: { code: 4001, message: errorMessage },
+            });
+            pendingRequests.delete(approveSignId);
+            sendResponse({ error: errorMessage });
+          }
         } else {
           sendResponse({ error: ERROR_CODES.NOT_FOUND });
         }
@@ -661,6 +751,31 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         }
         return;
 
+      case INTERNAL_METHODS.SIGN_TRANSACTION:
+        // params: [to, amount, fee]
+        // Called from popup Send screen (not dApp transactions)
+        if (vault.isLocked()) {
+          sendResponse({ error: ERROR_CODES.LOCKED });
+          return;
+        }
+
+        const [signTo, signAmount, signFee] = payload.params || [];
+        if (!isNockAddress(signTo)) {
+          sendResponse({ error: ERROR_CODES.BAD_ADDRESS });
+          return;
+        }
+
+        try {
+          const txid = await vault.signTransaction(signTo, signAmount, signFee);
+          sendResponse({ txid });
+        } catch (error) {
+          console.error('[Background] Transaction signing failed:', error);
+          sendResponse({
+            error: error instanceof Error ? error.message : 'Transaction signing failed'
+          });
+        }
+        return;
+
       default:
         sendResponse({ error: ERROR_CODES.METHOD_NOT_SUPPORTED });
         return;
@@ -675,6 +790,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
  */
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name !== ALARM_NAMES.AUTO_LOCK) return;
+
+  // Don't auto-lock if user manually locked - respect their choice
+  if (manuallyLocked) {
+    scheduleAlarm();
+    return;
+  }
 
   const idleMs = Date.now() - lastActivity;
   if (idleMs >= autoLockMinutes * 60_000) {

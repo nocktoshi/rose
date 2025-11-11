@@ -11,7 +11,7 @@ import { PROVIDER_METHODS, INTERNAL_METHODS, RPC_METHODS, ERROR_CODES } from './
 export interface Account {
   /** User-defined account name (editable) */
   name: string;
-  /** Nockchain address (132 chars, Base58-encoded) */
+  /** Nockchain V1 PKH address (40 bytes base58-encoded, ~54-55 chars) */
   address: string;
   /** BIP-44 derivation index (0, 1, 2, ...) */
   index: number;
@@ -19,6 +19,10 @@ export interface Account {
   iconStyleId?: number;
   /** Icon color (hex string, defaults to #FFC413) */
   iconColor?: string;
+  /** Whether this account is hidden from the UI */
+  hidden?: boolean;
+  /** Timestamp when the account was created (milliseconds since epoch) */
+  createdAt?: number;
 }
 
 /**
