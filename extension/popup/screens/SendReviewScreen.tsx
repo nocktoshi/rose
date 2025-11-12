@@ -3,8 +3,7 @@ import { useStore } from '../store';
 import { truncateAddress } from '../utils/format';
 import { AccountIcon } from '../components/AccountIcon';
 import { send } from '../utils/messaging';
-import { INTERNAL_METHODS } from '../../shared/constants';
-import FortNockLogo40 from '../assets/fort-nock-logo-40.svg';
+import { INTERNAL_METHODS, NOCK_TO_NICKS } from '../../shared/constants';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 
@@ -41,18 +40,20 @@ export function SendReviewScreen() {
   async function handleSend() {
     if (!lastTransaction) return;
 
-    // TODO: Wire up transaction broadcasting
-    /*
     setIsSending(true);
     setError('');
 
     try {
-      console.log('[SendReview] Signing transaction...');
+      console.log('[SendReview] Sending transaction...');
 
-      // Call vault to sign transaction (will fetch UTXOs and build real tx)
-      const result = await send<{ txid?: string; error?: string }>(
-        INTERNAL_METHODS.SIGN_TRANSACTION,
-        [lastTransaction.to, lastTransaction.amount, lastTransaction.fee]
+      // Convert amounts from NOCK to nicks (1 NOCK = 65,536 nicks)
+      const amountInNicks = Math.floor(lastTransaction.amount * NOCK_TO_NICKS);
+      const feeInNicks = Math.floor(lastTransaction.fee * NOCK_TO_NICKS);
+
+      // Call vault to build, sign, and broadcast transaction
+      const result = await send<{ txid?: string; broadcasted?: boolean; error?: string }>(
+        INTERNAL_METHODS.SEND_TRANSACTION,
+        [lastTransaction.to, amountInNicks, feeInNicks]
       );
 
       if (result?.error) {
@@ -62,7 +63,7 @@ export function SendReviewScreen() {
       }
 
       if (result?.txid) {
-        console.log('[SendReview] Transaction signed! txid:', result.txid);
+        console.log('[SendReview] Transaction sent! txid:', result.txid);
 
         // Update lastTransaction with real txid
         useStore.getState().setLastTransaction({
@@ -70,22 +71,27 @@ export function SendReviewScreen() {
           txid: result.txid,
         });
 
+        // Add to transaction cache with pending status
+        await useStore
+          .getState()
+          .addSentTransactionToCache(
+            result.txid,
+            lastTransaction.amount,
+            lastTransaction.fee,
+            lastTransaction.to || ''
+          );
+
+        // Don't refresh balance immediately - transaction is pending mining
+        // Balance will update when transaction is mined into a block
+
         // Navigate to success screen
         navigate('send-submitted');
       }
     } catch (err) {
-      console.error('[SendReview] Error signing transaction:', err);
-      setError(err instanceof Error ? err.message : 'Failed to sign transaction');
+      console.error('[SendReview] Error sending transaction:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send transaction');
       setIsSending(false);
     }
-    */
-
-    // Temporary: Just navigate to success screen for styling
-    useStore.getState().setLastTransaction({
-      ...lastTransaction,
-      txid: 'mock-txid-' + Date.now(),
-    });
-    navigate('send-submitted');
   }
 
   return (
@@ -189,6 +195,13 @@ export function SendReviewScreen() {
               </div>
             </div>
           </div>
+
+          {/* Error message */}
+          {/* {error && (
+            <div className="px-4">
+              <Alert type="error">{error}</Alert>
+            </div>
+          )} */}
         </div>
 
         {/* Actions */}

@@ -9,7 +9,7 @@ import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import checkmarkIcon from "../../assets/checkmark-icon.svg";
 
 export function SuccessScreen() {
-  const { navigate, wallet, goBack } = useStore();
+  const { navigate, wallet, goBack, fetchBalance } = useStore();
   const { copied, copyToClipboard } = useCopyToClipboard();
 
   // Mark onboarding as complete when user reaches this screen
@@ -27,6 +27,13 @@ export function SuccessScreen() {
   }
 
   const formattedAddress = formatAddress(wallet.address || "");
+
+  async function handleStartUsing() {
+    // Fetch balance before navigating to home screen
+    console.log('[SuccessScreen] Fetching balance before navigating to home...');
+    await fetchBalance();
+    navigate("home");
+  }
 
   return (
     <div className="relative w-[357px] h-[600px] bg-[var(--color-bg)]">
@@ -167,7 +174,7 @@ export function SuccessScreen() {
         {/* Bottom button */}
         <div className="border-t border-[var(--color-surface-800)] p-3">
           <button
-            onClick={() => navigate("home")}
+            onClick={handleStartUsing}
             className="w-full h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
               fontFamily: "var(--font-sans)",

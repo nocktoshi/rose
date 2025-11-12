@@ -4,11 +4,12 @@
 
 interface IconProps {
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function CheckIcon({ className = "w-5 h-5" }: IconProps) {
+export function CheckIcon({ className = "w-5 h-5", style }: IconProps) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

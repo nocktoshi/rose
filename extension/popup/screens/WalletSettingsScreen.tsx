@@ -9,7 +9,6 @@ import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 import UserAccountIcon from '../assets/user-account-icon.svg';
 import ThemeIcon from '../assets/theme-icon.svg';
 import CopyIcon from '../assets/copy-icon.svg';
-import TrashBinIcon from '../assets/trash-bin-icon.svg';
 import CheckmarkIcon from '../assets/checkmark-pencil-icon.svg';
 import PencilEditIcon from '../assets/pencil-edit-icon.svg';
 import SettingsGearIcon from '../assets/settings-gear-icon.svg';
@@ -344,20 +343,14 @@ export function WalletSettingsScreen() {
           <button
             type="button"
             onClick={handleRemoveWallet}
-            className="flex items-center justify-between gap-2 py-2 pl-3 pr-2 rounded-lg transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2"
+            className="flex items-center justify-center px-5 py-[15px] rounded-lg transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2"
             style={{ backgroundColor: 'var(--color-red-light)' }}
           >
             <div
-              className="text-sm font-medium leading-[18px] tracking-[0.14px] text-left flex-1"
+              className="text-sm font-medium leading-[18px] tracking-[0.14px] text-center"
               style={{ color: 'var(--color-red)' }}
             >
               Remove wallet
-            </div>
-            <div
-              className="flex items-center justify-center rounded-lg py-1.5 px-2"
-              style={{ backgroundColor: 'var(--color-red-light)' }}
-            >
-              <img src={TrashBinIcon} alt="" className="w-5 h-5" />
             </div>
           </button>
         </div>

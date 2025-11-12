@@ -32,7 +32,9 @@ export function WalletStylingScreen() {
   const [selectedStyle, setSelectedStyle] = useState(currentAccount?.iconStyleId || 1);
   const [selectedColor, setSelectedColor] = useState(currentAccount?.iconColor || '#FFC413');
   const [svgContent, setSvgContent] = useState<string>('');
-  const [colorScrollIndex, setColorScrollIndex] = useState(0);
+
+  // Track if we're scrolled to the end (false = at start, true = at end)
+  const [isScrolledRight, setIsScrolledRight] = useState(false);
   const colorScrollRef = useRef<HTMLDivElement>(null);
 
   const iconStyles = [
@@ -62,11 +64,6 @@ export function WalletStylingScreen() {
       setSelectedStyle(currentAccount.iconStyleId || 1);
       const color = currentAccount.iconColor || '#FFC413';
       setSelectedColor(color);
-      // Set initial scroll index to the selected color
-      const colorIndex = colors.findIndex(c => c.toUpperCase() === color.toUpperCase());
-      if (colorIndex !== -1) {
-        setColorScrollIndex(colorIndex);
-      }
     }
   }, [currentAccount?.index]);
 
@@ -157,38 +154,24 @@ export function WalletStylingScreen() {
   }
 
   function handleColorScrollLeft() {
-    if (colorScrollIndex > 0) {
-      setColorScrollIndex(colorScrollIndex - 1);
-    }
+    if (!colorScrollRef.current) return;
+    // Scroll to the start
+    colorScrollRef.current.scrollTo({
+      left: 0,
+      behavior: 'smooth',
+    });
+    setIsScrolledRight(false);
   }
 
   function handleColorScrollRight() {
-    if (colorScrollIndex < colors.length - 1) {
-      setColorScrollIndex(colorScrollIndex + 1);
-    }
+    if (!colorScrollRef.current) return;
+    // Scroll to the end
+    colorScrollRef.current.scrollTo({
+      left: colorScrollRef.current.scrollWidth,
+      behavior: 'smooth',
+    });
+    setIsScrolledRight(true);
   }
-
-  // Scroll to the selected color on mount or when color changes externally
-  useEffect(() => {
-    if (colorScrollRef.current) {
-      const colorButton = colorScrollRef.current.children[colorScrollIndex] as HTMLElement;
-      if (colorButton) {
-        // Get container dimensions
-        const container = colorScrollRef.current;
-        const containerWidth = container.offsetWidth;
-        const buttonLeft = colorButton.offsetLeft;
-        const buttonWidth = colorButton.offsetWidth;
-
-        // Calculate scroll position to center the button
-        const scrollPosition = buttonLeft - containerWidth / 2 + buttonWidth / 2;
-
-        container.scrollTo({
-          left: scrollPosition,
-          behavior: 'smooth',
-        });
-      }
-    }
-  }, [colorScrollIndex]);
 
   return (
     <div
@@ -238,22 +221,12 @@ export function WalletStylingScreen() {
                       key={style.id}
                       type="button"
                       onClick={() => handleStyleChange(style.id)}
-                      className="flex items-center justify-center p-[10px] rounded-[12px] transition-colors focus:outline-none focus-visible:ring-2 shrink-0"
+                      className={`flex items-center justify-center p-[10px] rounded-[12px] transition-colors focus:outline-none focus-visible:ring-2 shrink-0 ${!selected ? 'hover:bg-[var(--color-surface-900)]' : ''}`}
                       style={{
                         width: '58px',
                         height: '58px',
                         backgroundColor: 'var(--color-bg)',
                         border: `1px solid ${selected ? 'var(--color-text-primary)' : 'var(--color-surface-800)'}`,
-                      }}
-                      onMouseEnter={e => {
-                        if (!selected) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-surface-900)';
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        if (!selected) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg)';
-                        }
                       }}
                       aria-pressed={selected}
                     >
@@ -271,57 +244,50 @@ export function WalletStylingScreen() {
               <button
                 type="button"
                 onClick={handleColorScrollLeft}
-                disabled={colorScrollIndex === 0}
+                disabled={!isScrolledRight}
                 className="p-[8px] transition-opacity focus:outline-none focus-visible:ring-2 disabled:opacity-30"
                 aria-label="Previous color"
               >
-                <ChevronLeftIcon className="w-4 h-4" />
+                <ChevronLeftIcon className="w-5 h-5" />
               </button>
               <h2 className="flex-1 text-sm font-medium leading-[18px] tracking-[0.14px] text-center m-0">
-                Icon color (TODO: FIX)
+                Icon color
               </h2>
               <button
                 type="button"
                 onClick={handleColorScrollRight}
-                disabled={colorScrollIndex === colors.length - 1}
+                disabled={isScrolledRight}
                 className="p-[8px] transition-opacity focus:outline-none focus-visible:ring-2 disabled:opacity-30"
                 aria-label="Next color"
               >
-                <ChevronRightIcon className="w-4 h-4" />
+                <ChevronRightIcon className="w-5 h-5" />
               </button>
             </div>
+            {/* The rail */}
             <div className="overflow-hidden">
               <div
                 ref={colorScrollRef}
-                className="flex gap-[8px] justify-center overflow-x-auto"
+                className="flex gap-[8px] justify-start overflow-x-auto snap-x snap-mandatory"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
+                  scrollPaddingLeft: 0,
+                  scrollPaddingRight: 0,
                 }}
               >
-                {colors.map(color => {
+                {colors.map((color) => {
                   const selected = selectedColor === color;
                   return (
                     <button
                       key={color}
                       type="button"
                       onClick={() => handleColorChange(color)}
-                      className="flex items-center justify-center p-0 rounded-[12px] transition-colors focus:outline-none focus-visible:ring-2 shrink-0"
+                      className={`flex items-center justify-center p-0 rounded-[12px] transition-colors focus:outline-none focus-visible:ring-2 shrink-0 snap-start ${!selected ? 'hover:bg-[var(--color-surface-900)]' : ''}`}
                       style={{
                         width: '46px',
                         height: '46px',
                         backgroundColor: 'var(--color-bg)',
                         border: `1px solid ${selected ? 'var(--color-text-primary)' : 'var(--color-surface-800)'}`,
-                      }}
-                      onMouseEnter={e => {
-                        if (!selected) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-surface-900)';
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        if (!selected) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg)';
-                        }
                       }}
                       aria-label={`Color ${color}`}
                       aria-pressed={selected}

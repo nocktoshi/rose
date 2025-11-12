@@ -2,30 +2,24 @@
  * Onboarding Import Screen - Import wallet from mnemonic
  */
 
-import { useState, useRef } from "react";
-import { useStore } from "../../store";
-import { Alert } from "../../components/Alert";
-import { useAutoFocus } from "../../hooks/useAutoFocus";
-import { markOnboardingComplete } from "../../../shared/onboarding";
-import {
-  INTERNAL_METHODS,
-  UI_CONSTANTS,
-  ERROR_CODES,
-} from "../../../shared/constants";
-import { send } from "../../utils/messaging";
-import lockIcon from "../../assets/lock-icon.svg";
+import { useState, useRef } from 'react';
+import { useStore } from '../../store';
+import { Alert } from '../../components/Alert';
+import { useAutoFocus } from '../../hooks/useAutoFocus';
+import { markOnboardingComplete } from '../../../shared/onboarding';
+import { INTERNAL_METHODS, UI_CONSTANTS, ERROR_CODES } from '../../../shared/constants';
+import { send } from '../../utils/messaging';
+import lockIcon from '../../assets/lock-icon.svg';
 
 export function ImportScreen() {
   const { navigate, syncWallet, setOnboardingMnemonic } = useStore();
-  const [words, setWords] = useState<string[]>(
-    Array(UI_CONSTANTS.MNEMONIC_WORD_COUNT).fill("")
-  );
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [words, setWords] = useState<string[]>(Array(UI_CONSTANTS.MNEMONIC_WORD_COUNT).fill(''));
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [step, setStep] = useState<"mnemonic" | "password">("mnemonic");
+  const [error, setError] = useState('');
+  const [step, setStep] = useState<'mnemonic' | 'password'>('mnemonic');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const firstInputRef = useAutoFocus<HTMLInputElement>();
 
@@ -34,10 +28,10 @@ export function ImportScreen() {
     const newWords = [...words];
     newWords[index] = trimmedValue;
     setWords(newWords);
-    setError("");
+    setError('');
 
     // Auto-advance to next field on space
-    if (value.endsWith(" ")) {
+    if (value.endsWith(' ')) {
       const nextIndex = index + 1;
       if (nextIndex < UI_CONSTANTS.MNEMONIC_WORD_COUNT) {
         inputRefs.current[nextIndex]?.focus();
@@ -46,52 +40,26 @@ export function ImportScreen() {
   }
 
   // Handle paste in first field to auto-fill all words
-  function handlePaste(
-    index: number,
-    e: React.ClipboardEvent<HTMLInputElement>
-  ) {
+  function handlePaste(index: number, e: React.ClipboardEvent<HTMLInputElement>) {
     if (index === 0) {
-      const pasteData = e.clipboardData.getData("text");
+      const pasteData = e.clipboardData.getData('text');
       const pastedWords = pasteData.trim().toLowerCase().split(/\s+/);
 
       if (pastedWords.length === UI_CONSTANTS.MNEMONIC_WORD_COUNT) {
         e.preventDefault();
         setWords(pastedWords);
-        setError("");
+        setError('');
       }
     }
   }
 
-  function handlePasteAll() {
-    navigator.clipboard
-      .readText()
-      .then((text) => {
-        const pastedWords = text.trim().toLowerCase().split(/\s+/);
-
-        if (pastedWords.length === UI_CONSTANTS.MNEMONIC_WORD_COUNT) {
-          setWords(pastedWords);
-          setError("");
-        } else {
-          setError(
-            `Please paste exactly ${UI_CONSTANTS.MNEMONIC_WORD_COUNT} words`
-          );
-        }
-      })
-      .catch(() => {
-        setError("Failed to read clipboard");
-      });
-  }
-
-  function handleKeyDown(
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) {
+  function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
     // Backspace on empty field goes to previous
-    if (e.key === "Backspace" && !words[index] && index > 0) {
+    if (e.key === 'Backspace' && !words[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
     // Enter advances to next field
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       e.preventDefault();
       const nextIndex = index + 1;
       if (nextIndex < UI_CONSTANTS.MNEMONIC_WORD_COUNT) {
@@ -103,36 +71,34 @@ export function ImportScreen() {
   }
 
   function handleContinue() {
-    const mnemonic = words.join(" ").trim();
+    const mnemonic = words.join(' ').trim();
 
-    if (words.some((w) => !w)) {
-      setError("Please enter all 24 words");
+    if (words.some(w => !w)) {
+      setError('Please enter all 24 words');
       return;
     }
 
     // Store mnemonic and move to password setup
     setOnboardingMnemonic(mnemonic);
-    setStep("password");
+    setStep('password');
   }
 
   async function handleImport() {
-    const mnemonic = words.join(" ").trim();
+    const mnemonic = words.join(' ').trim();
 
     // Validate password
     if (!password) {
-      setError("Please enter a password");
+      setError('Please enter a password');
       return;
     }
 
     if (password.length < UI_CONSTANTS.MIN_PASSWORD_LENGTH) {
-      setError(
-        `Password must be at least ${UI_CONSTANTS.MIN_PASSWORD_LENGTH} characters`
-      );
+      setError(`Password must be at least ${UI_CONSTANTS.MIN_PASSWORD_LENGTH} characters`);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError('Passwords do not match');
       return;
     }
 
@@ -146,9 +112,7 @@ export function ImportScreen() {
 
     if (result?.error) {
       if (result.error === ERROR_CODES.INVALID_MNEMONIC) {
-        setError(
-          "Invalid recovery phrase. Please check your words and try again."
-        );
+        setError('Invalid recovery phrase. Please check your words and try again.');
       } else {
         setError(`Error: ${result.error}`);
       }
@@ -157,8 +121,8 @@ export function ImportScreen() {
       await markOnboardingComplete();
 
       const firstAccount = {
-        name: "Account 1",
-        address: result.address || "",
+        name: 'Wallet 1',
+        address: result.address || '',
         index: 0,
       };
       syncWallet({
@@ -167,22 +131,23 @@ export function ImportScreen() {
         accounts: [firstAccount],
         currentAccount: firstAccount,
         balance: 0,
+        accountBalances: {},
       });
       setOnboardingMnemonic(null);
-      navigate("onboarding-import-success");
+      navigate('onboarding-import-success');
     }
   }
 
   function handleBack() {
-    if (step === "password") {
-      setStep("mnemonic");
+    if (step === 'password') {
+      setStep('mnemonic');
     } else {
-      navigate("onboarding-start");
+      navigate('onboarding-start');
     }
   }
 
   // Password setup step
-  if (step === "password") {
+  if (step === 'password') {
     return (
       <div className="relative w-[357px] h-[600px] bg-[var(--color-bg)]">
         {/* Header with back button */}
@@ -205,9 +170,9 @@ export function ImportScreen() {
           <h2
             className="font-sans font-medium text-[var(--color-text-primary)]"
             style={{
-              fontSize: "var(--font-size-lg)",
-              lineHeight: "var(--line-height-normal)",
-              letterSpacing: "0.01em",
+              fontSize: 'var(--font-size-lg)',
+              lineHeight: 'var(--line-height-normal)',
+              letterSpacing: '0.01em',
             }}
           >
             Encrypt your wallet
@@ -227,9 +192,9 @@ export function ImportScreen() {
                 <h1
                   className="font-serif font-medium text-[var(--color-text-primary)]"
                   style={{
-                    fontSize: "var(--font-size-xl)",
-                    lineHeight: "var(--line-height-relaxed)",
-                    letterSpacing: "-0.02em",
+                    fontSize: 'var(--font-size-xl)',
+                    lineHeight: 'var(--line-height-relaxed)',
+                    letterSpacing: '-0.02em',
                   }}
                 >
                   Choose a strong password
@@ -237,9 +202,9 @@ export function ImportScreen() {
                 <p
                   className="font-sans text-[var(--color-text-muted)]"
                   style={{
-                    fontSize: "var(--font-size-sm)",
-                    lineHeight: "var(--line-height-snug)",
-                    letterSpacing: "0.02em",
+                    fontSize: 'var(--font-size-sm)',
+                    lineHeight: 'var(--line-height-snug)',
+                    letterSpacing: '0.02em',
                   }}
                 >
                   This password encrypts your wallet
@@ -252,18 +217,18 @@ export function ImportScreen() {
               {/* Password input */}
               <div className="bg-[var(--color-bg)] border border-[var(--color-surface-700)] rounded-lg p-3 flex items-center gap-2.5">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => {
+                  onChange={e => {
                     setPassword(e.target.value);
-                    setError("");
+                    setError('');
                   }}
                   placeholder="Password"
                   className="flex-1 bg-transparent font-sans font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] outline-none"
                   style={{
-                    fontSize: "var(--font-size-base)",
-                    lineHeight: "var(--line-height-snug)",
-                    letterSpacing: "0.01em",
+                    fontSize: 'var(--font-size-base)',
+                    lineHeight: 'var(--line-height-snug)',
+                    letterSpacing: '0.01em',
                   }}
                 />
                 <button
@@ -300,19 +265,19 @@ export function ImportScreen() {
               {/* Confirm password input */}
               <div className="bg-[var(--color-bg)] border border-[var(--color-surface-700)] rounded-lg p-3 flex items-center gap-2.5">
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
-                  onChange={(e) => {
+                  onChange={e => {
                     setConfirmPassword(e.target.value);
-                    setError("");
+                    setError('');
                   }}
-                  onKeyDown={(e) => e.key === "Enter" && handleImport()}
+                  onKeyDown={e => e.key === 'Enter' && handleImport()}
                   placeholder="Confirm password"
                   className="flex-1 bg-transparent font-sans font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] outline-none"
                   style={{
-                    fontSize: "var(--font-size-base)",
-                    lineHeight: "var(--line-height-snug)",
-                    letterSpacing: "0.01em",
+                    fontSize: 'var(--font-size-base)',
+                    lineHeight: 'var(--line-height-snug)',
+                    letterSpacing: '0.01em',
                   }}
                 />
                 <button
@@ -351,9 +316,9 @@ export function ImportScreen() {
                 <p
                   className="font-sans font-medium text-center text-[var(--color-text-muted)]"
                   style={{
-                    fontSize: "var(--font-size-xs)",
-                    lineHeight: "var(--line-height-tight)",
-                    letterSpacing: "0.02em",
+                    fontSize: 'var(--font-size-xs)',
+                    lineHeight: 'var(--line-height-tight)',
+                    letterSpacing: '0.02em',
                   }}
                 >
                   Minimum {UI_CONSTANTS.MIN_PASSWORD_LENGTH} characters
@@ -372,11 +337,11 @@ export function ImportScreen() {
                 onClick={handleBack}
                 className="flex-1 h-12 px-5 py-[15px] bg-[var(--color-surface-800)] text-[var(--color-text-primary)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
                 style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--font-size-base)",
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 'var(--font-size-base)',
                   fontWeight: 500,
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.01em",
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.01em',
                 }}
               >
                 Back
@@ -385,11 +350,11 @@ export function ImportScreen() {
                 onClick={handleImport}
                 className="flex-1 h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
                 style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--font-size-base)",
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 'var(--font-size-base)',
                   fontWeight: 500,
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.01em",
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.01em',
                 }}
               >
                 Import wallet
@@ -424,9 +389,9 @@ export function ImportScreen() {
         <h2
           className="font-sans font-medium text-[var(--color-text-primary)]"
           style={{
-            fontSize: "var(--font-size-lg)",
-            lineHeight: "var(--line-height-normal)",
-            letterSpacing: "0.01em",
+            fontSize: 'var(--font-size-lg)',
+            lineHeight: 'var(--line-height-normal)',
+            letterSpacing: '0.01em',
           }}
         >
           Import wallet
@@ -446,9 +411,9 @@ export function ImportScreen() {
               <p
                 className="font-sans font-medium text-center text-[var(--color-text-primary)]"
                 style={{
-                  fontSize: "var(--font-size-base)",
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.01em",
+                  fontSize: 'var(--font-size-base)',
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.01em',
                 }}
               >
                 Enter your 24-word recovery phrase.
@@ -461,7 +426,7 @@ export function ImportScreen() {
             <div className="flex flex-col gap-2 w-full pb-4">
               {Array.from({ length: 12 }).map((_, rowIndex) => (
                 <div key={rowIndex} className="flex gap-2 w-full">
-                  {[0, 1].map((col) => {
+                  {[0, 1].map(col => {
                     const index = rowIndex * 2 + col;
                     return (
                       <div
@@ -471,15 +436,15 @@ export function ImportScreen() {
                         <span
                           className="bg-[var(--color-surface-900)] rounded w-7 h-7 flex items-center justify-center font-sans font-medium text-[var(--color-text-primary)] flex-shrink-0"
                           style={{
-                            fontSize: "var(--font-size-base)",
-                            lineHeight: "var(--line-height-snug)",
-                            letterSpacing: "0.01em",
+                            fontSize: 'var(--font-size-base)',
+                            lineHeight: 'var(--line-height-snug)',
+                            letterSpacing: '0.01em',
                           }}
                         >
                           {index + 1}
                         </span>
                         <input
-                          ref={(el) => {
+                          ref={el => {
                             inputRefs.current[index] = el;
                             if (index === 0) {
                               // @ts-ignore - Assign to auto-focus ref
@@ -488,19 +453,17 @@ export function ImportScreen() {
                           }}
                           type="text"
                           value={words[index]}
-                          onChange={(e) =>
-                            handleWordChange(index, e.target.value)
-                          }
-                          onKeyDown={(e) => handleKeyDown(index, e)}
-                          onPaste={(e) => handlePaste(index, e)}
+                          onChange={e => handleWordChange(index, e.target.value)}
+                          onKeyDown={e => handleKeyDown(index, e)}
+                          onPaste={e => handlePaste(index, e)}
                           placeholder="word"
                           autoComplete="off"
                           spellCheck="false"
                           className="flex-1 min-w-0 bg-transparent font-sans font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] outline-none"
                           style={{
-                            fontSize: "var(--font-size-base)",
-                            lineHeight: "var(--line-height-snug)",
-                            letterSpacing: "0.01em",
+                            fontSize: 'var(--font-size-base)',
+                            lineHeight: 'var(--line-height-snug)',
+                            letterSpacing: '0.01em',
                           }}
                         />
                       </div>
@@ -515,37 +478,22 @@ export function ImportScreen() {
           </div>
         </div>
 
-        {/* Bottom buttons */}
+        {/* Bottom button */}
         <div className="border-t border-[var(--color-surface-800)] px-4 py-3">
-          <div className="flex gap-3">
-            <button
-              onClick={handlePasteAll}
-              className="flex-1 h-12 px-5 py-[15px] bg-[var(--color-surface-800)] text-[var(--color-text-primary)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--font-size-base)",
-                fontWeight: 500,
-                lineHeight: "var(--line-height-snug)",
-                letterSpacing: "0.01em",
-              }}
-            >
-              Paste all
-            </button>
-            <button
-              onClick={handleContinue}
-              disabled={words.some((w) => !w)}
-              className="flex-1 h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--font-size-base)",
-                fontWeight: 500,
-                lineHeight: "var(--line-height-snug)",
-                letterSpacing: "0.01em",
-              }}
-            >
-              Import wallet
-            </button>
-          </div>
+          <button
+            onClick={handleContinue}
+            disabled={words.some(w => !w)}
+            className="w-full h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 'var(--font-size-base)',
+              fontWeight: 500,
+              lineHeight: 'var(--line-height-snug)',
+              letterSpacing: '0.01em',
+            }}
+          >
+            Import wallet
+          </button>
         </div>
       </div>
     </div>

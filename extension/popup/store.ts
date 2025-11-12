@@ -67,6 +67,7 @@ interface WalletState {
   accounts: Account[];
   currentAccount: Account | null;
   balance: number;
+  accountBalances: Record<string, number>; // Map of address -> balance
 }
 
 /**
@@ -109,6 +110,10 @@ interface AppStore {
   cachedTransactions: CachedTransaction[];
   setCachedTransactions: (transactions: CachedTransaction[]) => void;
 
+  // Selected transaction for viewing details
+  selectedTransaction: CachedTransaction | null;
+  setSelectedTransaction: (transaction: CachedTransaction | null) => void;
+
   // Initialize app - checks vault status and navigates appropriately
   initialize: () => Promise<void>;
 
@@ -120,6 +125,9 @@ interface AppStore {
 
   // Add a sent transaction to cache
   addSentTransactionToCache: (txid: string, amount: number, fee: number, to: string) => Promise<void>;
+
+  // Update transaction status in cache
+  updateTransactionStatus: (txid: string, status: 'confirmed' | 'pending' | 'failed') => Promise<void>;
 }
 
 /**
@@ -136,6 +144,7 @@ export const useStore = create<AppStore>((set, get) => ({
     accounts: [],
     currentAccount: null,
     balance: 0,
+    accountBalances: {},
   },
 
   onboardingMnemonic: null,
@@ -144,6 +153,7 @@ export const useStore = create<AppStore>((set, get) => ({
   pendingSignRequest: null,
   pendingTransactionRequest: null,
   cachedTransactions: [],
+  selectedTransaction: null,
 
   // Navigate to a new screen
   navigate: (screen: Screen) => {
@@ -201,6 +211,11 @@ export const useStore = create<AppStore>((set, get) => ({
     set({ cachedTransactions: transactions });
   },
 
+  // Set selected transaction for viewing details
+  setSelectedTransaction: (transaction: CachedTransaction | null) => {
+    set({ selectedTransaction: transaction });
+  },
+
   // Initialize app on load
   initialize: async () => {
     try {
@@ -225,6 +240,7 @@ export const useStore = create<AppStore>((set, get) => ({
         accounts: state.accounts || [],
         currentAccount: state.currentAccount || null,
         balance: 0, // Will be fetched separately
+        accountBalances: {}, // Will be populated when fetching balances
       };
 
       // Determine initial screen
@@ -259,9 +275,18 @@ export const useStore = create<AppStore>((set, get) => ({
       });
 
       // Fetch balance if wallet is unlocked
+      console.log('[Store] Initialize complete. Wallet state:', {
+        locked: walletState.locked,
+        hasAddress: !!walletState.address,
+        address: walletState.address?.slice(0, 20) + '...'
+      });
+
       if (!walletState.locked && walletState.address) {
+        console.log('[Store] Triggering automatic balance fetch...');
         get().fetchBalance();
         get().fetchCachedTransactions();
+      } else {
+        console.log('[Store] Skipping balance fetch - wallet is locked or no address');
       }
     } catch (error) {
       console.error("Failed to initialize app:", error);
@@ -273,17 +298,38 @@ export const useStore = create<AppStore>((set, get) => ({
   // Fetch balance from blockchain
   fetchBalance: async () => {
     try {
-      const result = await send<{ balance: number }>(
-        INTERNAL_METHODS.GET_BALANCE
-      );
+      console.log('[Store] Fetching balance from blockchain...');
+
+      // Import balance query functions lazily to avoid circular dependencies
+      const { createBrowserClient } = await import('../shared/rpc-client-browser');
+      const { queryV1Balance } = await import('../shared/balance-query');
+
+      const currentAccount = get().wallet.currentAccount;
+      if (!currentAccount) {
+        console.error('[Store] No current account');
+        return;
+      }
+
+      // Run balance query directly in popup context (not service worker)
+      // This avoids WASM initialization issues in service worker
+      const rpcClient = createBrowserClient();
+      const balanceResult = await queryV1Balance(currentAccount.address, rpcClient);
+
+      console.log('[Store] ✅ Balance fetched:', balanceResult.totalNock, 'NOCK');
+
+      const currentWallet = get().wallet;
       set({
         wallet: {
-          ...get().wallet,
-          balance: result.balance || 0,
+          ...currentWallet,
+          balance: balanceResult.totalNock || 0,
+          accountBalances: {
+            ...currentWallet.accountBalances,
+            [currentAccount.address]: balanceResult.totalNock || 0,
+          },
         },
       });
     } catch (error) {
-      console.error("Failed to fetch balance:", error);
+      console.error('[Store] Failed to fetch balance:', error);
     }
   },
 
@@ -329,6 +375,25 @@ export const useStore = create<AppStore>((set, get) => ({
       await get().fetchCachedTransactions();
     } catch (error) {
       console.error("Failed to add transaction to cache:", error);
+    }
+  },
+
+  // Update transaction status
+  updateTransactionStatus: async (txid: string, status: 'confirmed' | 'pending' | 'failed') => {
+    try {
+      const currentAccount = get().wallet.currentAccount;
+      if (!currentAccount) return;
+
+      await send(INTERNAL_METHODS.UPDATE_TRANSACTION_STATUS, [
+        currentAccount.address,
+        txid,
+        status,
+      ]);
+
+      // Refresh cached transactions to show updated status
+      await get().fetchCachedTransactions();
+    } catch (error) {
+      console.error("Failed to update transaction status:", error);
     }
   },
 }));

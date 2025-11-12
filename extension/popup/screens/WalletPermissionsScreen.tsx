@@ -98,12 +98,7 @@ export function WalletPermissionsScreen() {
                   onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                 >
-                  {/* TODO */}
-                  <img
-                    src={CloseIcon}
-                    alt="Revoke"
-                    className="w-4 h-4 filter [filter:brightness(0)_saturate(100%)_invert(29%)_sepia(96%)_saturate(2447%)_hue-rotate(347deg)_brightness(92%)_contrast(93%)]"
-                  />
+                  <CloseIcon className="w-4 h-4 [filter:brightness(0)_saturate(100%)_invert(29%)_sepia(96%)_saturate(2447%)_hue-rotate(347deg)_brightness(92%)_contrast(93%)]" />
                 </button>
               </div>
             ))

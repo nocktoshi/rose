@@ -2,30 +2,74 @@ import { useStore } from '../store';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 import FortNockLogo40 from '../assets/fort-nock-logo-40.svg';
+import { truncateAddress } from '../utils/format';
 
 export function TransactionDetailsScreen() {
-  const { navigate } = useStore();
+  const { navigate, selectedTransaction, wallet } = useStore();
 
-  // TODO: wire up real data
-  const transactionType: 'sent' | 'receive' = 'sent';
-  const amount = '2,500';
-  const usdValue = '$250.00';
-  const status: 'Confirmed' | 'Pending' | 'Failed' = 'Confirmed';
-  const fromAddress = '89dF3w...w5Lvw';
-  const toAddress = '89dF3w...w5Lvw';
-  const networkFee = '1 NOCK';
-  const total = '2501 NOCK';
-  const totalUsd = '$250.10';
-  const transactionId = '0x1234...5678';
+  // If no transaction selected, show error state
+  if (!selectedTransaction) {
+    return (
+      <div
+        className="w-[357px] h-[600px] flex items-center justify-center"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
+        <div className="text-center" style={{ color: 'var(--color-text-muted)' }}>
+          <p>No transaction selected</p>
+          <button
+            onClick={() => navigate('home')}
+            className="mt-4 px-4 py-2 rounded-lg"
+            style={{ backgroundColor: 'var(--color-primary)' }}
+          >
+            Go back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract data from selected transaction
+  const transactionType = selectedTransaction.type === 'sent' ? 'sent' : 'received';
+  const amount = selectedTransaction.amount.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const usdValue = '$0.00'; // TODO: Get from real price feed
+  const status: 'Confirmed' | 'Pending' | 'Failed' =
+    selectedTransaction.status === 'confirmed'
+      ? 'Confirmed'
+      : selectedTransaction.status === 'pending'
+        ? 'Pending'
+        : 'Failed';
+
+  const currentAddress = wallet.currentAccount?.address || '';
+  const fromAddress =
+    selectedTransaction.type === 'sent'
+      ? truncateAddress(currentAddress)
+      : truncateAddress(selectedTransaction.address);
+  const toAddress =
+    selectedTransaction.type === 'sent'
+      ? truncateAddress(selectedTransaction.address)
+      : truncateAddress(currentAddress);
+
+  const networkFee = `${selectedTransaction.fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`;
+  const total =
+    selectedTransaction.type === 'sent'
+      ? `${(selectedTransaction.amount + selectedTransaction.fee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`
+      : `${selectedTransaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`;
+  const totalUsd = '$0.00'; // TODO: Get from real price feed
+  const transactionId = selectedTransaction.txid;
 
   function handleBack() {
     navigate('home');
   }
   function handleViewExplorer() {
-    console.log('View on explorer');
+    // Open transaction on nockscan.net
+    window.open(`https://nockscan.net/tx/${transactionId}`, '_blank');
   }
   function handleCopyTransactionId() {
     navigator.clipboard.writeText(transactionId);
+    // TODO: Show a toast notification that it was copied
   }
   function handleActivityLog() {
     console.log('Toggle activity log');
@@ -35,7 +79,7 @@ export function TransactionDetailsScreen() {
     status === 'Confirmed'
       ? 'var(--color-green)'
       : status === 'Pending'
-        ? '#CE8A1D'
+        ? '#C88414'
         : 'var(--color-red)';
 
   return (
@@ -53,8 +97,8 @@ export function TransactionDetailsScreen() {
           onClick={handleBack}
           className="w-8 h-8 flex items-center justify-center p-2 rounded-lg transition-opacity focus:outline-none focus-visible:ring-2"
           style={{ color: 'var(--color-text-primary)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           aria-label="Back"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -66,7 +110,10 @@ export function TransactionDetailsScreen() {
       </header>
 
       {/* Content */}
-      <div className="flex flex-col gap-2 h-[536px] overflow-y-auto" style={{ backgroundColor: 'var(--color-bg)' }}>
+      <div
+        className="flex flex-col gap-2 h-[536px] overflow-y-auto"
+        style={{ backgroundColor: 'var(--color-bg)' }}
+      >
         <div className="flex flex-col gap-8 px-4 py-2">
           {/* Amount Section */}
           <div className="flex flex-col items-center gap-3">
@@ -76,7 +123,7 @@ export function TransactionDetailsScreen() {
                 className="m-0 font-[Lora] text-[36px] font-semibold leading-10 tracking-[-0.72px]"
                 style={{ color: 'var(--color-text-primary)' }}
               >
-                {transactionType === 'sent' ? '-' : '+'}
+                {transactionType === 'sent' && '-'}
                 {amount} <span style={{ color: 'var(--color-text-muted)' }}>NOCK</span>
               </h2>
               <p
@@ -91,7 +138,10 @@ export function TransactionDetailsScreen() {
           {/* Transaction Details */}
           <div className="flex flex-col gap-2">
             {/* Status */}
-            <div className="rounded-lg px-3 py-5" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+            <div
+              className="rounded-lg px-3 py-5"
+              style={{ backgroundColor: 'var(--color-surface-800)' }}
+            >
               <div className="flex items-center justify-between text-sm font-medium leading-[18px] tracking-[0.14px]">
                 <div style={{ color: 'var(--color-text-primary)' }}>Status</div>
                 <div className="whitespace-nowrap" style={{ color: statusColor }}>
@@ -128,7 +178,10 @@ export function TransactionDetailsScreen() {
             </div>
 
             {/* Fee and Total */}
-            <div className="rounded-lg px-3 py-3 flex flex-col gap-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+            <div
+              className="rounded-lg px-3 py-3 flex flex-col gap-3"
+              style={{ backgroundColor: 'var(--color-surface-800)' }}
+            >
               <div className="flex items-center justify-between text-sm font-medium leading-[18px] tracking-[0.14px]">
                 <div style={{ color: 'var(--color-text-primary)', opacity: 0.7 }}>Network fee</div>
                 <div className="whitespace-nowrap" style={{ color: 'var(--color-text-muted)' }}>
@@ -162,8 +215,10 @@ export function TransactionDetailsScreen() {
                   border: '1px solid var(--color-surface-700)',
                   color: 'var(--color-text-primary)',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                onMouseEnter={e =>
+                  (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')
+                }
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 View on explorer
               </button>
@@ -175,8 +230,10 @@ export function TransactionDetailsScreen() {
                   border: '1px solid var(--color-surface-700)',
                   color: 'var(--color-text-primary)',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                onMouseEnter={e =>
+                  (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')
+                }
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 Copy transaction ID
               </button>
@@ -192,8 +249,8 @@ export function TransactionDetailsScreen() {
               backgroundColor: 'var(--color-surface-800)',
               color: 'var(--color-text-primary)',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-700)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-700)')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
           >
             <div className="text-sm font-medium leading-[18px] tracking-[0.14px]">Activity log</div>
             <div className="text-[20px] leading-none">+</div>

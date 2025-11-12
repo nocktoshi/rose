@@ -2,12 +2,12 @@
  * Import Success Screen - Wallet imported successfully
  */
 
-import { useStore } from "../../store";
-import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
-import checkmarkSuccessIcon from "../../assets/checkmark-success-icon.svg";
+import { useStore } from '../../store';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import checkmarkSuccessIcon from '../../assets/checkmark-success-icon.svg';
 
 export function ImportSuccessScreen() {
-  const { navigate, wallet, goBack } = useStore();
+  const { navigate, wallet, goBack, fetchBalance } = useStore();
   const { copied, copyToClipboard } = useCopyToClipboard();
 
   // Format address to show start and end with middle grayed out
@@ -19,7 +19,13 @@ export function ImportSuccessScreen() {
     return { start, middle, end };
   }
 
-  const formattedAddress = formatAddress(wallet.address || "");
+  const formattedAddress = formatAddress(wallet.address || '');
+
+  async function handleStartUsing() {
+    // Fetch balance before navigating to home screen
+    await fetchBalance();
+    navigate('home');
+  }
 
   return (
     <div className="relative w-[357px] h-[600px] bg-[var(--color-bg)]">
@@ -43,9 +49,9 @@ export function ImportSuccessScreen() {
         <h2
           className="font-sans font-medium text-[var(--color-text-primary)]"
           style={{
-            fontSize: "var(--font-size-lg)",
-            lineHeight: "var(--line-height-normal)",
-            letterSpacing: "0.01em",
+            fontSize: 'var(--font-size-lg)',
+            lineHeight: 'var(--line-height-normal)',
+            letterSpacing: '0.01em',
           }}
         >
           Wallet imported
@@ -59,19 +65,15 @@ export function ImportSuccessScreen() {
           {/* Icon and heading */}
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10">
-              <img
-                src={checkmarkSuccessIcon}
-                alt=""
-                className="w-full h-full"
-              />
+              <img src={checkmarkSuccessIcon} alt="" className="w-full h-full" />
             </div>
             <div className="flex flex-col gap-2 items-center text-center w-full">
               <h1
                 className="font-serif font-medium text-[var(--color-text-primary)]"
                 style={{
-                  fontSize: "var(--font-size-xl)",
-                  lineHeight: "var(--line-height-relaxed)",
-                  letterSpacing: "-0.02em",
+                  fontSize: 'var(--font-size-xl)',
+                  lineHeight: 'var(--line-height-relaxed)',
+                  letterSpacing: '-0.02em',
                 }}
               >
                 Wallet imported successfully!
@@ -79,9 +81,9 @@ export function ImportSuccessScreen() {
               <p
                 className="font-sans text-[var(--color-text-muted)]"
                 style={{
-                  fontSize: "var(--font-size-sm)",
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.02em",
+                  fontSize: 'var(--font-size-sm)',
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.02em',
                 }}
               >
                 Your wallet is ready to use
@@ -94,9 +96,9 @@ export function ImportSuccessScreen() {
             <p
               className="font-sans font-medium text-center text-[var(--color-text-primary)]"
               style={{
-                fontSize: "var(--font-size-sm)",
-                lineHeight: "var(--line-height-snug)",
-                letterSpacing: "0.02em",
+                fontSize: 'var(--font-size-sm)',
+                lineHeight: 'var(--line-height-snug)',
+                letterSpacing: '0.02em',
               }}
             >
               Your address
@@ -106,12 +108,12 @@ export function ImportSuccessScreen() {
               <p
                 className="font-sans font-medium text-center text-[var(--color-text-primary)] break-words w-full"
                 style={{
-                  fontSize: "var(--font-size-base)",
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.01em",
+                  fontSize: 'var(--font-size-base)',
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.01em',
                 }}
               >
-                {typeof formattedAddress === "string" ? (
+                {typeof formattedAddress === 'string' ? (
                   formattedAddress
                 ) : (
                   <>
@@ -126,7 +128,7 @@ export function ImportSuccessScreen() {
 
               {/* Copy button */}
               <button
-                onClick={() => copyToClipboard(wallet.address || "")}
+                onClick={() => copyToClipboard(wallet.address || '')}
                 className="border border-[var(--color-text-primary)] rounded-full px-4 py-1.5 flex items-center gap-1.5 hover:opacity-80 transition-opacity"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -149,12 +151,12 @@ export function ImportSuccessScreen() {
                 <span
                   className="font-sans font-medium text-[var(--color-text-primary)]"
                   style={{
-                    fontSize: "var(--font-size-base)",
-                    lineHeight: "var(--line-height-snug)",
-                    letterSpacing: "0.01em",
+                    fontSize: 'var(--font-size-base)',
+                    lineHeight: 'var(--line-height-snug)',
+                    letterSpacing: '0.01em',
                   }}
                 >
-                  {copied ? "Copied!" : "Copy address"}
+                  {copied ? 'Copied!' : 'Copy address'}
                 </span>
               </button>
             </div>
@@ -164,14 +166,14 @@ export function ImportSuccessScreen() {
         {/* Bottom button */}
         <div className="border-t border-[var(--color-surface-800)] p-3">
           <button
-            onClick={() => navigate("home")}
+            onClick={handleStartUsing}
             className="w-full h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: "var(--font-size-base)",
+              fontFamily: 'var(--font-sans)',
+              fontSize: 'var(--font-size-base)',
               fontWeight: 500,
-              lineHeight: "var(--line-height-snug)",
-              letterSpacing: "0.01em",
+              lineHeight: 'var(--line-height-snug)',
+              letterSpacing: '0.01em',
             }}
           >
             Start using wallet

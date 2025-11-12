@@ -33,6 +33,9 @@ export const INTERNAL_METHODS = {
   /** Lock the wallet */
   LOCK: "wallet:lock",
 
+  /** Reset/delete the wallet (clears all data) */
+  RESET_WALLET: "wallet:resetWallet",
+
   /** Setup/create a new wallet */
   SETUP: "wallet:setup",
 
@@ -72,6 +75,9 @@ export const INTERNAL_METHODS = {
   /** Add a transaction to the cache */
   ADD_TRANSACTION_TO_CACHE: "wallet:addTransactionToCache",
 
+  /** Update transaction status in cache */
+  UPDATE_TRANSACTION_STATUS: "wallet:updateTransactionStatus",
+
   /** Get cached transactions for current account */
   GET_CACHED_TRANSACTIONS: "wallet:getCachedTransactions",
 
@@ -107,6 +113,12 @@ export const INTERNAL_METHODS = {
 
   /** Sign a transaction (internal popup-initiated transactions) */
   SIGN_TRANSACTION: "wallet:signTransaction",
+
+  /** Send a transaction (internal popup-initiated transactions - builds, signs, and broadcasts) */
+  SEND_TRANSACTION: "wallet:sendTransaction",
+
+  /** Broadcast a raw signed transaction (internal popup-initiated transactions) */
+  BROADCAST_TRANSACTION: "wallet:broadcastTransaction",
 } as const;
 
 /**
@@ -138,6 +150,9 @@ export const ERROR_CODES = {
 
   /** Invalid account index provided */
   INVALID_ACCOUNT_INDEX: "INVALID_ACCOUNT_INDEX",
+
+  /** No account selected */
+  NO_ACCOUNT: "NO_ACCOUNT",
 
   /** Cannot hide the last visible account */
   CANNOT_HIDE_LAST_ACCOUNT: "CANNOT_HIDE_LAST_ACCOUNT",

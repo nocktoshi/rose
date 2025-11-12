@@ -433,7 +433,7 @@ export function SendScreen() {
             </div>
             {isEditingFee ? (
               <div
-                className="rounded-lg pl-2 pr-2 py-1.5 flex items-center gap-2"
+                className="rounded-lg pl-1 pr-1 py-1 inline-flex items-center gap-2 "
                 style={{ border: '1px solid var(--color-surface-700)' }}
               >
                 <input
@@ -443,7 +443,7 @@ export function SendScreen() {
                   onChange={handleFeeInputChange}
                   onKeyDown={handleFeeInputKeyDown}
                   autoFocus
-                  className="w-16 bg-transparent outline-none text-[14px] leading-[18px] font-medium text-right"
+                  className="w-8 h-3 bg-transparent outline-none text-[14px] leading-[18px] font-medium text-right"
                   style={{ color: 'var(--color-text-primary)' }}
                   placeholder="1"
                 />

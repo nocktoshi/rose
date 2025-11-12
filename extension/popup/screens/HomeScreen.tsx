@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect, useRef } from 'react';
+import { useState, useLayoutEffect, useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
 import { truncateAddress } from '../utils/format';
@@ -6,6 +6,7 @@ import { send } from '../utils/messaging';
 import { INTERNAL_METHODS } from '../../shared/constants';
 import type { Account } from '../../shared/types';
 import { AccountIcon } from '../components/AccountIcon';
+import { Alert } from '../components/Alert';
 import { EyeIcon } from '../components/icons/EyeIcon';
 import { EyeOffIcon } from '../components/icons/EyeOffIcon';
 import { SendPaperPlaneIcon } from '../components/icons/SendPaperPlaneIcon';
@@ -24,17 +25,28 @@ import PermissionsIcon from '../assets/permissions-icon.svg';
 import FeedbackIcon from '../assets/feedback-icon.svg';
 import CopyIcon from '../assets/copy-icon.svg';
 import SettingsGearIcon from '../assets/settings-gear-icon.svg';
+import RefreshIcon from '../assets/refresh-icon.svg';
 
 import './HomeScreen.tailwind.css';
 
 /** HomeScreen */
 export function HomeScreen() {
-  const { navigate, wallet, syncWallet } = useStore();
+  const {
+    navigate,
+    wallet,
+    syncWallet,
+    fetchBalance,
+    cachedTransactions,
+    fetchCachedTransactions,
+    setSelectedTransaction,
+    updateTransactionStatus,
+  } = useStore();
   const { theme } = useTheme();
 
   const [balanceHidden, setBalanceHidden] = useState(false);
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
   const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -70,9 +82,36 @@ export function HomeScreen() {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Fetch cached transactions on mount and when account changes
+  useEffect(() => {
+    console.log(
+      '[HomeScreen] Fetching cached transactions for account:',
+      wallet.currentAccount?.address
+    );
+    fetchCachedTransactions();
+  }, [fetchCachedTransactions, wallet.currentAccount?.address]);
+
+  // Debug: Log cached transactions when they change
+  useEffect(() => {
+    console.log('[HomeScreen] Cached transactions updated:', cachedTransactions);
+  }, [cachedTransactions]);
+
   // Get accounts from vault (filter out hidden accounts)
   const accounts = (wallet.accounts || []).filter(acc => !acc.hidden);
   const currentAccount = wallet.currentAccount || accounts[0];
+
+  // Lock wallet handler
+  async function handleLockWallet() {
+    const result = await send<{ ok?: boolean }>(INTERNAL_METHODS.LOCK, []);
+
+    if (result?.ok) {
+      syncWallet({
+        ...wallet,
+        locked: true,
+      });
+      navigate('locked');
+    }
+  }
 
   // Account switching handler
   async function handleSwitchAccount(index: number) {
@@ -88,6 +127,10 @@ export function HomeScreen() {
         address: result.account.address,
       };
       syncWallet(updatedWallet);
+
+      // Fetch balance for the switched account
+      fetchBalance();
+      fetchCachedTransactions();
     }
 
     setWalletDropdownOpen(false);
@@ -108,12 +151,64 @@ export function HomeScreen() {
         address: result.account.address,
       };
       syncWallet(updatedWallet);
+
+      // Fetch balance for the newly created account
+      console.log('[HomeScreen] Fetching balance for newly created account...');
+      fetchBalance();
     } else if (result?.error) {
       alert(`Failed to create account: ${result.error}`);
     }
 
     setWalletDropdownOpen(false);
   }
+
+  // Refresh balance handler
+  async function handleRefreshBalance() {
+    setIsRefreshing(true);
+    try {
+      await fetchBalance();
+
+      // Check status of pending transactions (only last 3 to avoid rate limits)
+      if (pendingTransactions.length > 0) {
+        const recentPending = pendingTransactions.slice(-3); // Only check last 3
+        console.log(
+          `[HomeScreen] Checking status of ${recentPending.length} most recent pending transactions...`
+        );
+        const { createBrowserClient } = await import('../../shared/rpc-client-browser');
+        const rpcClient = createBrowserClient();
+
+        for (const tx of recentPending) {
+          console.log(`[HomeScreen] Checking transaction ${tx.txid.slice(0, 20)}...`);
+          try {
+            const accepted = await rpcClient.isTransactionAccepted(tx.txid);
+            console.log(
+              `[HomeScreen] Transaction ${tx.txid.slice(0, 20)}... accepted: ${accepted}`
+            );
+
+            if (accepted) {
+              // Transaction was accepted - mark as confirmed
+              await updateTransactionStatus(tx.txid, 'confirmed');
+              console.log(`[HomeScreen] Marked transaction as confirmed`);
+            } else {
+              // Transaction was rejected - mark as failed
+              await updateTransactionStatus(tx.txid, 'failed');
+              console.log(`[HomeScreen] Marked transaction as failed (rejected by mempool)`);
+            }
+          } catch (error) {
+            console.error(
+              `[HomeScreen] Error checking transaction ${tx.txid.slice(0, 20)}:`,
+              error
+            );
+          }
+        }
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
+  // Get pending transactions (used in refresh handler)
+  const pendingTransactions = cachedTransactions.filter(tx => tx.status === 'pending');
 
   const balance = wallet.balance.toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -125,61 +220,41 @@ export function HomeScreen() {
   const walletAddress = truncateAddress(currentAccount?.address);
   const fullAddress = currentAccount?.address || '';
 
-  const transactions = [
-    {
-      date: '28 Oct 2025',
-      items: [
-        {
-          type: 'receive' as const,
-          from: '89dF3w...sw5Lvw',
-          amount: '+100 NOCK',
-          usdValue: '$7.42',
-        },
-        {
-          type: 'receive' as const,
-          from: '89dF3w...sw5Lvw',
-          amount: '+100 NOCK',
-          usdValue: '$7.42',
-        },
-        {
-          type: 'receive' as const,
-          from: '89dF3w...sw5Lvw',
-          amount: '+100 NOCK',
-          usdValue: '$7.42',
-        },
-      ],
+  // Group cached transactions by date
+  const transactionsByDate = cachedTransactions.reduce(
+    (acc, tx) => {
+      const date = new Date(tx.timestamp).toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+
+      acc[date].push({
+        type: tx.type,
+        from: truncateAddress(tx.address),
+        amount:
+          tx.type === 'sent'
+            ? `-${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`
+            : `${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`,
+        usdValue: '$0.00', // TODO: Get from real price feed
+        status: tx.status,
+        txid: tx.txid,
+        originalTx: tx, // Keep reference to original transaction
+      });
+
+      return acc;
     },
-    {
-      date: '25 Oct 2025',
-      items: [
-        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
-      ],
-    },
-    {
-      date: '21 Oct 2025',
-      items: [
-        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
-      ],
-    },
-    {
-      date: '21 Oct 2025',
-      items: [
-        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
-      ],
-    },
-    {
-      date: '21 Oct 2025',
-      items: [
-        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
-      ],
-    },
-    {
-      date: '21 Oct 2025',
-      items: [
-        { type: 'sent' as const, from: '89dF3w...sw5Lvw', amount: '-200 NOCK', usdValue: '$14.84' },
-      ],
-    },
-  ];
+    {} as Record<string, any[]>
+  );
+
+  const transactions = Object.entries(transactionsByDate).map(([date, items]) => ({
+    date,
+    items,
+  }));
 
   return (
     <div
@@ -187,7 +262,10 @@ export function HomeScreen() {
       style={{ backgroundColor: 'var(--color-home-fill)', color: 'var(--color-text-primary)' }}
     >
       {/* Scroll container */}
-      <div ref={scrollContainerRef} className="relative h-full overflow-y-auto scroll-thin flex flex-col">
+      <div
+        ref={scrollContainerRef}
+        className="relative h-full overflow-y-auto scroll-thin flex flex-col"
+      >
         {/* Sticky header */}
         <header
           ref={headerRef}
@@ -245,7 +323,7 @@ export function HomeScreen() {
             <div className="flex items-center gap-2">
               <button
                 className="h-8 w-8 rounded-tile hover:bg-black/5 grid place-items-center"
-                onClick={() => navigate('locked')}
+                onClick={handleLockWallet}
               >
                 <img src={LockIconAsset} alt="Lock" className="h-5 w-5" />
               </button>
@@ -291,7 +369,9 @@ export function HomeScreen() {
                       }}
                       onMouseLeave={e => {
                         if (!showSelection) {
-                          e.currentTarget.style.backgroundColor = showSelection ? 'var(--color-bg)' : 'transparent';
+                          e.currentTarget.style.backgroundColor = showSelection
+                            ? 'var(--color-bg)'
+                            : 'transparent';
                         }
                       }}
                     >
@@ -323,7 +403,7 @@ export function HomeScreen() {
                         className="wallet-balance text-[14px] font-medium whitespace-nowrap"
                         style={{ color: 'var(--color-text-primary)' }}
                       >
-                        {wallet.balance.toLocaleString('en-US', {
+                        {(wallet.accountBalances[account.address] ?? 0).toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}{' '}
@@ -370,7 +450,7 @@ export function HomeScreen() {
                 boxShadow: '0 4px 12px 0 rgba(5, 5, 5, 0.12)',
               }}
             >
-              <DropdownItem icon={ExplorerIcon} label="View on explorer" onClick={() => {}} />
+              <DropdownItem icon={ExplorerIcon} label="View on explorer" onClick={() => window.open('https://nockscan.net/holders', '_blank')} />
               <DropdownItem
                 icon={PermissionsIcon}
                 label="Wallet permissions"
@@ -423,6 +503,24 @@ export function HomeScreen() {
                 ) : (
                   <EyeIcon className="h-4 w-4" />
                 )}
+              </button>
+              <button
+                className="ml-1"
+                style={{ color: 'var(--color-text-muted)' }}
+                onClick={handleRefreshBalance}
+                disabled={isRefreshing}
+                aria-label="Refresh balance"
+              >
+                <img
+                  src={RefreshIcon}
+                  alt="Refresh"
+                  className="h-4 w-4"
+                  style={{
+                    opacity: isRefreshing ? 0.5 : 1,
+                    transform: isRefreshing ? 'rotate(360deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.6s ease-in-out',
+                  }}
+                />
               </button>
             </div>
             <div
@@ -482,7 +580,10 @@ export function HomeScreen() {
               >
                 Recent Transactions
               </h2>
-              <button
+              <a
+                href="https://nockscan.net/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-[12px] font-medium rounded-full pl-[12px] pr-[16px] py-[3px] flex items-center gap-[4px] transition-opacity"
                 style={{
                   border: '1px solid var(--color-text-primary)',
@@ -493,7 +594,7 @@ export function HomeScreen() {
               >
                 <ArrowUpRightIcon className="h-[10px] w-[10px]" />
                 View all
-              </button>
+              </a>
             </div>
           </div>
 
@@ -516,13 +617,16 @@ export function HomeScreen() {
                     <button
                       key={i}
                       className="w-full flex items-center gap-3 py-3 rounded-lg px-2 -mx-2"
-                      onClick={() => navigate('tx-details')}
+                      onClick={() => {
+                        setSelectedTransaction(t.originalTx);
+                        navigate('tx-details');
+                      }}
                     >
                       <div
                         className="h-10 w-10 rounded-full grid place-items-center"
                         style={{ backgroundColor: 'var(--color-tx-icon)' }}
                       >
-                        {t.type === 'receive' ? (
+                        {t.type === 'received' ? (
                           <ReceiveArrowIcon
                             className="h-4 w-4"
                             style={{ color: 'var(--color-text-muted)' }}
@@ -539,25 +643,40 @@ export function HomeScreen() {
                           className="text-[14px] font-medium"
                           style={{ color: 'var(--color-text-primary)' }}
                         >
-                          {t.type === 'receive' ? 'Receive' : 'Sent'}
+                          {t.type === 'received' ? 'Received' : 'Send'}
                         </div>
-                        <div className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
-                          From {t.from}
+                        <div
+                          className="text-[12px] flex items-center gap-1.5"
+                          style={{ color: 'var(--color-text-muted)' }}
+                        >
+                          {t.status === 'pending' && (
+                            <>
+                              <span style={{ color: '#C88414' }}>Pending</span>
+                              <span>·</span>
+                            </>
+                          )}
+                          {t.status === 'failed' && (
+                            <>
+                              <span style={{ color: 'var(--color-red)' }}>Failed</span>
+                              <span>·</span>
+                            </>
+                          )}
+                          <span>{t.from}</span>
                         </div>
                       </div>
                       <div className="text-right">
                         <div
-                          className="text-[14px] font-medium"
+                          className="text-[14px] font-medium whitespace-nowrap"
                           style={{
                             color:
-                              t.type === 'receive'
+                              t.type === 'received'
                                 ? 'var(--color-green)'
                                 : 'var(--color-text-primary)',
                           }}
                         >
                           {t.amount}
                         </div>
-                        <div className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
+                        <div className="text-[12px] whitespace-nowrap" style={{ color: 'var(--color-text-muted)' }}>
                           {t.usdValue}
                         </div>
                       </div>

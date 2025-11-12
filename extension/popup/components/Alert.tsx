@@ -12,20 +12,37 @@ interface AlertProps {
   className?: string;
 }
 
-const alertStyles: Record<AlertType, string> = {
-  error: 'bg-red-900/20 border-red-500/50 text-red-300',
-  success: 'bg-green-900/20 border-green-500/50 text-green-300',
-  warning: 'bg-orange-900/20 border-orange-500/50 text-orange-300',
-  info: 'bg-blue-900/20 border-blue-500/50 text-blue-300',
+const alertStyles: Record<AlertType, { bg: string; text: string }> = {
+  error: {
+    bg: 'var(--color-red-light)',
+    text: 'var(--color-red)',
+  },
+  success: {
+    bg: 'var(--color-green-light)',
+    text: 'var(--color-green)',
+  },
+  warning: {
+    bg: 'var(--color-orange-light)',
+    text: 'var(--color-orange)',
+  },
+  info: {
+    bg: 'var(--color-blue-light)',
+    text: 'var(--color-blue)',
+  },
 };
 
 export function Alert({ type = 'info', children, className = '' }: AlertProps) {
-  const typeStyles = alertStyles[type];
-  const combinedClasses = `border rounded p-3 ${typeStyles} ${className}`;
+  const styles = alertStyles[type];
 
   return (
-    <div className={combinedClasses}>
-      <p className="text-sm">{children}</p>
+    <div
+      className={`rounded-lg px-3 py-2.5 ${className}`}
+      style={{
+        backgroundColor: styles.bg,
+        color: styles.text,
+      }}
+    >
+      <p className="text-sm font-medium leading-[18px] tracking-[0.14px]">{children}</p>
     </div>
   );
 }
