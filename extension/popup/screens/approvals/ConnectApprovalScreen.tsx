@@ -1,125 +1,114 @@
-/**
- * Connect Approval Screen - Approve or reject connection requests from dApps
- */
-
 import { useStore } from "../../store";
-import { ScreenContainer } from "../../components/ScreenContainer";
 import { ChevronLeftIcon } from "../../components/icons/ChevronLeftIcon";
+import { AccountIcon } from "../../components/AccountIcon";
 import { truncateAddress } from "../../utils/format";
 import { send } from "../../utils/messaging";
 import { INTERNAL_METHODS } from "../../../shared/constants";
 import { useAutoRejectOnClose } from "../../hooks/useAutoRejectOnClose";
 
 export function ConnectApprovalScreen() {
-  const { navigate, pendingConnectRequest, setPendingConnectRequest, wallet } =
-    useStore();
+  const { navigate, pendingConnectRequest, setPendingConnectRequest, wallet } = useStore();
 
   if (!pendingConnectRequest) {
-    // No pending request, redirect to home
     navigate("home");
     return null;
   }
 
   const { id, origin } = pendingConnectRequest;
-  const currentAccount = wallet.currentAccount;
+  const domain = origin.includes('://') ? new URL(origin).hostname : origin;
 
-  // Auto-reject when window closes without user action
   useAutoRejectOnClose(id, INTERNAL_METHODS.REJECT_CONNECTION);
 
   async function handleReject() {
-    try {
-      await send(INTERNAL_METHODS.REJECT_CONNECTION, [id]);
-      setPendingConnectRequest(null);
-      window.close(); // Close approval popup
-    } catch (error) {
-      console.error("Failed to reject connection:", error);
-    }
+    await send(INTERNAL_METHODS.REJECT_CONNECTION, [id]);
+    setPendingConnectRequest(null);
+    window.close();
   }
 
   async function handleConnect() {
-    try {
-      await send(INTERNAL_METHODS.APPROVE_CONNECTION, [id]);
-      setPendingConnectRequest(null);
-      window.close(); // Close approval popup
-    } catch (error) {
-      console.error("Failed to approve connection:", error);
-    }
+    await send(INTERNAL_METHODS.APPROVE_CONNECTION, [id]);
+    setPendingConnectRequest(null);
+    window.close();
   }
 
-  // Extract domain from origin for cleaner display
-  const domain = (() => {
-    try {
-      return new URL(origin).hostname;
-    } catch {
-      return origin;
-    }
-  })();
+  const bg = 'var(--color-bg)';
+  const surface = 'var(--color-surface-800)';
+  const textPrimary = 'var(--color-text-primary)';
+  const textMuted = 'var(--color-text-muted)';
+  const divider = 'var(--color-divider)';
+  const green = 'var(--color-green)';
 
   return (
-    <ScreenContainer className="flex flex-col">
+    <div className="w-[357px] h-screen flex flex-col" style={{ backgroundColor: bg }}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={handleReject}
-          className="transition-colors"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
+      <div className="flex items-center gap-3 px-4 py-2.5 shrink-0">
+        <button onClick={handleReject} style={{ color: textPrimary }}>
           <ChevronLeftIcon />
         </button>
-        <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+        <h2 className="text-xl font-semibold" style={{ color: textPrimary }}>
           Connect Request
         </h2>
       </div>
 
-      {/* Site Info */}
-      <div className="mb-6 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-4">
-          <span className="text-2xl font-bold text-white">
-            {domain.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>
-          {domain}
-        </h3>
-        <p className="text-sm break-all" style={{ color: 'var(--color-text-muted)' }}>
-          {origin}
-        </p>
-      </div>
-
-      {/* Permission Info */}
-      <div className="mb-6 rounded-lg p-4" style={{ backgroundColor: 'var(--color-surface-800)' }}>
-        <p className="text-sm mb-3" style={{ color: 'var(--color-text-primary)' }}>
-          This site is requesting permission to:
-        </p>
-        <ul className="space-y-2">
-          <li className="flex items-start gap-2 text-sm" style={{ color: 'var(--color-text-primary)' }}>
-            <span className="mt-0.5" style={{ color: 'var(--color-green)' }}>✓</span>
-            <span>View your wallet address</span>
-          </li>
-          <li className="flex items-start gap-2 text-sm" style={{ color: 'var(--color-text-primary)' }}>
-            <span className="mt-0.5" style={{ color: 'var(--color-green)' }}>✓</span>
-            <span>Request approval for transactions</span>
-          </li>
-        </ul>
-      </div>
-
-      {/* Account Info */}
-      <div className="mb-6">
-        <label className="text-sm block mb-2" style={{ color: 'var(--color-text-muted)' }}>
-          Connecting Account
-        </label>
-        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
-          <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-            {currentAccount?.name || "Unknown"}
-          </p>
-          <p className="text-xs font-mono mt-1" style={{ color: 'var(--color-text-muted)' }}>
-            {truncateAddress(currentAccount?.address)}
+      {/* Content */}
+      <div className="px-4 pb-2">
+        {/* Site Badge */}
+        <div className="text-center mb-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-3" style={{ backgroundColor: surface }}>
+            <span className="text-2xl font-bold" style={{ color: textPrimary }}>
+              {domain.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <h3 className="text-lg font-semibold mb-0.5" style={{ color: textPrimary }}>
+            {domain}
+          </h3>
+          <p className="text-xs break-all px-4" style={{ color: textMuted }}>
+            {origin}
           </p>
         </div>
+
+        {/* Permissions */}
+        <div className="rounded-lg p-3 mb-3" style={{ backgroundColor: surface }}>
+          <p className="text-sm mb-2 font-medium" style={{ color: textPrimary }}>
+            Requesting permission to:
+          </p>
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-2 text-sm" style={{ color: textPrimary }}>
+              <span style={{ color: green }}>✓</span>
+              <span>View your wallet address</span>
+            </div>
+            <div className="flex items-start gap-2 text-sm" style={{ color: textPrimary }}>
+              <span style={{ color: green }}>✓</span>
+              <span>Request transaction approvals</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Account */}
+        <div>
+          <label className="text-xs block mb-1.5 font-medium" style={{ color: textMuted }}>
+            Connecting Account
+          </label>
+          <div className="rounded-lg p-3 flex items-center gap-2.5" style={{ backgroundColor: surface }}>
+            <AccountIcon 
+              styleId={wallet.currentAccount?.iconStyleId} 
+              color={wallet.currentAccount?.iconColor} 
+              className="w-8 h-8 shrink-0" 
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium" style={{ color: textPrimary }}>
+                {wallet.currentAccount?.name || "Unknown"}
+              </p>
+              <p className="text-xs font-mono mt-0.5" style={{ color: textMuted }}>
+                {truncateAddress(wallet.currentAccount?.address)}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-3 mt-auto">
+      {/* Footer Buttons */}
+      <div className="mt-auto px-4 py-2.5 shrink-0 flex gap-3" style={{ borderTop: `1px solid ${divider}` }}>
         <button onClick={handleReject} className="btn-secondary flex-1">
           Cancel
         </button>
@@ -127,6 +116,6 @@ export function ConnectApprovalScreen() {
           Connect
         </button>
       </div>
-    </ScreenContainer>
+    </div>
   );
 }
