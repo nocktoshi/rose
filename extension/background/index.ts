@@ -907,6 +907,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     return;
   }
 
+  // Don't auto-lock if set to "never" (0 minutes)
+  if (autoLockMinutes === 0) {
+    scheduleAlarm();
+    return;
+  }
+
   const idleMs = Date.now() - lastActivity;
   if (idleMs >= autoLockMinutes * 60_000) {
     await vault.lock();
