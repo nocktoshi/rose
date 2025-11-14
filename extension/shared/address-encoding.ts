@@ -4,11 +4,11 @@
  */
 
 import { base58 } from '@scure/base';
-import { tip5Hash } from '../lib/nbx-crypto/nbx_crypto.js';
+import { hashPublicKey } from '../lib/nbx-wasm/nbx_wasm.js';
 
 /**
  * Converts a public key to a Nockchain V1 PKH (Public Key Hash) address
- * An address is the base58-encoded TIP5 hash of the public key
+ * Uses the correct Noun representation before hashing (not raw bytes)
  *
  * @param publicKey - The 97-byte public key from WASM
  * @returns A ~60-character base58-encoded PKH address
@@ -18,11 +18,8 @@ export function publicKeyToPKH(publicKey: Uint8Array): string {
     throw new Error(`Invalid public key length: ${publicKey.length}, expected 97`);
   }
 
-  // Hash the public key with TIP5
-  const pkh = tip5Hash(publicKey);
-
-  // Base58 encode the hash
-  const address = base58.encode(pkh);
+  // Use WASM function which converts to Noun before hashing
+  const address = hashPublicKey(publicKey);
 
   return address;
 }
@@ -58,7 +55,7 @@ export function digestStringToBytes(digestString: string): Uint8Array {
 
 /**
  * Converts a public key to a PKH digest string (for WASM API)
- * Hashes the public key and returns base58-encoded string
+ * Uses the correct Noun representation before hashing
  *
  * @param publicKey - The 97-byte public key
  * @returns Base58-encoded PKH digest string
@@ -67,6 +64,6 @@ export function publicKeyToPKHDigest(publicKey: Uint8Array): string {
   if (publicKey.length !== 97) {
     throw new Error(`Invalid public key length: ${publicKey.length}, expected 97`);
   }
-  const pkh = tip5Hash(publicKey);
-  return base58.encode(pkh);
+  // Use WASM function which converts to Noun before hashing
+  return hashPublicKey(publicKey);
 }
