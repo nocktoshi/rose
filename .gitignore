@@ -25,5 +25,7 @@ test-*.js
 *.swo
 *~
 
-# Local WASM modules (built from wallet repo)
-extension/lib/nbx-wasm/
+# WASM binary files
+extension/lib/nbx-crypto/*.wasm
+extension/lib/nbx-wasm/*.wasm
+extension/lib/nbx-nockchain-types/*.wasm
