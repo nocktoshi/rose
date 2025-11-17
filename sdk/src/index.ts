@@ -1,5 +1,5 @@
 /**
- * Fort Nock SDK - TypeScript SDK for interacting with Fort Nock wallet extension
+ * Iris SDK - TypeScript SDK for interacting with Iris wallet extension
  *
  * @packageDocumentation
  */

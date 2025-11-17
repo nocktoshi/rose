@@ -1,5 +1,5 @@
 /**
- * TypeScript type definitions for Fort Nock SDK
+ * TypeScript type definitions for Iris SDK
  */
 
 /**
@@ -60,9 +60,9 @@ export interface InjectedNockchain {
   request<T = unknown>(request: RpcRequest): Promise<T>;
 
   /**
-   * Check if the provider is Fort Nock
+   * Check if the provider is Iris
    */
-  isFortNock?: boolean;
+  isIris?: boolean;
 }
 
 /**

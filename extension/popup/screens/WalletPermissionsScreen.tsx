@@ -2,7 +2,7 @@ import { useStore } from '../store';
 import { useState, useEffect } from 'react';
 import { STORAGE_KEYS, INTERNAL_METHODS } from '../../shared/constants';
 import { send } from '../utils/messaging';
-import FortNockLogo from '../assets/fort-nock-logo.svg';
+import IrisLogo from '../assets/iris-logo.svg';
 import { CloseIcon } from '../components/icons/CloseIcon';
 
 export function WalletPermissionsScreen() {
@@ -43,7 +43,7 @@ export function WalletPermissionsScreen() {
         style={{ backgroundColor: 'var(--color-bg)' }}
       >
         <div className="w-8 h-8 flex items-center justify-center shrink-0">
-          <img src={FortNockLogo} alt="Fort Nock" className="w-6 h-6" />
+          <img src={IrisLogo} alt="Iris" className="w-6 h-6" />
         </div>
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">
           Wallet permissions

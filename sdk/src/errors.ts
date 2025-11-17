@@ -1,13 +1,13 @@
 /**
- * Custom error classes for Fort Nock SDK
+ * Custom error classes for Iris SDK
  */
 
 /**
- * Thrown when the Fort Nock wallet extension is not installed
+ * Thrown when the Iris wallet extension is not installed
  */
 export class WalletNotInstalledError extends Error {
   constructor() {
-    super('Fort Nock wallet extension not installed. Please install it from the Chrome Web Store.');
+    super('Iris wallet extension not installed. Please install it from the Chrome Web Store.');
     this.name = 'WalletNotInstalledError';
     Object.setPrototypeOf(this, WalletNotInstalledError.prototype);
   }

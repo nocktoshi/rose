@@ -1,7 +1,7 @@
 {
-  "name": "fort-nock",
+  "name": "iris",
   "version": "0.0.1",
-  "description": "Fort Nock - Chrome Wallet Extension for Nockchain",
+  "description": "Iris - Chrome Wallet Extension for Nockchain",
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",

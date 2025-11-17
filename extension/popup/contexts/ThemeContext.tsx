@@ -14,7 +14,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'fort-nock-theme';
+const STORAGE_KEY = 'iris-theme';
 
 // Detect system theme preference
 function getSystemTheme(): 'dark' | 'light' {

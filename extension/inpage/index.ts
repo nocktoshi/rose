@@ -6,7 +6,7 @@
  */
 
 // Inline constant to avoid imports
-const MESSAGE_TARGET = "FORT_NOCK";
+const MESSAGE_TARGET = "IRIS";
 
 interface RequestArgs {
   method: string;
@@ -21,7 +21,7 @@ class NockProvider {
   request(args: RequestArgs): Promise<unknown> {
     const id = Math.random().toString(36).slice(2);
 
-    console.log("[Fort Nock] Sending request:", args.method, { id, args });
+    console.log("[Iris] Sending request:", args.method, { id, args });
 
     // Post message to content script
     window.postMessage(
@@ -46,7 +46,7 @@ class NockProvider {
           data.id === id &&
           data.reply !== undefined
         ) {
-          console.log("[Fort Nock] Matched response:", {
+          console.log("[Iris] Matched response:", {
             id,
             reply: data.reply,
             fullData: data,
@@ -97,7 +97,7 @@ class NockProvider {
 
 // Inject provider into window
 const provider = new NockProvider();
-(provider as any).isFortNock = true;
+(provider as any).isIris = true;
 (window as any).nockchain = provider;
 
 // Announce provider availability

@@ -1,7 +1,7 @@
 import { useStore } from '../store';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
-import FortNockLogo40 from '../assets/fort-nock-logo-40.svg';
+import IrisLogo40 from '../assets/iris-logo-40.svg';
 import { truncateAddress } from '../utils/format';
 
 export function TransactionDetailsScreen() {
@@ -114,7 +114,7 @@ export function TransactionDetailsScreen() {
         <div className="flex flex-col gap-8 px-4 py-2">
           {/* Amount Section */}
           <div className="flex flex-col items-center gap-3">
-            <img src={FortNockLogo40} alt="Fort Nock" className="w-10 h-10" />
+            <img src={IrisLogo40} alt="Iris" className="w-10 h-10" />
             <div className="flex flex-col items-center gap-0.5 text-center">
               <h2
                 className="m-0 font-[Lora] text-[36px] font-semibold leading-10 tracking-[-0.72px]"

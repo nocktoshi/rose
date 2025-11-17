@@ -1,5 +1,5 @@
 import { useStore } from '../store';
-import FortNockLogo96 from '../assets/fort-nock-logo-96.svg';
+import IrisLogo96 from '../assets/iris-logo-96.svg';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 
 /**
@@ -58,7 +58,7 @@ export function AboutScreen() {
       {/* Content */}
       <div className="flex flex-col items-center gap-6 px-4 py-2 h-[536px]">
         <div className="w-24 h-24 flex items-center justify-center flex-shrink-0">
-          <img src={FortNockLogo96} alt="Fort Nock" className="w-24 h-24" />
+          <img src={IrisLogo96} alt="Iris" className="w-24 h-24" />
         </div>
 
         <div className="w-full flex flex-col items-center justify-center gap-1">

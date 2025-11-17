@@ -1,5 +1,5 @@
 /**
- * NockchainProvider - Main SDK class for interacting with Fort Nock wallet
+ * NockchainProvider - Main SDK class for interacting with Iris wallet
  */
 
 import type { Transaction, NockchainEvent, EventListener, InjectedNockchain } from './types.js';
@@ -12,7 +12,7 @@ import {
 } from './errors.js';
 
 /**
- * NockchainProvider class - Main interface for dApps to interact with Fort Nock wallet
+ * NockchainProvider class - Main interface for dApps to interact with Iris wallet
  *
  * @example
  * ```typescript
@@ -39,7 +39,7 @@ export class NockchainProvider {
 
   /**
    * Create a new NockchainProvider instance
-   * @throws {WalletNotInstalledError} If the Fort Nock extension is not installed
+   * @throws {WalletNotInstalledError} If the Iris extension is not installed
    */
   constructor() {
     if (typeof window === 'undefined') {
@@ -48,9 +48,9 @@ export class NockchainProvider {
 
     const injected = window.nockchain;
 
-    // Verify Fort Nock extension is installed and authentic
-    // The isFortNock brand prevents other extensions from hijacking window.nockchain
-    if (!injected || injected.isFortNock !== true) {
+    // Verify Iris extension is installed and authentic
+    // The isIris brand prevents other extensions from hijacking window.nockchain
+    if (!injected || injected.isIris !== true) {
       throw new WalletNotInstalledError();
     }
 
@@ -261,9 +261,9 @@ export class NockchainProvider {
 
       const payload = event.data;
 
-      // SECURITY: Verify the message is from Fort Nock extension
+      // SECURITY: Verify the message is from Iris extension
       // This prevents malicious scripts from forging wallet events
-      if (!payload || payload.__fortNock !== true) return;
+      if (!payload || payload.__iris !== true) return;
 
       // Check if this is a valid wallet event
       if (typeof payload.type !== 'string' || !payload.type.startsWith('nockchain_')) return;
@@ -320,10 +320,10 @@ export class NockchainProvider {
   }
 
   /**
-   * Check if the Fort Nock extension is installed and authentic
+   * Check if the Iris extension is installed and authentic
    * @returns true if the extension is installed
    */
   static isInstalled(): boolean {
-    return typeof window !== 'undefined' && !!window.nockchain?.isFortNock;
+    return typeof window !== 'undefined' && !!window.nockchain?.isIris;
   }
 }

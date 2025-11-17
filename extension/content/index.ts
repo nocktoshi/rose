@@ -54,11 +54,11 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     return;
   }
 
-  // Relay to page with __fortNock brand for security
+  // Relay to page with __iris brand for security
   // This prevents malicious scripts from forging wallet events
   window.postMessage(
     {
-      __fortNock: true,
+      __iris: true,
       type: `nockchain_${message.eventType}`,
       data: message.data,
     },

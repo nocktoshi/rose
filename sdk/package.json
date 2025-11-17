@@ -1,7 +1,7 @@
 {
-  "name": "@fort-nock/sdk",
+  "name": "@iris/sdk",
   "version": "0.1.0",
-  "description": "TypeScript SDK for interacting with Fort Nock wallet extension",
+  "description": "TypeScript SDK for interacting with Iris wallet extension",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -27,7 +27,7 @@
     "blockchain",
     "schnorr"
   ],
-  "author": "Fort Nock",
+  "author": "Nockbox Inc",
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.5.3"

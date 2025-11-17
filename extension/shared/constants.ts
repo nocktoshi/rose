@@ -212,7 +212,7 @@ export const ALARM_NAMES = {
  */
 export const MESSAGE_TARGETS = {
   /** Target identifier for wallet bridge messages */
-  WALLET_BRIDGE: "FORT_NOCK",
+  WALLET_BRIDGE: "IRIS",
 } as const;
 
 /**

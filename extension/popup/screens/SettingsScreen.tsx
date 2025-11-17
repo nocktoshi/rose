@@ -1,5 +1,5 @@
 import { useStore } from '../store';
-import FortNockLogo from '../assets/fort-nock-logo.svg';
+import IrisLogo from '../assets/iris-logo.svg';
 import ThemeIcon from '../assets/theme-icon.svg';
 import KeyIcon from '../assets/key-icon.svg';
 import ClockIcon from '../assets/clock-icon.svg';
@@ -65,7 +65,7 @@ export function SettingsScreen() {
         style={{ backgroundColor: 'var(--color-bg)' }}
       >
         <div className="w-8 h-8 flex items-center justify-center shrink-0">
-          <img src={FortNockLogo} alt="Fort Nock" className="w-6 h-6" />
+          <img src={IrisLogo} alt="Iris" className="w-6 h-6" />
         </div>
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">Settings</h1>
         <button
