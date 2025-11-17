@@ -81,6 +81,8 @@ export interface TransactionDetails {
   to?: string;
   /** Sender address */
   from?: string;
+  /** Protobuf transaction object for debugging/export (dev feature) */
+  protobufTx?: any;
 }
 
 /**

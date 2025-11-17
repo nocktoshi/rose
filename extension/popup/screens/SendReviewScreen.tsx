@@ -40,6 +40,7 @@ export function SendReviewScreen() {
   function handleCancel() {
     navigate('send');
   }
+
   async function handleSend() {
     if (!lastTransaction) return;
 
@@ -53,7 +54,12 @@ export function SendReviewScreen() {
       const feeInNicks = nockToNick(lastTransaction.fee);
 
       // Call vault to build, sign, and broadcast transaction
-      const result = await send<{ txid?: string; broadcasted?: boolean; error?: string }>(
+      const result = await send<{
+        txid?: string;
+        broadcasted?: boolean;
+        protobufTx?: any;
+        error?: string;
+      }>(
         INTERNAL_METHODS.SEND_TRANSACTION,
         [lastTransaction.to, amountInNicks, feeInNicks]
       );
@@ -67,10 +73,11 @@ export function SendReviewScreen() {
       if (result?.txid) {
         console.log('[SendReview] Transaction sent! txid:', result.txid);
 
-        // Update lastTransaction with real txid
+        // Update lastTransaction with real txid and protobuf
         useStore.getState().setLastTransaction({
           ...lastTransaction,
           txid: result.txid,
+          protobufTx: result.protobufTx,
         });
 
         // Add to transaction cache with pending status
@@ -248,33 +255,35 @@ export function SendReviewScreen() {
 
         {/* Actions */}
         <div
-          className="flex gap-3 px-4 py-3"
+          className="flex flex-col gap-2 px-4 py-3"
           style={{ borderTop: '1px solid var(--color-divider)' }}
         >
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity focus:outline-none focus-visible:ring-2"
-            style={{
-              backgroundColor: 'var(--color-surface-800)',
-              color: 'var(--color-text-primary)',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={isSending}
-            className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity focus:outline-none focus-visible:ring-2"
-            style={{ backgroundColor: 'var(--color-primary)', color: '#000' }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-          >
-            {isSending ? 'Sending...' : 'Send'}
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity focus:outline-none focus-visible:ring-2"
+              style={{
+                backgroundColor: 'var(--color-surface-800)',
+                color: 'var(--color-text-primary)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={isSending}
+              className="flex-1 h-12 inline-flex items-center justify-center rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity focus:outline-none focus-visible:ring-2"
+              style={{ backgroundColor: 'var(--color-primary)', color: '#000' }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              {isSending ? 'Sending...' : 'Send'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

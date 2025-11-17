@@ -906,7 +906,7 @@ export class Vault {
     to: string,
     amount: number,
     fee: number
-  ): Promise<{ txId: string; broadcasted: boolean } | { error: string }> {
+  ): Promise<{ txId: string; broadcasted: boolean; protobufTx?: any } | { error: string }> {
     if (this.state.locked || !this.mnemonic) {
       return { error: ERROR_CODES.LOCKED };
     }
@@ -1082,6 +1082,7 @@ export class Vault {
         return {
           txId: constructedTx.txId,
           broadcasted: true,
+          protobufTx, // Include protobuf for debugging/export
         };
       } finally {
         // Clean up WASM memory

@@ -961,6 +961,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           sendResponse({
             txid: result.txId,
             broadcasted: result.broadcasted,
+            protobufTx: result.protobufTx, // For dev/debugging - export to file
           });
         } catch (error) {
           console.error('[Background] Transaction sending failed:', error);

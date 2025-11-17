@@ -13,6 +13,29 @@ export function SendSubmittedScreen() {
     navigate('home'); // show transactions on home
   }
 
+  // Dev function: Download transaction protobuf for debugging
+  function handleDownloadTx() {
+    if (!lastTransaction?.protobufTx) {
+      console.warn('[SendSubmitted] No transaction data available to download');
+      return;
+    }
+
+    try {
+      // Convert protobuf object to JSON string
+      const txJson = JSON.stringify(lastTransaction.protobufTx, null, 2);
+      const blob = new Blob([txJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tx-${lastTransaction.txid || 'unsigned'}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      console.log('[SendSubmitted] Transaction downloaded');
+    } catch (err) {
+      console.error('[SendSubmitted] Failed to download transaction:', err);
+    }
+  }
+
   // Get real transaction data
   const sentAmount =
     lastTransaction?.amount.toLocaleString('en-US', {
@@ -110,8 +133,8 @@ export function SendSubmittedScreen() {
           </div>
         </div>
 
-        {/* Activity Log Button */}
-        <div className="px-4 pb-2">
+        {/* Activity Log Button (commented out - not in use) */}
+        {/* <div className="px-4 pb-2">
           <button
             type="button"
             onClick={handleViewActivity}
@@ -126,9 +149,28 @@ export function SendSubmittedScreen() {
             </span>
             <PlusIcon className="w-4 h-4" />
           </button>
-        </div>
+        </div> */}
 
-        {/* Action Button */}
+        {/* DEV: Download transaction button */}
+        {lastTransaction?.protobufTx && (
+          <div className="px-4 pb-2">
+            <button
+              type="button"
+              onClick={handleDownloadTx}
+              className="w-full rounded-lg p-3 flex items-center justify-center transition-opacity hover:opacity-80"
+              style={{ backgroundColor: 'var(--color-surface-800)' }}
+            >
+              <span
+                className="text-sm font-medium leading-[18px] tracking-[0.14px]"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                💾 Download Transaction (Dev)
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Action Buttons */}
         <div className="flex gap-3 px-4 py-3 w-full">
           <button
             type="button"
