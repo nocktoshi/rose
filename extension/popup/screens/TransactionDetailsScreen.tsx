@@ -2,10 +2,10 @@ import { useStore } from '../store';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 import IrisLogo40 from '../assets/iris-logo-40.svg';
-import { truncateAddress } from '../utils/format';
+import { truncateAddress, formatUTCTimestamp } from '../utils/format';
 
 export function TransactionDetailsScreen() {
-  const { navigate, selectedTransaction, wallet } = useStore();
+  const { navigate, selectedTransaction, wallet, priceUsd } = useStore();
 
   // If no transaction selected, show error state
   if (!selectedTransaction) {
@@ -34,7 +34,7 @@ export function TransactionDetailsScreen() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-  const usdValue = '$0.00'; // TODO: Get from real price feed
+  const usdValue = `$${(selectedTransaction.amount * priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const status: 'Confirmed' | 'Pending' | 'Failed' =
     selectedTransaction.status === 'confirmed'
       ? 'Confirmed'
@@ -53,12 +53,14 @@ export function TransactionDetailsScreen() {
       : truncateAddress(currentAddress);
 
   const networkFee = `${selectedTransaction.fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`;
-  const total =
+  const totalNock =
     selectedTransaction.type === 'sent'
-      ? `${(selectedTransaction.amount + selectedTransaction.fee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`
-      : `${selectedTransaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`;
-  const totalUsd = '$0.00'; // TODO: Get from real price feed
+      ? selectedTransaction.amount + selectedTransaction.fee
+      : selectedTransaction.amount;
+  const total = `${totalNock.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`;
+  const totalUsd = `$${(totalNock * priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const transactionId = selectedTransaction.txid;
+  const transactionTimeUTC = formatUTCTimestamp(selectedTransaction.timestamp);
 
   function handleBack() {
     navigate('home');
@@ -143,6 +145,22 @@ export function TransactionDetailsScreen() {
                 <div style={{ color: 'var(--color-text-primary)' }}>Status</div>
                 <div className="whitespace-nowrap" style={{ color: statusColor }}>
                   {status}
+                </div>
+              </div>
+            </div>
+
+            {/* Transaction Time */}
+            <div
+              className="rounded-lg px-3 py-5"
+              style={{ backgroundColor: 'var(--color-surface-800)' }}
+            >
+              <div className="flex items-center justify-between text-sm font-medium leading-[18px] tracking-[0.14px]">
+                <div style={{ color: 'var(--color-text-primary)' }}>Time</div>
+                <div
+                  className="text-right text-[13px] leading-[18px] tracking-[0.26px]"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  {transactionTimeUTC}
                 </div>
               </div>
             </div>

@@ -266,7 +266,7 @@ export function HomeScreen() {
           tx.type === 'sent'
             ? `-${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`
             : `${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`,
-        usdValue: '$0.00', // TODO: Get from real price feed
+        usdValue: `$${(tx.amount * priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         status: tx.status,
         txid: tx.txid,
         originalTx: tx, // Keep reference to original transaction

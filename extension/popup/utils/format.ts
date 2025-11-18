@@ -35,3 +35,22 @@ export function formatTimeAgo(date: Date): string {
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
+
+/**
+ * Format a timestamp as UTC date/time string
+ * @param timestamp - Timestamp in milliseconds since epoch
+ * @returns Formatted UTC string (e.g., "Jan 18, 2025, 14:23:45 UTC")
+ */
+export function formatUTCTimestamp(timestamp: number): string {
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }) + ' UTC';
+}
