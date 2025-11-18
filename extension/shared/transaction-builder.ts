@@ -135,12 +135,14 @@ export interface TransactionParams {
   recipientPKH: string;
   /** Amount to send in nicks */
   amount: number;
-  /** Transaction fee in nicks */
-  fee: number;
+  /** Transaction fee override in nicks */
+  fee?: number;
   /** Your PKH for receiving change (as digest string) */
   refundPKH: string;
   /** Private key for signing (32 bytes) */
   privateKey: Uint8Array;
+  /** Whether to include lock data or not */
+  includeLockData: boolean;
 }
 
 /**
@@ -165,7 +167,7 @@ export async function buildTransaction(params: TransactionParams): Promise<Const
   // Initialize both WASM modules
   await ensureWasmInitialized();
 
-  const { notes, spendCondition, recipientPKH, amount, fee, refundPKH, privateKey } = params;
+  const { notes, spendCondition, recipientPKH, amount, fee, refundPKH, privateKey, includeLockData } = params;
 
   // Validate inputs
   if (notes.length === 0) {
@@ -178,9 +180,9 @@ export async function buildTransaction(params: TransactionParams): Promise<Const
   // Calculate total available from notes
   const totalAvailable = notes.reduce((sum, note) => sum + note.assets, 0);
 
-  if (totalAvailable < amount + fee) {
+  if (totalAvailable < amount + (fee || 0)) {
     throw new Error(
-      `Insufficient funds: have ${totalAvailable} nicks, need ${amount + fee} (${amount} amount + ${fee} fee)`
+      `Insufficient funds: have ${totalAvailable} nicks, need ${amount + (fee || 0)} (${amount} amount + ${fee} fee)`
     );
   }
 
@@ -210,6 +212,7 @@ export async function buildTransaction(params: TransactionParams): Promise<Const
     amount,
     fee,
     refundPKH: refundPKH.slice(0, 20) + '...',
+    includeLockData,
   });
 
   // Create transaction builder with PKH digests (builder computes lock-roots)
@@ -221,9 +224,10 @@ export async function buildTransaction(params: TransactionParams): Promise<Const
     spendConditions,
     new WasmDigest(recipientPKH),
     BigInt(amount), // gift
-    BigInt(fee),
+    BigInt(1 << 1),
+    fee !== undefined ? BigInt(fee) : null,
     new WasmDigest(refundPKH),
-    false // include_lock_data: false for empty note-data (lower fee)
+    includeLockData,
   );
 
   console.log('[TxBuilder] Signing transaction...');
@@ -299,13 +303,13 @@ export async function buildPayment(
   recipientPKH: string,
   amount: number,
   senderPublicKey: Uint8Array,
-  fee: number,
-  privateKey: Uint8Array
+  privateKey: Uint8Array,
+  fee?: number,
 ): Promise<ConstructedTransaction> {
   // Initialize WASM
   await ensureWasmInitialized();
 
-  const totalNeeded = amount + fee;
+  const totalNeeded = amount + (fee || 0);
 
   if (note.assets < totalNeeded) {
     throw new Error(`Insufficient funds in note: have ${note.assets} nicks, need ${totalNeeded}`);
@@ -340,6 +344,8 @@ export async function buildPayment(
     fee,
     refundPKH: senderPKH,
     privateKey,
+     // include_lock_data: false for empty note-data (lower fee)
+    includeLockData: false,
   });
 }
 

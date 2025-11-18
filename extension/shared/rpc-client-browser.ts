@@ -10,7 +10,7 @@ import { ensureWasmInitialized } from './wasm-utils.js';
 
 // RPC endpoint configuration
 // NOTE: Using local grpcwebproxy (gRPC-web → gRPC for rpc.nockchain.net)
-const DEFAULT_ENDPOINT = 'http://localhost:8080';
+const DEFAULT_ENDPOINT = 'https://rpc.nockbox.org';
 
 /**
  * Browser RPC client for Nockchain blockchain

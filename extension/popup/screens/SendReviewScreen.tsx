@@ -38,7 +38,7 @@ export function SendReviewScreen() {
   const [builtTx, setBuiltTx] = useState<{
     txid: string;
     protobufTx: any;
-    rawTx: any;
+    jammedTx: Uint8Array;
   } | null>(null);
 
   // Build and sign transaction on screen load
@@ -59,7 +59,7 @@ export function SendReviewScreen() {
         const result = await send<{
           txid?: string;
           protobufTx?: any;
-          rawTx?: any;
+          jammedTx?: string;
           error?: string;
         }>(INTERNAL_METHODS.BUILD_AND_SIGN_TRANSACTION, [
           lastTransaction.to,
@@ -73,12 +73,19 @@ export function SendReviewScreen() {
           return;
         }
 
-        if (result?.txid && result?.protobufTx) {
+        function decodeBytes(b64: string): Uint8Array {
+          const bin = atob(b64);
+          const out = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+          return out;
+        }
+
+        if (result?.txid && result?.protobufTx && result?.jammedTx) {
           console.log('[SendReview] Transaction built and signed:', result.txid);
           setBuiltTx({
             txid: result.txid,
             protobufTx: result.protobufTx,
-            rawTx: result.rawTx,
+            jammedTx: decodeBytes(result.jammedTx),
           });
         }
 
@@ -102,18 +109,17 @@ export function SendReviewScreen() {
 
   // Dev function: Download signed transaction for debugging
   function handleDownloadTx() {
-    if (!builtTx?.protobufTx) {
+    if (!builtTx?.jammedTx) {
       console.warn('[SendReview] No transaction built yet');
       return;
     }
 
     try {
-      const txJson = JSON.stringify(builtTx.protobufTx, null, 2);
-      const blob = new Blob([txJson], { type: 'application/json' });
+      const blob = new Blob([new Uint8Array(builtTx.jammedTx)], { type: 'application/jam' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `tx-${builtTx.txid || 'unsigned'}.json`;
+      a.download = `tx-${builtTx.txid || 'unsigned'}.jam`;
       a.click();
       URL.revokeObjectURL(url);
       console.log('[SendReview] Transaction downloaded');

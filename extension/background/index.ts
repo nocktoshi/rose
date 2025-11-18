@@ -927,7 +927,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           sendResponse({
             txid: result.txId,
             protobufTx: result.protobufTx,
-            rawTx: result.rawTx,
+            jammedTx: btoa(String.fromCharCode(...result.jammedTx)),
           });
         } catch (error) {
           console.error('[Background] Build and sign failed:', error);

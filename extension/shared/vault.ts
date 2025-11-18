@@ -755,7 +755,7 @@ export class Vault {
    * @param fee - Transaction fee in nicks
    * @returns Transaction ID as digest string
    */
-  async signTransaction(to: string, amount: number, fee: number): Promise<string> {
+  async signTransaction(to: string, amount: number, fee?: number): Promise<string> {
     if (this.state.locked || !this.mnemonic) {
       throw new Error('Wallet is locked');
     }
@@ -804,7 +804,7 @@ export class Vault {
       const notes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
 
       // Calculate total amount needed (amount + fee)
-      const totalNeeded = amount + fee;
+      const totalNeeded = amount + (fee || 0);
 
       // UTXO selection: find a note with sufficient balance
       // Simple strategy: use the first note that has enough funds
@@ -832,8 +832,8 @@ export class Vault {
         to, // Recipient PKH digest string
         amount,
         accountKey.public_key, // For creating spend condition
+        accountKey.private_key,
         fee,
-        accountKey.private_key
       );
 
       // Return constructed transaction (for caller to broadcast)
@@ -860,7 +860,7 @@ export class Vault {
     to: string,
     amount: number,
     fee: number
-  ): Promise<{ txId: string; protobufTx: any; rawTx: any } | { error: string }> {
+  ): Promise<{ txId: string; protobufTx: any; jammedTx: Uint8Array } | { error: string }> {
     if (this.state.locked || !this.mnemonic) {
       return { error: ERROR_CODES.LOCKED };
     }
@@ -938,8 +938,8 @@ export class Vault {
           to,
           amount,
           accountKey.public_key,
+          accountKey.private_key,
           fee,
-          accountKey.private_key
         );
 
         console.log('[Vault] Transaction signed:', constructedTx.txId);
@@ -950,7 +950,7 @@ export class Vault {
         return {
           txId: constructedTx.txId,
           protobufTx,
-          rawTx: constructedTx.rawTx,
+          jammedTx: constructedTx.rawTx.toJam(),
         };
       } finally {
         // Clean up WASM memory
@@ -1010,7 +1010,7 @@ export class Vault {
   async sendTransaction(
     to: string,
     amount: number,
-    fee: number
+    fee?: number
   ): Promise<{ txId: string; broadcasted: boolean; protobufTx?: any } | { error: string }> {
     if (this.state.locked || !this.mnemonic) {
       return { error: ERROR_CODES.LOCKED };
@@ -1059,7 +1059,7 @@ export class Vault {
         const notes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
 
         // Calculate total amount needed (amount + fee)
-        const totalNeeded = amount + fee;
+        const totalNeeded = amount + (fee || 0);
 
         // UTXO selection: find a note with sufficient balance
         const selectedNote = notes.find(note => note.assets >= totalNeeded);
@@ -1107,8 +1107,8 @@ export class Vault {
           to,
           amount,
           accountKey.public_key,
+          accountKey.private_key,
           fee,
-          accountKey.private_key
         );
 
         console.log('[Vault] Transaction signed:', constructedTx.txId);
