@@ -414,6 +414,7 @@ export const useStore = create<AppStore>((set, get) => ({
         address: to,
         timestamp: Date.now(),
         status: 'pending',
+        priceUsd: get().priceUsd > 0 ? get().priceUsd : undefined, // Include USD price if available
       };
 
       await send(INTERNAL_METHODS.ADD_TRANSACTION_TO_CACHE, [currentAccount.address, transaction]);

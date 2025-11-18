@@ -104,6 +104,8 @@ export interface CachedTransaction {
   timestamp: number;
   /** Transaction status */
   status: 'confirmed' | 'pending' | 'failed';
+  /** USD price at the time of transaction */
+  priceUsd?: number;
 }
 
 /**
