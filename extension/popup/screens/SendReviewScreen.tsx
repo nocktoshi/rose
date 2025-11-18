@@ -38,6 +38,7 @@ export function SendReviewScreen() {
   const [builtTx, setBuiltTx] = useState<{
     txid: string;
     protobufTx: any;
+    rawTx: any;
   } | null>(null);
 
   // Build and sign transaction on screen load
@@ -58,6 +59,7 @@ export function SendReviewScreen() {
         const result = await send<{
           txid?: string;
           protobufTx?: any;
+          rawTx?: any;
           error?: string;
         }>(INTERNAL_METHODS.BUILD_AND_SIGN_TRANSACTION, [
           lastTransaction.to,
@@ -76,6 +78,7 @@ export function SendReviewScreen() {
           setBuiltTx({
             txid: result.txid,
             protobufTx: result.protobufTx,
+            rawTx: result.rawTx,
           });
         }
 

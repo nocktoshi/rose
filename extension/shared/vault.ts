@@ -338,10 +338,7 @@ export class Vault {
       accounts: this.state.accounts,
     };
     const payloadJson = JSON.stringify(vaultPayload);
-    const { iv, ct } = await encryptGCM(
-      this.encryptionKey,
-      new TextEncoder().encode(payloadJson)
-    );
+    const { iv, ct } = await encryptGCM(this.encryptionKey, new TextEncoder().encode(payloadJson));
 
     // Update the encrypted vault with new IV and ciphertext
     const encData: EncryptedVault = {
@@ -863,7 +860,7 @@ export class Vault {
     to: string,
     amount: number,
     fee: number
-  ): Promise<{ txId: string; protobufTx: any } | { error: string }> {
+  ): Promise<{ txId: string; protobufTx: any; rawTx: any } | { error: string }> {
     if (this.state.locked || !this.mnemonic) {
       return { error: ERROR_CODES.LOCKED };
     }
@@ -881,9 +878,7 @@ export class Vault {
       const masterKey = deriveMasterKeyFromMnemonic(this.mnemonic, '');
       const childIndex = currentAccount?.index ?? this.state.currentAccountIndex;
       const accountKey =
-        currentAccount.derivation === 'master'
-          ? masterKey
-          : masterKey.deriveChild(childIndex);
+        currentAccount.derivation === 'master' ? masterKey : masterKey.deriveChild(childIndex);
 
       if (!accountKey.private_key || !accountKey.public_key) {
         if (currentAccount.derivation !== 'master') {
@@ -955,6 +950,7 @@ export class Vault {
         return {
           txId: constructedTx.txId,
           protobufTx,
+          rawTx: constructedTx.rawTx,
         };
       } finally {
         // Clean up WASM memory
