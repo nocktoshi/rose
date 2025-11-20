@@ -15,11 +15,12 @@ import irisLogoNoEye from '../assets/iris-logo-no-eye.svg';
 const CONFIG = {
   CENTER: 48,              // Center of 96x96 container
   EYE_RADIUS: 10,          // Eye pupil radius (20px diameter)
-  MAX_DISTANCE: 12,        // Max distance eye can move from center
-  SMOOTHING: 0.01,         // Acceleration rate (lower = slower, smoother)
-  DAMPING: 0.90,           // Velocity damping (higher = less overshoot)
-  MIN_DISTANCE: 8,         // Dead zone radius before eye starts moving
-  SCALE_FACTOR: 0.045,     // Cursor distance to eye movement ratio
+  MAX_DISTANCE_X: 30,      // Max horizontal distance (wide range to eye corners)
+  MAX_DISTANCE_Y: 14,      // Max vertical distance (almond shape is narrower)
+  SMOOTHING: 0.002,        // Acceleration rate (extremely low = ultra-smooth, calm)
+  DAMPING: 0.94,           // Velocity damping (maximum friction = silky smooth stops)
+  MIN_DISTANCE: 10,        // Dead zone radius (larger = ignores small movements)
+  SCALE_FACTOR: 0.055,     // Cursor distance to eye movement ratio (subtle response)
 };
 
 export function AnimatedLogo() {
@@ -91,12 +92,17 @@ export function AnimatedLogo() {
         const dirX = deltaX / distance;
         const dirY = deltaY / distance;
 
-        // Proportional movement (not 1:1) - creates gentle "watching" effect
-        const scaledDist = Math.min(distance * CONFIG.SCALE_FACTOR, CONFIG.MAX_DISTANCE);
+        // Proportional movement with elliptical constraint (almond-shaped boundary)
+        const scaledX = dirX * distance * CONFIG.SCALE_FACTOR;
+        const scaledY = dirY * distance * CONFIG.SCALE_FACTOR;
+        
+        // Apply elliptical boundary constraint (wider horizontally, narrower vertically)
+        const constrainedX = Math.max(-CONFIG.MAX_DISTANCE_X, Math.min(CONFIG.MAX_DISTANCE_X, scaledX));
+        const constrainedY = Math.max(-CONFIG.MAX_DISTANCE_Y, Math.min(CONFIG.MAX_DISTANCE_Y, scaledY));
         
         targetPosRef.current = {
-          x: CONFIG.CENTER + dirX * scaledDist,
-          y: CONFIG.CENTER + dirY * scaledDist,
+          x: CONFIG.CENTER + constrainedX,
+          y: CONFIG.CENTER + constrainedY,
         };
       } else {
         // Cursor near logo center - eye returns to center
