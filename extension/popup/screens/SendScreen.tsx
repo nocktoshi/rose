@@ -4,7 +4,12 @@ import { useTheme } from '../contexts/ThemeContext';
 import { truncateAddress } from '../utils/format';
 import { send } from '../utils/messaging';
 import { INTERNAL_METHODS, DEFAULT_TRANSACTION_FEE, NOCK_TO_NICKS } from '../../shared/constants';
-import { roundNockToSendable, formatNock, isDustAmount, MIN_SENDABLE_NOCK } from '../../shared/currency';
+import {
+  roundNockToSendable,
+  formatNock,
+  isDustAmount,
+  MIN_SENDABLE_NOCK,
+} from '../../shared/currency';
 import type { Account } from '../../shared/types';
 import { AccountIcon } from '../components/AccountIcon';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
@@ -146,12 +151,12 @@ export function SendScreen() {
       return;
     }
 
-    // TODO: Re-enable balance check for production
-    // Skip balance check for development
-    // if (amountNum + feeNum > currentBalance) {
-    //   setError(`Insufficient balance`);
-    //   return;
-    // }
+    // Check if user has sufficient balance for amount + fee
+    const totalNeeded = amountNum + feeNum;
+    if (totalNeeded > currentBalance) {
+      setError(`Insufficient balance`);
+      return;
+    }
 
     // Store transaction details for review screen
     setLastTransaction({
@@ -449,7 +454,7 @@ export function SendScreen() {
                 onMouseLeave={() => setShowFeeTooltip(false)}
               >
                 <img src={InfoIcon} alt="Fee information" className="w-4 h-4 cursor-help" />
-                
+
                 {showFeeTooltip && (
                   <div className="absolute left-0 bottom-full mb-2 w-64 z-50">
                     <div
@@ -457,11 +462,10 @@ export function SendScreen() {
                       style={{
                         backgroundColor: 'var(--color-surface-800)',
                         color: 'var(--color-text-muted)',
-                        border: '1px solid var(--color-surface-700)'
+                        border: '1px solid var(--color-surface-700)',
                       }}
                     >
                       Network transaction fee. Adjustable if needed.
-                      
                       <div
                         className="absolute left-4 top-full w-0 h-0"
                         style={{
