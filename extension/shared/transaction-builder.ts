@@ -224,18 +224,37 @@ export async function buildTransaction(params: TransactionParams): Promise<Const
     spendConditions,
     new WasmDigest(recipientPKH),
     BigInt(amount), // gift
-    BigInt(1 << 1),
-    fee !== undefined ? BigInt(fee) : null,
+    BigInt(1 << 16), // fee_per_word: 65,536 nicks = 1 NOCK per word
+    fee !== undefined ? BigInt(fee) : null, // fee_override (null = auto-calculate)
     new WasmDigest(refundPKH),
     includeLockData,
   );
 
+  // Log calculated fees before signing
+  const calculatedFee = builder.calc_fee();
+  const currentFee = builder.cur_fee();
+  console.log('[TxBuilder] Fee info:', {
+    calculatedFee: Number(calculatedFee),
+    currentFee: Number(currentFee),
+    userProvidedFee: fee,
+  });
+
   console.log('[TxBuilder] Signing transaction...');
 
-  // Sign the transaction
-  const rawTx = builder.sign(privateKey);
+  // Sign the transaction (new API - sign() now returns void)
+  builder.sign(privateKey);
 
-  console.log('[TxBuilder]  Transaction signed, txId:', rawTx.id.value);
+  console.log('[TxBuilder] Validating transaction...');
+
+  // Validate the transaction
+  builder.validate();
+
+  console.log('[TxBuilder] Building final transaction...');
+
+  // Build the final transaction (new API - build() returns WasmRawTx)
+  const rawTx = builder.build();
+
+  console.log('[TxBuilder] Transaction signed and built, txId:', rawTx.id.value);
 
   // DEBUG: Log parent_hash from seeds to diagnose rejection
   try {
