@@ -3,8 +3,8 @@
  * Handles provider requests from content script and popup UI
  */
 
-import { Vault } from "../shared/vault";
-import { isNockAddress } from "../shared/validators";
+import { Vault } from '../shared/vault';
+import { isNockAddress } from '../shared/validators';
 import {
   PROVIDER_METHODS,
   INTERNAL_METHODS,
@@ -16,12 +16,8 @@ import {
   DEFAULT_TRANSACTION_FEE,
   UI_CONSTANTS,
   APPROVAL_CONSTANTS,
-} from "../shared/constants";
-import type {
-  TransactionRequest,
-  SignRequest,
-  ConnectRequest,
-} from "../shared/types";
+} from '../shared/constants';
+import type { TransactionRequest, SignRequest, ConnectRequest } from '../shared/types';
 
 const vault = new Vault();
 let lastActivity = Date.now();
@@ -30,7 +26,7 @@ let manuallyLocked = false; // Track if user manually locked (don't auto-unlock)
 let approvalWindowId: number | null = null; // Track the approval popup window for reuse
 let isCreatingWindow = false; // Prevent race condition when creating window
 let currentRequestId: string | null = null; // Currently displayed request
-let requestQueue: Array<{id: string, type: 'connect' | 'transaction' | 'sign-message'}> = []; // Queued requests
+let requestQueue: Array<{ id: string; type: 'connect' | 'transaction' | 'sign-message' }> = []; // Queued requests
 
 /**
  * In-memory cache of approved origins
@@ -116,21 +112,27 @@ const pendingRequests = new Map<string, PendingRequest>();
 /**
  * Type guard to check if a request is a ConnectRequest
  */
-function isConnectRequest(request: TransactionRequest | SignRequest | ConnectRequest): request is ConnectRequest {
+function isConnectRequest(
+  request: TransactionRequest | SignRequest | ConnectRequest
+): request is ConnectRequest {
   return 'timestamp' in request && !('message' in request) && !('to' in request);
 }
 
 /**
  * Type guard to check if a request is a SignRequest
  */
-function isSignRequest(request: TransactionRequest | SignRequest | ConnectRequest): request is SignRequest {
+function isSignRequest(
+  request: TransactionRequest | SignRequest | ConnectRequest
+): request is SignRequest {
   return 'message' in request;
 }
 
 /**
  * Type guard to check if a request is a TransactionRequest
  */
-function isTransactionRequest(request: TransactionRequest | SignRequest | ConnectRequest): request is TransactionRequest {
+function isTransactionRequest(
+  request: TransactionRequest | SignRequest | ConnectRequest
+): request is TransactionRequest {
   return 'to' in request;
 }
 
@@ -139,13 +141,16 @@ function isTransactionRequest(request: TransactionRequest | SignRequest | Connec
  * Uses MetaMask pattern: single popup window for all approval requests
  * Queues requests if user is currently viewing another request
  */
-async function createApprovalPopup(requestId: string, type: 'connect' | 'transaction' | 'sign-message') {
+async function createApprovalPopup(
+  requestId: string,
+  type: 'connect' | 'transaction' | 'sign-message'
+) {
   // If user is currently viewing a different request, queue this one
   if (currentRequestId !== null && currentRequestId !== requestId) {
     // Check if already in queue to prevent duplicates
     const alreadyQueued = requestQueue.some(r => r.id === requestId);
     if (!alreadyQueued) {
-      requestQueue.push({id: requestId, type});
+      requestQueue.push({ id: requestId, type });
       console.log(`[Queue] Request ${requestId} queued. Queue length: ${requestQueue.length}`);
     }
     return;
@@ -168,7 +173,7 @@ async function createApprovalPopup(requestId: string, type: 'connect' | 'transac
   if (approvalWindowId !== null) {
     try {
       const existingWindow = await chrome.windows.get(approvalWindowId);
-      
+
       // Window still exists - update it with new request
       if (existingWindow.tabs && existingWindow.tabs[0]?.id) {
         await chrome.tabs.update(existingWindow.tabs[0].id, { url: popupUrl });
@@ -198,12 +203,14 @@ async function createApprovalPopup(requestId: string, type: 'connect' | 'transac
 
     // Position in top-right of the current window, with some padding
     // If window dimensions aren't available, use reasonable defaults
-    const left = currentWindow.left !== undefined && currentWindow.width !== undefined
-      ? currentWindow.left + currentWindow.width - width - UI_CONSTANTS.POPUP_RIGHT_OFFSET
-      : undefined; // Let Chrome position it
-    const top = currentWindow.top !== undefined
-      ? currentWindow.top + UI_CONSTANTS.POPUP_TOP_OFFSET
-      : undefined; // Let Chrome position it
+    const left =
+      currentWindow.left !== undefined && currentWindow.width !== undefined
+        ? currentWindow.left + currentWindow.width - width - UI_CONSTANTS.POPUP_RIGHT_OFFSET
+        : undefined; // Let Chrome position it
+    const top =
+      currentWindow.top !== undefined
+        ? currentWindow.top + UI_CONSTANTS.POPUP_TOP_OFFSET
+        : undefined; // Let Chrome position it
 
     const newWindow = await chrome.windows.create({
       url: popupUrl,
@@ -261,9 +268,7 @@ async function emitWalletEvent(eventType: string, data: unknown) {
 
 // Initialize auto-lock setting, load approved origins, vault state, and schedule alarm
 (async () => {
-  const stored = await chrome.storage.local.get([
-    STORAGE_KEYS.AUTO_LOCK_MINUTES,
-  ]);
+  const stored = await chrome.storage.local.get([STORAGE_KEYS.AUTO_LOCK_MINUTES]);
   autoLockMinutes = stored[STORAGE_KEYS.AUTO_LOCK_MINUTES] ?? AUTOLOCK_MINUTES;
   await loadApprovedOrigins();
   await vault.init(); // Load encrypted vault header to detect vault existence
@@ -271,7 +276,7 @@ async function emitWalletEvent(eventType: string, data: unknown) {
 })();
 
 // Clean up approval window ID when window is closed
-chrome.windows.onRemoved.addListener((windowId) => {
+chrome.windows.onRemoved.addListener(windowId => {
   if (windowId === approvalWindowId) {
     approvalWindowId = null;
     // If user closed window, process next request in queue
@@ -309,7 +314,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     touchActivity(payload?.method);
 
     // Guard: internal methods (wallet:*) can only be called from popup/extension pages
-    if (payload?.method?.startsWith("wallet:") && !isFromPopup(_sender)) {
+    if (payload?.method?.startsWith('wallet:') && !isFromPopup(_sender)) {
       sendResponse({ error: ERROR_CODES.UNAUTHORIZED });
       return;
     }
@@ -325,7 +330,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           for (const [existingId, existingData] of pendingRequests.entries()) {
             if (existingData.needsUnlock && existingData.origin === requestAccountsOrigin) {
               // Reject the old request with user rejection error
-              existingData.sendResponse({ error: { code: 4001, message: 'User rejected the request' } });
+              existingData.sendResponse({
+                error: { code: 4001, message: 'User rejected the request' },
+              });
               pendingRequests.delete(existingId);
             }
           }
@@ -536,12 +543,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
       case INTERNAL_METHODS.SETUP:
         // params: password, mnemonic (optional). If no mnemonic, generates one automatically.
-        sendResponse(
-          await vault.setup(payload.params?.[0], payload.params?.[1])
-        );
+        sendResponse(await vault.setup(payload.params?.[0], payload.params?.[1]));
         return;
 
       case INTERNAL_METHODS.GET_STATE:
+        // Initialize vault state from storage before checking status
+        // This ensures hasVault is accurate even after service worker restart
+        await vault.init();
+
         const uiStatus = vault.getUiStatus();
         sendResponse({
           locked: uiStatus.locked,
@@ -570,9 +579,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return;
 
       case INTERNAL_METHODS.RENAME_ACCOUNT:
-        sendResponse(
-          await vault.renameAccount(payload.params?.[0], payload.params?.[1])
-        );
+        sendResponse(await vault.renameAccount(payload.params?.[0], payload.params?.[1]));
         return;
 
       case INTERNAL_METHODS.UPDATE_ACCOUNT_STYLING:
@@ -648,7 +655,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
       case INTERNAL_METHODS.UPDATE_TRANSACTION_STATUS:
         // params: [accountAddress, txid, status]
-        await vault.updateTransactionStatus(payload.params?.[0], payload.params?.[1], payload.params?.[2]);
+        await vault.updateTransactionStatus(
+          payload.params?.[0],
+          payload.params?.[1],
+          payload.params?.[2]
+        );
         sendResponse({ ok: true });
         return;
 
@@ -714,11 +725,16 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           } catch (error) {
             console.error('Transaction signing failed:', error);
             approveTxPending.sendResponse({
-              error: { code: 4900, message: error instanceof Error ? error.message : 'Transaction signing failed' },
+              error: {
+                code: 4900,
+                message: error instanceof Error ? error.message : 'Transaction signing failed',
+              },
             });
             pendingRequests.delete(approveTxId);
             processNextRequest();
-            sendResponse({ error: error instanceof Error ? error.message : 'Transaction signing failed' });
+            sendResponse({
+              error: error instanceof Error ? error.message : 'Transaction signing failed',
+            });
           }
         } else {
           sendResponse({ error: ERROR_CODES.NOT_FOUND });
@@ -851,7 +867,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
       case INTERNAL_METHODS.REVOKE_ORIGIN:
         const revokeOriginParam = payload.params?.[0];
-        if (revokeOriginParam && typeof revokeOriginParam === 'object' && 'origin' in revokeOriginParam) {
+        if (
+          revokeOriginParam &&
+          typeof revokeOriginParam === 'object' &&
+          'origin' in revokeOriginParam
+        ) {
           await revokeOrigin(revokeOriginParam.origin as string);
           sendResponse({ success: true });
         } else {
@@ -879,7 +899,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         } catch (error) {
           console.error('[Background] Transaction signing failed:', error);
           sendResponse({
-            error: error instanceof Error ? error.message : 'Transaction signing failed'
+            error: error instanceof Error ? error.message : 'Transaction signing failed',
           });
         }
         return;
@@ -1019,7 +1039,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         } catch (error) {
           console.error('[Background] Transaction sending failed:', error);
           sendResponse({
-            error: error instanceof Error ? error.message : 'Transaction sending failed'
+            error: error instanceof Error ? error.message : 'Transaction sending failed',
           });
         }
         return;
@@ -1036,7 +1056,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 /**
  * Handle auto-lock alarm
  */
-chrome.alarms.onAlarm.addListener(async (alarm) => {
+chrome.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name !== ALARM_NAMES.AUTO_LOCK) return;
 
   // Don't auto-lock if user manually locked - respect their choice
