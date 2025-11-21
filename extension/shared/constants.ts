@@ -120,6 +120,9 @@ export const INTERNAL_METHODS = {
   /** Build and sign a transaction without broadcasting */
   BUILD_AND_SIGN_TRANSACTION: "wallet:buildAndSignTransaction",
 
+  /** Estimate transaction fee for a given recipient and amount */
+  ESTIMATE_TRANSACTION_FEE: "wallet:estimateTransactionFee",
+
   /** Send a transaction (internal popup-initiated transactions - builds, signs, and broadcasts) */
   SEND_TRANSACTION: "wallet:sendTransaction",
 
@@ -239,8 +242,15 @@ export const RPC_ENDPOINT = 'https://rpc.nockbox.org';
 /** Conversion rate: 1 NOCK = 65,536 nicks (2^16) */
 export const NOCK_TO_NICKS = 65_536;
 
-/** Default transaction fee in nicks (1,835,008 nicks = 28 NOCK) */
-export const DEFAULT_TRANSACTION_FEE = 1_835_008;
+/** Default transaction fee in nicks (3,407,872 nicks = 52 NOCK)
+ * Used only for UI defaults in send form and approval screens.
+ * Actual fees are ALWAYS auto-calculated by WASM based on transaction size.
+ * This is just a reasonable starting point for the fee input field.
+ */
+export const DEFAULT_TRANSACTION_FEE = 3_407_872;
+
+/** Fee per word (8-byte unit) for transaction size calculation in nicks */
+export const DEFAULT_FEE_PER_WORD = 1 << 15; // 32,768 nicks = 0.5 NOCK per word
 
 /**
  * User Activity Methods - Methods that count as user activity for auto-lock timer

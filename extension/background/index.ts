@@ -13,7 +13,6 @@ import {
   AUTOLOCK_MINUTES,
   STORAGE_KEYS,
   USER_ACTIVITY_METHODS,
-  DEFAULT_TRANSACTION_FEE,
   UI_CONSTANTS,
   APPROVAL_CONSTANTS,
   RPC_ENDPOINT,
@@ -484,7 +483,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
-        const { to, amount, fee = DEFAULT_TRANSACTION_FEE } = payload.params?.[0] ?? {};
+        const { to, amount, fee } = payload.params?.[0] ?? {};
         if (!isNockAddress(to)) {
           sendResponse({ error: ERROR_CODES.BAD_ADDRESS });
           return;
@@ -946,6 +945,45 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           console.error('[Background] Transaction signing failed:', error);
           sendResponse({
             error: error instanceof Error ? error.message : 'Transaction signing failed',
+          });
+        }
+        return;
+
+      case INTERNAL_METHODS.ESTIMATE_TRANSACTION_FEE:
+        // params: [to, amount] - amount in nicks
+        if (vault.isLocked()) {
+          sendResponse({ error: ERROR_CODES.LOCKED });
+          return;
+        }
+
+        const [estimateTo, estimateAmount] = payload.params || [];
+        if (!isNockAddress(estimateTo)) {
+          sendResponse({ error: ERROR_CODES.BAD_ADDRESS });
+          return;
+        }
+
+        if (typeof estimateAmount !== 'number' || estimateAmount <= 0) {
+          sendResponse({ error: 'Invalid amount' });
+          return;
+        }
+
+        try {
+          console.log('[Background] Estimating transaction fee via vault:', {
+            to: estimateTo.slice(0, 20) + '...',
+            amount: estimateAmount,
+          });
+
+          const result = await vault.estimateTransactionFee(estimateTo, estimateAmount);
+
+          if ('error' in result) {
+            sendResponse({ error: result.error });
+          } else {
+            sendResponse({ fee: result.fee });
+          }
+        } catch (error) {
+          console.error('[Background] Fee estimation error:', error);
+          sendResponse({
+            error: error instanceof Error ? error.message : 'Fee estimation failed',
           });
         }
         return;
