@@ -32,8 +32,8 @@ git clone https://github.com/nockbox/wallet.git
 cd wallet/crates/nbx-wasm
 wasm-pack build --target web --out-dir ../../pkg
 
-# Copy to fort-nock (adjust path as needed)
-rsync -av --delete ../../pkg/ /path/to/fort-nock/extension/lib/nbx-wasm/
+# Copy to project (adjust path as needed)
+rsync -av --delete ../../pkg/ /path/to/project/extension/lib/nbx-wasm/
 
 # Rebuild extension
 npm run build

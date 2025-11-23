@@ -14,7 +14,7 @@ Chrome extension wallet for Nockchain. Manage accounts, sign transactions, and i
 ```bash
 # Clone
 git clone <repo-url>
-cd fort-nock
+cd <project-folder>
 
 # Install dependencies
 npm install
