@@ -18,6 +18,9 @@ import {
   signMessage as wasmSignMessage,
   WasmRawTx,
   WasmNote,
+  WasmName,
+  WasmNoteData,
+  WasmNoteDataEntry,
   WasmSpendCondition,
   WasmPkh,
   WasmTxBuilder,
@@ -1460,18 +1463,26 @@ export class Vault {
 
       const wasmRawTx = WasmRawTx.fromJam(jamBytes);
 
-      // Deserialize notes
-      // Assume notes are protobuf bytes (Uint8Array or array)
+      // Deserialize notes from plain JS objects
+      // Notes are passed as objects with {version, originPage, name, noteData, assets}
       const wasmNotes = notes.map((n: any) => {
-        let noteBytes: Uint8Array;
-        if (n instanceof Uint8Array) {
-          noteBytes = n;
-        } else if (typeof n === 'object') {
-          noteBytes = new Uint8Array(Object.values(n));
-        } else {
-          throw new Error('Invalid note format');
-        }
-        return WasmNote.fromProtobuf(noteBytes);
+        // Reconstruct WasmName
+        const name = new WasmName(n.name.first, n.name.last);
+
+        // Reconstruct WasmNoteData
+        const noteDataEntries = n.noteData.entries.map((e: any) =>
+          new WasmNoteDataEntry(e.key, new Uint8Array(e.blob))
+        );
+        const noteData = new WasmNoteData(noteDataEntries);
+
+        // Reconstruct WasmNote
+        return new WasmNote(
+          n.version,
+          BigInt(n.originPage),
+          name,
+          noteData,
+          BigInt(n.assets)
+        );
       });
 
       // Deserialize spend conditions

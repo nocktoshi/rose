@@ -240,30 +240,16 @@ async function createApprovalPopup(
   // Create new approval window
   isCreatingWindow = true;
   try {
-    const currentWindow = await chrome.windows.getLastFocused();
-
-    // Calculate position for top-right area
     const width = UI_CONSTANTS.POPUP_WIDTH;
     const height = UI_CONSTANTS.POPUP_HEIGHT;
 
-    // Position in top-right of the current window, with some padding
-    // If window dimensions aren't available, use reasonable defaults
-    const left =
-      currentWindow.left !== undefined && currentWindow.width !== undefined
-        ? currentWindow.left + currentWindow.width - width - UI_CONSTANTS.POPUP_RIGHT_OFFSET
-        : undefined; // Let Chrome position it
-    const top =
-      currentWindow.top !== undefined
-        ? currentWindow.top + UI_CONSTANTS.POPUP_TOP_OFFSET
-        : undefined; // Let Chrome position it
-
+    // Let Chrome position the popup automatically to avoid bounds errors
+    // Chrome will position it in a visible location
     const newWindow = await chrome.windows.create({
       url: popupUrl,
       type: 'popup',
       width,
       height,
-      left,
-      top,
       focused: true,
     });
 

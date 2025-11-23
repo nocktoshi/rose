@@ -1,6 +1,7 @@
 import { signRawTx } from '../dist/wrapper';
 import initWasm from '../lib/nbx-wasm/nbx_wasm';
 import * as wasm from '../lib/nbx-wasm/nbx_wasm';
+import { WasmNote } from '../lib/nbx-wasm/nbx_wasm';
 
 declare global {
     interface Window {
@@ -121,9 +122,15 @@ signRawTxBtn.onclick = async () => {
         // Create refund digest (same as wallet PKH)
         const refundDigest = new wasm.WasmDigest(walletPkh);
 
+        // Create spend conditions - one for each note (all use the same PKH)
+        const spendConditionsForBuilder = notes.map(() => spendCondition);
+
+        console.log("spendConditionsForBuilder: ", spendConditionsForBuilder);
+        console.log("notes: ", notes);
+
         // Use simpleSpend (no lockData for lower fees)
         builder.simpleSpend(
-            notes,
+            [notes[0]],
             [spendCondition],
             recipientDigest,
             TEN_NOCK_IN_NICKS,
@@ -132,31 +139,49 @@ signRawTxBtn.onclick = async () => {
             false // include_lock_data
         );
 
-        // 7. Get rawTx, jam it, and extract notes/spend conditions
-        log('Getting transaction from builder...');
-        const txJs = builder.toJs();
-
-        // The rawTx is in txJs
-        const rawTx = txJs.rawTx;
+        // 7. Build the transaction and get notes/spend conditions
+        log('Building raw transaction...');
+        const rawTx = builder.build();
         const txId = rawTx.id;
         log('Transaction ID: ' + txId.value);
 
         const rawTxJam = rawTx.toJam();
         log('Jammed tx size: ' + rawTxJam.length + ' bytes');
 
-        // Get notes and spend conditions from txJs
-        const txNotes = txJs.notes;
-        const noteProtobufs = txNotes.get_notes().map((n: any) => n.toProtobuf());
-        const txSpendConditions = txNotes.spendConditions();
+        // Get notes and spend conditions from builder
+        const txNotes = builder.allNotes();
+        const txNotesArray = txNotes.get_notes;
 
-        // Convert spend conditions to the format expected by signRawTx
+        // Convert WasmNote objects to plain JS objects with their attributes
+        const noteObjects = txNotesArray.map((n: WasmNote) => ({
+            version: n.version,
+            originPage: n.originPage,
+            name: {
+                first: n.name.first,
+                last: n.name.last
+            },
+            noteData: {
+                entries: n.noteData.entries.map(e => ({
+                    key: e.key,
+                    blob: Array.from(e.blob) // Convert Uint8Array to array for JSON serialization
+                }))
+            },
+            assets: n.assets
+        }));
+
+        const txSpendConditions = txNotes.spendConditions;
+
+        // Create one spend condition per note (all PKH-bound to wallet)
         const spendConds = txSpendConditions.map(() => ({ type: 'pkh', value: walletPkh }));
+
+        log('Notes count: ' + noteObjects.length);
+        log('Spend conditions count: ' + spendConds.length);
 
         // 8. Sign using signRawTx
         log('Signing transaction...');
         const signedTxHex = await signRawTx({
             rawTx: rawTxJam,
-            notes: noteProtobufs,
+            notes: noteObjects,
             spendConditions: spendConds
         });
 
