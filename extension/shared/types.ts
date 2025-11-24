@@ -106,6 +106,10 @@ export interface CachedTransaction {
   status: 'confirmed' | 'pending' | 'failed';
   /** USD price at the time of transaction */
   priceUsd?: number;
+  /** Block height when transaction was first confirmed (for calculating confirmations) */
+  confirmedAtBlock?: number;
+  /** Current number of confirmations (calculated dynamically) */
+  confirmations?: number;
 }
 
 /**

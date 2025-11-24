@@ -303,13 +303,14 @@ async function emitWalletEvent(eventType: string, data: unknown) {
   }
 }
 
-// Initialize auto-lock setting, load approved origins, vault state, connection monitoring, and schedule alarm
+// Initialize auto-lock setting, load approved origins, vault state, connection monitoring, and schedule alarms
 (async () => {
   const stored = await chrome.storage.local.get([STORAGE_KEYS.AUTO_LOCK_MINUTES]);
   autoLockMinutes = stored[STORAGE_KEYS.AUTO_LOCK_MINUTES] ?? AUTOLOCK_MINUTES;
   await loadApprovedOrigins();
   await vault.init(); // Load encrypted vault header to detect vault existence
   scheduleAlarm();
+  scheduleTxPolling(); // Start transaction polling service
 
   // Initialize RPC connection monitoring
   checkRpcConnection(); // Initial check
@@ -699,11 +700,21 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return;
 
       case INTERNAL_METHODS.UPDATE_TRANSACTION_STATUS:
-        // params: [accountAddress, txid, status]
+        // params: [accountAddress, txid, status, confirmedAtBlock (optional)]
         await vault.updateTransactionStatus(
           payload.params?.[0],
           payload.params?.[1],
-          payload.params?.[2]
+          payload.params?.[2],
+          payload.params?.[3] // confirmedAtBlock
+        );
+        sendResponse({ ok: true });
+        return;
+
+      case INTERNAL_METHODS.UPDATE_TRANSACTION_CONFIRMATIONS:
+        // params: [accountAddress, currentBlockHeight]
+        await vault.updateTransactionConfirmations(
+          payload.params?.[0],
+          payload.params?.[1]
         );
         sendResponse({ ok: true });
         return;
@@ -1172,3 +1183,130 @@ function scheduleAlarm() {
     periodInMinutes: 1,
   });
 }
+
+/**
+ * Transaction polling service
+ * Polls pending and recently confirmed transactions to update their status and confirmation count
+ */
+async function pollTransactionStatus() {
+  try {
+    // Only poll if wallet is unlocked
+    if (vault.isLocked()) {
+      return;
+    }
+
+    console.log('[TX Polling] Starting transaction status poll...');
+
+    // Service workers don't have document - if we hit errors, we'll catch them
+    // This is a background service, so DOM access isn't available
+
+    // Get all accounts
+    const accounts = await vault.getAccounts();
+    if (!accounts || accounts.length === 0) {
+      return;
+    }
+
+    const { createBrowserClient } = await import('../shared/rpc-client-browser');
+    const rpcClient = createBrowserClient();
+
+    // Get current block height for confirmation calculations
+    let currentBlockHeight: bigint;
+    try {
+      currentBlockHeight = await rpcClient.getCurrentBlockHeight();
+      console.log(`[TX Polling] Current block height: ${currentBlockHeight}`);
+    } catch (error) {
+      console.error('[TX Polling] Failed to get current block height:', error);
+      return;
+    }
+
+    const { MAX_MONITORED_CONFIRMATIONS } = await import('../shared/constants');
+
+    // Check each account's transactions
+    for (const account of accounts) {
+      const transactions = await vault.getCachedTransactions(account.address);
+
+      // Get pending transactions
+      const pendingTxs = transactions.filter(tx => tx.status === 'pending');
+
+      // Get recently confirmed transactions (less than MAX_MONITORED_CONFIRMATIONS)
+      // Include transactions with undefined confirmations to fix stuck transactions
+      const recentConfirmed = transactions.filter(
+        tx =>
+          tx.status === 'confirmed' &&
+          tx.confirmedAtBlock !== undefined &&
+          (tx.confirmations === undefined || tx.confirmations < MAX_MONITORED_CONFIRMATIONS)
+      );
+
+      console.log(
+        `[TX Polling] Account ${account.address.slice(0, 20)}... has ${pendingTxs.length} pending and ${recentConfirmed.length} recently confirmed transactions`
+      );
+
+      // Check pending transactions
+      for (const tx of pendingTxs) {
+        try {
+          const accepted = await rpcClient.isTransactionAccepted(tx.txid);
+
+          if (accepted) {
+            // Transaction confirmed - use current block height as approximation
+            // Note: The transaction may have been confirmed in a previous block,
+            // but we don't have a way to query the exact confirmation block.
+            // This means the first confirmation might show as 1, 2, or 3 depending
+            // on when we detect it, but subsequent confirmations will increment correctly.
+            const confirmedAtBlock = Number(currentBlockHeight);
+            console.log(
+              `[TX Polling] Transaction ${tx.txid.slice(0, 20)}... confirmed at or before block ${confirmedAtBlock}`
+            );
+            await vault.updateTransactionStatus(
+              account.address,
+              tx.txid,
+              'confirmed',
+              confirmedAtBlock
+            );
+          }
+          // If not accepted, leave as pending (will be checked again later)
+        } catch (error) {
+          console.error(
+            `[TX Polling] Error checking transaction ${tx.txid.slice(0, 20)}:`,
+            error
+          );
+        }
+      }
+
+      // Update confirmation counts for recently confirmed transactions
+      if (recentConfirmed.length > 0) {
+        await vault.updateTransactionConfirmations(account.address, Number(currentBlockHeight));
+        console.log(
+          `[TX Polling] Updated confirmation counts for ${recentConfirmed.length} transactions`
+        );
+      }
+    }
+
+    console.log('[TX Polling] Transaction status poll completed');
+  } catch (error) {
+    // Service workers don't have document/DOM access - some imports may fail
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    if (errorMsg.includes('document is not defined')) {
+      console.warn('[TX Polling] Skipping poll - DOM not available in service worker context');
+    } else {
+      console.error('[TX Polling] Error in transaction polling service:', error);
+    }
+  }
+}
+
+/**
+ * Schedule the transaction polling alarm
+ */
+function scheduleTxPolling() {
+  // Poll every 30 seconds (0.5 minutes)
+  chrome.alarms.create(ALARM_NAMES.TX_POLLING, {
+    delayInMinutes: 0.5,
+    periodInMinutes: 0.5,
+  });
+}
+
+// Handle transaction polling alarm
+chrome.alarms.onAlarm.addListener(async alarm => {
+  if (alarm.name === ALARM_NAMES.TX_POLLING) {
+    await pollTransactionStatus();
+  }
+});

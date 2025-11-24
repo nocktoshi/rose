@@ -893,59 +893,49 @@ export class Vault {
         }
 
         const notes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
+        const totalAvailable = notes.reduce((sum, note) => sum + note.assets, 0);
 
+        // Sort UTXOs largest to smallest (WASM will select which ones to use)
+        // This gives WASM the best options first for optimal selection
+        const sortedNotes = [...notes].sort((a, b) => b.assets - a.assets);
+
+        console.log(
+          '[Vault] Passing all UTXOs to WASM for fee estimation (sorted largest first):',
+          {
+            totalUTXOs: sortedNotes.length,
+            utxoSizes: sortedNotes.map(n => (n.assets / 65536).toFixed(2) + ' NOCK'),
+            totalAvailableNOCK: (totalAvailable / 65536).toFixed(2),
+            amountNeeded: (amount / 65536).toFixed(2) + ' NOCK',
+          }
+        );
+
+        // Convert ALL notes to transaction builder format
+        // WASM will automatically select the optimal inputs
         const txBuilderNotes = await Promise.all(
-          notes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
+          sortedNotes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
         );
 
         // Build a tx with fee = undefined → WASM auto-calculates using DEFAULT_FEE_PER_WORD
-        // If the first pass fails with "Insufficient fee", try again with the needed fee
-        let feeNicks: number;
+        // The builder calculates the exact fee needed
+        const constructedTx = await buildMultiNotePayment(
+          txBuilderNotes,
+          to,
+          amount,
+          accountKey.public_key,
+          accountKey.private_key,
+          undefined // let WASM auto-calc
+        );
 
-        try {
-          const constructedTx = await buildMultiNotePayment(
-            txBuilderNotes,
-            to,
-            amount,
-            accountKey.public_key,
-            accountKey.private_key,
-            undefined // let WASM auto-calc
-          );
+        // Get the calculated fee from the builder
+        const feeNicks = constructedTx.feeUsed;
+        const feeNOCK = feeNicks / 65536;
 
-          // Inspect protobuf to read fee from witness
-          const protobufTx = constructedTx.rawTx.toProtobuf();
+        console.log('[Vault] Fee calculation result:', {
+          feeNicks,
+          feeNOCK: feeNOCK.toFixed(2),
+          feePercentOfAmount: ((feeNicks / amount) * 100).toFixed(1) + '%',
+        });
 
-          // Extract fee from the witness structure
-          const spendEntry = protobufTx.spends?.[0];
-          const feeValue =
-            spendEntry?.spend?.spend_kind?.witness?.fee ?? spendEntry?.spend?.witness?.fee;
-
-          if (feeValue === undefined || feeValue === null) {
-            return { error: 'Could not determine fee from constructed transaction' };
-          }
-
-          // Normalize to number (handle bigint/string/number)
-          const normalize = (v: any): number => {
-            if (typeof v === 'bigint') return Number(v);
-            if (typeof v === 'string') return Number(BigInt(v));
-            return Number(v);
-          };
-
-          feeNicks = normalize(feeValue);
-        } catch (error) {
-          // If we get "Insufficient fee", extract the needed fee from the error
-          const errorMsg = error instanceof Error ? error.message : String(error);
-          const insufficientFeeMatch = errorMsg.match(/needed: (\d+)/);
-
-          if (insufficientFeeMatch) {
-            feeNicks = parseInt(insufficientFeeMatch[1], 10);
-            console.log('[Vault] Extracted needed fee from error:', feeNicks, 'nicks');
-          } else {
-            throw error; // Re-throw if it's not an insufficient fee error
-          }
-        }
-
-        console.log('[Vault] Estimated fee:', feeNicks, 'nicks');
         return { fee: feeNicks };
       } finally {
         if (currentAccount.derivation !== 'master') {
@@ -1018,16 +1008,24 @@ export class Vault {
         // Combine simple and coinbase notes
         const notes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
 
-        // Calculate total available
-        const totalAvailable = notes.reduce((sum, note) => sum + note.assets, 0);
-        console.log(
-          `[Vault] Passing ${notes.length} UTXO(s) to WASM (total: ${totalAvailable} nicks, need: ${amount} + fee)`
-        );
+        // Sort UTXOs largest to smallest (WASM will select which ones to use)
+        // This gives WASM the best options first for optimal selection
+        const sortedNotes = [...notes].sort((a, b) => b.assets - a.assets);
+
+        console.log('[Vault] Passing all UTXOs to WASM (sorted largest first):', {
+          totalUTXOs: sortedNotes.length,
+          utxoSizes: sortedNotes.map(n => (n.assets / 65536).toFixed(2) + ' NOCK'),
+          totalAvailableNOCK: (sortedNotes.reduce((sum, n) => sum + n.assets, 0) / 65536).toFixed(
+            2
+          ),
+          amountNeeded: (amount / 65536).toFixed(2) + ' NOCK',
+          feeProvided: fee ? (fee / 65536).toFixed(2) + ' NOCK' : 'auto',
+        });
 
         // Convert ALL notes to transaction builder format
-        // WASM will automatically select the minimum number needed
+        // WASM will automatically select the optimal inputs
         const txBuilderNotes = await Promise.all(
-          notes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
+          sortedNotes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
         );
 
         // Build and sign the transaction
@@ -1165,17 +1163,22 @@ export class Vault {
 
         // Combine simple and coinbase notes
         const notes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
+        const sortedNotes = [...notes].sort((a, b) => b.assets - a.assets);
 
-        // Calculate total available
-        const totalAvailable = notes.reduce((sum, note) => sum + note.assets, 0);
-        console.log(
-          `[Vault] Passing ${notes.length} UTXO(s) to WASM (total: ${totalAvailable} nicks, need: ${amount} + fee)`
-        );
+        console.log('[Vault] Passing all UTXOs to WASM (sorted largest first):', {
+          totalUTXOs: sortedNotes.length,
+          utxoSizes: sortedNotes.map(n => (n.assets / 65536).toFixed(2) + ' NOCK'),
+          totalAvailableNOCK: (sortedNotes.reduce((sum, n) => sum + n.assets, 0) / 65536).toFixed(
+            2
+          ),
+          amountNeeded: (amount / 65536).toFixed(2) + ' NOCK',
+          feeProvided: fee ? (fee / 65536).toFixed(2) + ' NOCK' : 'auto',
+        });
 
         // Convert ALL notes to transaction builder format
-        // WASM will automatically select the minimum number needed
+        // WASM will automatically select the optimal inputs
         const txBuilderNotes = await Promise.all(
-          notes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
+          sortedNotes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
         );
 
         // Build and sign the transaction
@@ -1345,7 +1348,8 @@ export class Vault {
   async updateTransactionStatus(
     accountAddress: string,
     txid: string,
-    status: 'confirmed' | 'pending' | 'failed'
+    status: 'confirmed' | 'pending' | 'failed',
+    confirmedAtBlock?: number
   ): Promise<void> {
     // Get existing cache
     const result = await chrome.storage.local.get([STORAGE_KEYS.TRANSACTION_CACHE]);
@@ -1355,7 +1359,20 @@ export class Vault {
     if (cache[accountAddress]) {
       const txIndex = cache[accountAddress].findIndex(tx => tx.txid === txid);
       if (txIndex !== -1) {
-        cache[accountAddress][txIndex].status = status;
+        const tx = cache[accountAddress][txIndex];
+        const wasConfirmed = tx.status === 'confirmed';
+
+        // Update status
+        tx.status = status;
+
+        // If transitioning to confirmed and block height is provided, store it
+        if (status === 'confirmed' && !wasConfirmed && confirmedAtBlock !== undefined) {
+          tx.confirmedAtBlock = confirmedAtBlock;
+          tx.confirmations = 1; // Initialize confirmations to 1 when first confirmed
+          console.log(
+            `[Vault] Transaction ${txid.slice(0, 20)}... confirmed at block ${confirmedAtBlock}`
+          );
+        }
 
         // Save to storage
         await chrome.storage.local.set({
@@ -1363,6 +1380,43 @@ export class Vault {
         });
 
         console.log(`[Vault] Updated transaction ${txid.slice(0, 20)}... status to: ${status}`);
+      }
+    }
+  }
+
+  /**
+   * Updates confirmation count for transactions
+   * Calculates confirmations based on current block height
+   */
+  async updateTransactionConfirmations(
+    accountAddress: string,
+    currentBlockHeight: number
+  ): Promise<void> {
+    // Get existing cache
+    const result = await chrome.storage.local.get([STORAGE_KEYS.TRANSACTION_CACHE]);
+    const cache: import('./types').TransactionCache = result[STORAGE_KEYS.TRANSACTION_CACHE] || {};
+
+    // Find and update confirmations for confirmed transactions
+    if (cache[accountAddress]) {
+      let updated = false;
+
+      for (const tx of cache[accountAddress]) {
+        if (tx.status === 'confirmed' && tx.confirmedAtBlock !== undefined) {
+          const newConfirmations = Math.max(0, currentBlockHeight - tx.confirmedAtBlock + 1);
+
+          // Only update if confirmations changed (or was undefined)
+          if (tx.confirmations !== newConfirmations) {
+            tx.confirmations = newConfirmations;
+            updated = true;
+          }
+        }
+      }
+
+      // Save to storage if any confirmations were updated
+      if (updated) {
+        await chrome.storage.local.set({
+          [STORAGE_KEYS.TRANSACTION_CACHE]: cache,
+        });
       }
     }
   }

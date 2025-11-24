@@ -1,11 +1,46 @@
+import React from 'react';
 import { useStore } from '../store';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 import IrisLogo40 from '../assets/iris-logo-40.svg';
 import { truncateAddress, formatUTCTimestamp } from '../utils/format';
+import { REQUIRED_CONFIRMATIONS } from '../../shared/constants';
 
 export function TransactionDetailsScreen() {
-  const { navigate, selectedTransaction, wallet, priceUsd } = useStore();
+  const {
+    navigate,
+    selectedTransaction,
+    wallet,
+    priceUsd,
+    fetchCachedTransactions,
+    cachedTransactions,
+    setSelectedTransaction,
+  } = useStore();
+
+  // Fetch fresh transaction data on mount
+  React.useEffect(() => {
+    console.log('[TxDetails] Screen mounted, fetching latest transaction data');
+    fetchCachedTransactions();
+  }, []);
+
+  // Sync selectedTransaction with updates from cachedTransactions
+  React.useEffect(() => {
+    if (!selectedTransaction) return;
+
+    // Find the updated transaction in cachedTransactions by txid
+    const updatedTx = cachedTransactions.find(tx => tx.txid === selectedTransaction.txid);
+    if (updatedTx) {
+      console.log('[TxDetails] Syncing selectedTransaction with cached data', {
+        oldConfirmations: selectedTransaction.confirmations,
+        newConfirmations: updatedTx.confirmations,
+      });
+      // Update selectedTransaction with the latest data
+      setSelectedTransaction(updatedTx);
+    }
+  }, [cachedTransactions, selectedTransaction?.txid]);
+
+  // Note: Transaction confirmation polling is handled globally by Popup.tsx
+  // The sync effect above ensures this screen always shows the latest data
 
   // If no transaction selected, show error state
   if (!selectedTransaction) {
@@ -35,12 +70,30 @@ export function TransactionDetailsScreen() {
     maximumFractionDigits: 2,
   });
   const usdValue = `$${(selectedTransaction.amount * priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const status: 'Confirmed' | 'Pending' | 'Failed' =
-    selectedTransaction.status === 'confirmed'
-      ? 'Confirmed'
-      : selectedTransaction.status === 'pending'
-        ? 'Pending'
-        : 'Failed';
+
+  // Determine status display with confirmation progress
+  let statusText: string;
+  let statusColor: string;
+
+  if (selectedTransaction.status === 'failed') {
+    statusText = 'Failed';
+    statusColor = 'var(--color-red)';
+  } else if (selectedTransaction.status === 'pending') {
+    statusText = `Pending (0/${REQUIRED_CONFIRMATIONS})`;
+    statusColor = '#C88414';
+  } else if (selectedTransaction.status === 'confirmed') {
+    const confirmations = selectedTransaction.confirmations ?? 0;
+    if (confirmations < REQUIRED_CONFIRMATIONS) {
+      statusText = `Confirming (${confirmations}/${REQUIRED_CONFIRMATIONS})`;
+      statusColor = '#C88414';
+    } else {
+      statusText = 'Confirmed';
+      statusColor = 'var(--color-green)';
+    }
+  } else {
+    statusText = 'Unknown';
+    statusColor = 'var(--color-text-muted)';
+  }
 
   const currentAddress = wallet.currentAccount?.address || '';
   const fromAddress =
@@ -73,13 +126,6 @@ export function TransactionDetailsScreen() {
     navigator.clipboard.writeText(transactionId);
     // TODO: Show a toast notification that it was copied
   }
-
-  const statusColor =
-    status === 'Confirmed'
-      ? 'var(--color-green)'
-      : status === 'Pending'
-        ? '#C88414'
-        : 'var(--color-red)';
 
   return (
     <div
@@ -143,8 +189,8 @@ export function TransactionDetailsScreen() {
             >
               <div className="flex items-center justify-between text-sm font-medium leading-[18px] tracking-[0.14px]">
                 <div style={{ color: 'var(--color-text-primary)' }}>Status</div>
-                <div className="whitespace-nowrap" style={{ color: statusColor }}>
-                  {status}
+                <div style={{ color: statusColor }}>
+                  <span className="whitespace-nowrap">{statusText}</span>
                 </div>
               </div>
             </div>

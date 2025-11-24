@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
 import { truncateAddress } from '../utils/format';
 import { send } from '../utils/messaging';
-import { INTERNAL_METHODS } from '../../shared/constants';
+import { INTERNAL_METHODS, REQUIRED_CONFIRMATIONS } from '../../shared/constants';
 import type { Account } from '../../shared/types';
 import { AccountIcon } from '../components/AccountIcon';
 import { EyeIcon } from '../components/icons/EyeIcon';
@@ -105,7 +105,7 @@ export function HomeScreen() {
     console.log('[HomeScreen] Cached transactions updated:', cachedTransactions);
   }, [cachedTransactions]);
 
-  // Poll RPC connection status
+  // Check RPC connection status on mount only (polling handled by background service)
   useEffect(() => {
     async function checkConnection() {
       const result = await send<{ connected?: boolean }>(
@@ -114,10 +114,7 @@ export function HomeScreen() {
       );
       setIsConnected(result?.connected ?? true);
     }
-
-    checkConnection(); // Initial check
-    const interval = setInterval(checkConnection, 5000); // Check every 5 seconds
-    return () => clearInterval(interval);
+    checkConnection();
   }, []);
 
   // Get accounts from vault (filter out hidden accounts)
@@ -206,6 +203,10 @@ export function HomeScreen() {
         const { createBrowserClient } = await import('../../shared/rpc-client-browser');
         const rpcClient = createBrowserClient();
 
+        // Get current block height for confirmation tracking
+        const currentBlockHeight = await rpcClient.getCurrentBlockHeight();
+        console.log(`[HomeScreen] Current block height: ${currentBlockHeight}`);
+
         for (const tx of recentPending) {
           console.log(`[HomeScreen] Checking transaction ${tx.txid.slice(0, 20)}...`);
           try {
@@ -215,9 +216,11 @@ export function HomeScreen() {
             );
 
             if (accepted) {
-              // Transaction was accepted - mark as confirmed
-              await updateTransactionStatus(tx.txid, 'confirmed');
-              console.log(`[HomeScreen] Marked transaction as confirmed`);
+              // Transaction was accepted - mark as confirmed with block height
+              await updateTransactionStatus(tx.txid, 'confirmed', Number(currentBlockHeight));
+              console.log(
+                `[HomeScreen] Marked transaction as confirmed at block ${currentBlockHeight}`
+              );
             } else {
               // Transaction was rejected - mark as failed
               await updateTransactionStatus(tx.txid, 'failed');
@@ -283,6 +286,7 @@ export function HomeScreen() {
             : `${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`,
         usdValue: `$${(tx.amount * priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         status: tx.status,
+        confirmations: tx.confirmations,
         txid: tx.txid,
         originalTx: tx, // Keep reference to original transaction
       });
@@ -644,9 +648,8 @@ export function HomeScreen() {
         </div>
 
         <section
-          className={`relative z-20 shadow-card rounded-t-xl transition-all duration-300 flex-1 flex flex-col ${
-            isTransactionsStuck ? '' : 'mx-2 mt-4'
-          }`}
+          className={`relative z-20 shadow-card rounded-t-xl transition-all duration-300 flex-1 flex flex-col ${isTransactionsStuck ? '' : 'mx-2 mt-4'
+            }`}
           style={{
             backgroundColor: 'var(--color-home-accent)',
             border: '1px solid var(--color-divider)',
@@ -668,7 +671,7 @@ export function HomeScreen() {
                 Recent Transactions
               </h2>
               <a
-                href="https://nockscan.net/"
+                href={`https://nockscan.net/address/${currentAccount?.address}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[12px] font-medium rounded-full pl-[12px] pr-[16px] py-[3px] flex items-center gap-[4px] transition-opacity"
@@ -758,7 +761,7 @@ export function HomeScreen() {
                             {t.type === 'received' ? 'Received' : 'Sent'}
                           </div>
                           <div
-                            className="text-[12px] flex items-center gap-1.5"
+                            className="text-[12px] flex items-center gap-1.5 w-40"
                             style={{ color: 'var(--color-text-muted)' }}
                           >
                             {t.status === 'pending' && (

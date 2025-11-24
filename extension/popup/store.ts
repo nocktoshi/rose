@@ -145,7 +145,13 @@ interface AppStore {
   // Update transaction status in cache
   updateTransactionStatus: (
     txid: string,
-    status: 'confirmed' | 'pending' | 'failed'
+    status: 'confirmed' | 'pending' | 'failed',
+    confirmedAtBlock?: number
+  ) => Promise<void>;
+
+  // Update transaction confirmations in cache
+  updateTransactionConfirmations: (
+    currentBlockHeight: number
   ) => Promise<void>;
 }
 
@@ -442,7 +448,11 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   // Update transaction status
-  updateTransactionStatus: async (txid: string, status: 'confirmed' | 'pending' | 'failed') => {
+  updateTransactionStatus: async (
+    txid: string,
+    status: 'confirmed' | 'pending' | 'failed',
+    confirmedAtBlock?: number
+  ) => {
     try {
       const currentAccount = get().wallet.currentAccount;
       if (!currentAccount) return;
@@ -451,12 +461,31 @@ export const useStore = create<AppStore>((set, get) => ({
         currentAccount.address,
         txid,
         status,
+        confirmedAtBlock,
       ]);
 
       // Refresh cached transactions to show updated status
       await get().fetchCachedTransactions();
     } catch (error) {
       console.error('Failed to update transaction status:', error);
+    }
+  },
+
+  // Update transaction confirmations
+  updateTransactionConfirmations: async (currentBlockHeight: number) => {
+    try {
+      const currentAccount = get().wallet.currentAccount;
+      if (!currentAccount) return;
+
+      await send(INTERNAL_METHODS.UPDATE_TRANSACTION_CONFIRMATIONS, [
+        currentAccount.address,
+        currentBlockHeight,
+      ]);
+
+      // Refresh cached transactions to show updated confirmations
+      await get().fetchCachedTransactions();
+    } catch (error) {
+      console.error('Failed to update transaction confirmations:', error);
     }
   },
 }));

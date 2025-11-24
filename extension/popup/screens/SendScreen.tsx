@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
 import { truncateAddress } from '../utils/format';
 import { send } from '../utils/messaging';
-import { INTERNAL_METHODS, DEFAULT_TRANSACTION_FEE, NOCK_TO_NICKS } from '../../shared/constants';
+import { INTERNAL_METHODS, NOCK_TO_NICKS } from '../../shared/constants';
 import {
   roundNockToSendable,
   formatNock,
@@ -30,11 +30,10 @@ export function SendScreen() {
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
   const [receiverAddress, setReceiverAddress] = useState('');
   const [amount, setAmount] = useState('');
-  // Default fee: 28 NOCK (1,835,008 nicks)
-  const defaultFeeNock = (DEFAULT_TRANSACTION_FEE / NOCK_TO_NICKS).toString();
-  const [fee, setFee] = useState(defaultFeeNock);
+  // No default fee - will be calculated once user enters amount
+  const [fee, setFee] = useState('');
   const [isEditingFee, setIsEditingFee] = useState(false);
-  const [editedFee, setEditedFee] = useState(defaultFeeNock);
+  const [editedFee, setEditedFee] = useState('');
   const [showFeeTooltip, setShowFeeTooltip] = useState(false);
   const [error, setError] = useState('');
   const [isFeeManuallyEdited, setIsFeeManuallyEdited] = useState(false);
@@ -313,6 +312,12 @@ export function SendScreen() {
           setEditedFee(feeNock.toString());
           setMinimumFee(feeNock); // Store as minimum required fee
           setFeeWarning(''); // Clear any previous warnings
+          console.log('[SendScreen] Fee calculated:', feeNock, 'NOCK');
+        } else if (result?.error) {
+          console.error('[SendScreen] Fee estimation error from vault:', result.error);
+          setFeeWarning(result.error);
+        } else {
+          console.warn('[SendScreen] Fee estimation returned no fee or error:', result);
         }
       } catch (error) {
         console.error('[SendScreen] Fee estimation failed:', error);
@@ -624,8 +629,10 @@ export function SendScreen() {
                         borderTopColor: 'transparent',
                       }}
                     />
-                  ) : (
+                  ) : fee ? (
                     `${fee} NOCK`
+                  ) : (
+                    '-'
                   )}
                 </div>
                 <img src={PencilEditIcon} alt="Edit" className="w-4 h-4 flex-shrink-0" />

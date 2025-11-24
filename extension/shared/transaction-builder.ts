@@ -155,6 +155,8 @@ export interface ConstructedTransaction {
   version: number;
   /** Raw transaction object (for additional operations) */
   rawTx: WasmRawTx;
+  /** Fee used in the transaction (in nicks) */
+  feeUsed: number;
 }
 
 /**
@@ -263,10 +265,27 @@ export async function buildTransaction(params: TransactionParams): Promise<Const
   // Log calculated fees before signing (new method names: curFee, calcFee)
   const calculatedFee = builder.calcFee();
   const currentFee = builder.curFee();
-  console.log('[TxBuilder] Fee info:', {
+  const txSizeWords = Number(calculatedFee) / Number(DEFAULT_FEE_PER_WORD);
+
+  console.log('[TxBuilder] Transaction size and fee:', {
+    inputCount: notes.length,
+    txSizeWords: txSizeWords.toFixed(1),
+    feePerWord: DEFAULT_FEE_PER_WORD,
+    feePerWordNOCK: DEFAULT_FEE_PER_WORD / 65536,
     calculatedFee: Number(calculatedFee),
+    calculatedFeeNOCK: (Number(calculatedFee) / 65536).toFixed(2),
     currentFee: Number(currentFee),
+    currentFeeNOCK: (Number(currentFee) / 65536).toFixed(2),
     userProvidedFee: fee,
+  });
+
+  // DEBUG: Check which notes are actually in the transaction
+  const actualNotesUsed = builder.allNotes();
+  const actualNotesList = actualNotesUsed.get_notes;
+  console.log('[TxBuilder] DEBUG: Notes actually used in transaction:', {
+    totalNotesPassedIn: notes.length,
+    notesActuallyUsed: Array.isArray(actualNotesList) ? actualNotesList.length : 0,
+    noteAssets: Array.isArray(actualNotesList) ? actualNotesList.map((n: any) => n.assets) : [],
   });
 
   console.log('[TxBuilder] Signing transaction...');
@@ -280,6 +299,9 @@ export async function buildTransaction(params: TransactionParams): Promise<Const
   builder.validate();
 
   console.log('[TxBuilder] Building final transaction...');
+
+  // Get the fee before building (for return value)
+  const feeUsed = Number(builder.curFee());
 
   // Build the final transaction (new API - build() returns WasmRawTx)
   const rawTx = builder.build();
@@ -320,18 +342,13 @@ export async function buildTransaction(params: TransactionParams): Promise<Const
       noteDataHash: note.noteDataHash.slice(0, 30) + '...',
       assets: note.assets,
     });
-    console.log(
-      `[TxBuilder] The parent_hash in seeds should equal hash(Note) where Note contains these fields`
-    );
-    console.log(
-      `[TxBuilder]   If parent_hash doesn't match the blockchain's stored note hash, TX will be REJECTED`
-    );
   });
 
   return {
     txId: rawTx.id.value,
     version: 1, // V1 only
     rawTx,
+    feeUsed,
   };
 }
 
