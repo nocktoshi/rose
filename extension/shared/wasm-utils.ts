@@ -6,10 +6,10 @@
 import initWasm from '../lib/iris-wasm/iris_wasm';
 
 /**
- * Asset paths for WASM modules (relative to extension root)
+ * WASM module paths relative to extension root
  */
-export const WASM_ASSET_PATHS = {
-  IRIS_WASM: 'lib/iris-wasm/iris_wasm_bg.wasm',
+export const WASM_PATHS = {
+  NBX_WASM: 'lib/iris-wasm/iris_wasm_bg.wasm',
 } as const;
 
 /**
@@ -25,54 +25,34 @@ export function getWasmUrl(path: string): string {
  */
 export function getWasmUrls() {
   return {
-    irisWasm: getWasmUrl(WASM_ASSET_PATHS.IRIS_WASM),
+    nbxWasm: getWasmUrl(WASM_PATHS.NBX_WASM),
   };
+}
+
+/**
+ * Initialize WASM modules
+ * This is a common pattern used throughout the codebase
+ */
+export async function initWasmModules(): Promise<void> {
+  const urls = getWasmUrls();
+  await initWasm({ module_or_path: urls.nbxWasm });
 }
 
 /**
  * Track if WASM modules have been initialized (per-context)
  */
 let wasmInitialized = false;
-let wasmInitializing = false;
-let wasmInitPromise: Promise<void> | null = null;
 
 /**
  * Initialize WASM modules only once per context
  * Subsequent calls will be no-ops
  */
-export async function initWasmModules(): Promise<void> {
+export async function ensureWasmInitialized(): Promise<void> {
   if (wasmInitialized) {
     return;
   }
-
-  if (wasmInitializing && wasmInitPromise) {
-    return wasmInitPromise;
-  }
-
-  wasmInitializing = true;
-
-  wasmInitPromise = (async () => {
-    try {
-      const wasmUrls = getWasmUrls();
-      await initWasm(wasmUrls.irisWasm);
-      wasmInitialized = true;
-      wasmInitializing = false;
-    } catch (error) {
-      wasmInitializing = false;
-      wasmInitPromise = null; // Reset promise on error
-      throw error;
-    }
-  })();
-
-  return wasmInitPromise;
-}
-
-/**
- * Initialize WASM modules only once per context
- * Alias for initWasmModules with idempotent behavior
- */
-export async function ensureWasmInitialized(): Promise<void> {
-  return initWasmModules();
+  await initWasmModules();
+  wasmInitialized = true;
 }
 
 /**
@@ -80,6 +60,4 @@ export async function ensureWasmInitialized(): Promise<void> {
  */
 export function resetWasmInitialization(): void {
   wasmInitialized = false;
-  wasmInitializing = false;
-  wasmInitPromise = null;
 }

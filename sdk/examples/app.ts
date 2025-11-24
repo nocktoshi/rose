@@ -8,7 +8,6 @@ declare global {
     }
 }
 
-
 const statusDiv = document.getElementById('status')!;
 const outputPre = document.getElementById('output')!;
 const connectBtn = document.getElementById('connectBtn') as HTMLButtonElement;

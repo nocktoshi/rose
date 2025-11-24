@@ -51,11 +51,8 @@ async function convertNoteForTxBuilder(
     console.log('[Vault] Using pre-computed noteDataHash from RPC response');
     noteDataHash = note.noteDataHashBase58;
   } else {
-    // Fallback to empty string if not provided
-    // The protoNote field will be used by wasm.Note.fromProtobuf() instead
-    console.warn(
-      '[Vault] No noteDataHashBase58 - relying on protoNote for wasm.Note.fromProtobuf()'
-    );
+    // Fallback - use protoNote for Note.fromProtobuf()
+    console.warn('[Vault] No noteDataHashBase58 - relying on protoNote');
     noteDataHash = '';
   }
 
@@ -65,7 +62,7 @@ async function convertNoteForTxBuilder(
     nameLast,
     noteDataHash,
     assets: note.assets,
-    protoNote: note.protoNote, // Pass through for wasm.Note.fromProtobuf()
+    protoNote: note.protoNote,
   };
 }
 

@@ -178,9 +178,9 @@ export interface SignRawTxRequest {
   origin: string;
   /** Raw transaction jam as hex string */
   rawTx: string;
-  /** Input notes in serializable format */
+  /** Input notes (protobuf) */
   notes: any[];
-  /** Spend conditions in serializable format */
+  /** Spend conditions (protobuf) */
   spendConditions: any[];
   /** Request timestamp */
   timestamp: number;
