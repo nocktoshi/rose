@@ -176,7 +176,7 @@ export interface SignRawTxRequest {
   id: string;
   /** Origin of the requesting site */
   origin: string;
-  /** Raw transaction jam as hex string or parsed object */
+  /** Raw transaction protobuf */
   rawTx: any;
   /** Input notes (protobuf) */
   notes: any[];

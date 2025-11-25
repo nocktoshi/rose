@@ -1,12 +1,4 @@
-import { signRawTx } from '../dist/wrapper';
-import initWasm from '@nockbox/iris-wasm/iris_wasm.js';
-import * as wasm from '@nockbox/iris-wasm/iris_wasm.js';
-
-declare global {
-    interface Window {
-        nockchain?: any;
-    }
-}
+import { NockchainProvider, wasm } from '../src/index';
 
 const statusDiv = document.getElementById('status')!;
 const outputPre = document.getElementById('output')!;
@@ -14,6 +6,7 @@ const connectBtn = document.getElementById('connectBtn') as HTMLButtonElement;
 const signRawTxBtn = document.getElementById('signRawTxBtn') as HTMLButtonElement;
 const recipientInput = document.getElementById('recipientInput') as HTMLInputElement;
 
+let provider: NockchainProvider;
 let grpcEndpoint: string | null = null;
 let walletPkh: string | null = null;
 
@@ -24,23 +17,28 @@ function log(msg: string) {
 
 async function init() {
     try {
-        await initWasm();
+        await wasm.default();
         log('WASM initialized');
+
+        // Initialize NockchainProvider
+        provider = new NockchainProvider();
+        log('NockchainProvider initialized');
     } catch (e) {
-        log('Failed to init WASM: ' + e);
+        log('Failed to init: ' + e);
     }
 }
 
 connectBtn.onclick = async () => {
-    if (!window.nockchain) {
-        log('Nockchain wallet not found');
+    if (!provider) {
+        log('Provider not initialized');
         return;
     }
     try {
-        const info = (await window.nockchain.request({ method: 'nock_connect' })) as { grpcEndpoint: string; pkh: string };
-        console.log(info);
+        // Connect to wallet (returns pkh and grpcEndpoint)
+        const info = await provider.connect();
         grpcEndpoint = info.grpcEndpoint;
         walletPkh = info.pkh;
+
         statusDiv.textContent = 'Connected: ' + walletPkh;
         signRawTxBtn.disabled = false;
         log('Connected: ' + walletPkh + ' @ ' + grpcEndpoint);
@@ -108,12 +106,6 @@ signRawTxBtn.onclick = async () => {
         // Create refund digest (same as wallet PKH)
         const refundDigest = new wasm.Digest(walletPkh);
 
-        // Create spend conditions - one for each note (all use the same PKH)
-        const spendConditionsForBuilder = notes.map(() => spendCondition);
-
-        console.log("spendConditionsForBuilder: ", spendConditionsForBuilder);
-        console.log("notes: ", notes);
-
         // Use simpleSpend (no lockData for lower fees)
         builder.simpleSpend(
             [notes[0]],
@@ -135,25 +127,24 @@ signRawTxBtn.onclick = async () => {
 
         // Get notes and spend conditions from builder
         const txNotes = builder.allNotes();
-        const txNotesArray = txNotes.notes;
 
-        const noteObjects = txNotes.notes.map((n: wasm.Note) => n.toProtobuf());
-        const spendConds = txNotes.spendConditions.map((s: wasm.SpendCondition) => s.toProtobuf());
+        log('Notes count: ' + txNotes.notes.length);
+        log('Spend conditions count: ' + txNotes.spendConditions.length);
 
-        log('Notes count: ' + noteObjects.length);
-        log('Spend conditions count: ' + spendConds.length);
-
-        // 8. Sign using signRawTx
+        // 8. Sign using provider.signRawTx (pass wasm objects directly)
         log('Signing transaction...');
-        const signedTx = await signRawTx({
-            rawTx: rawTxProtobuf,
-            notes: noteObjects,
-            spendConditions: spendConds
+        const signedTxProtobuf = await provider.signRawTx({
+            rawTx: rawTx,  // Pass wasm RawTx directly
+            notes: txNotes.notes,  // Pass wasm Note objects directly
+            spendConditions: txNotes.spendConditions  // Pass wasm SpendCondition objects directly
         });
-        const signedTxJam = wasm.RawTx.fromProtobuf(signedTx).toJam();
 
         log('Transaction signed successfully!');
-        log('Signed tx', signedTx);
+
+        // Convert to jam string for file download
+        const signedTx = wasm.RawTx.fromProtobuf(signedTxProtobuf);
+        const jamBytes = signedTx.toJam();
+        const signedTxJam = new TextDecoder().decode(jamBytes);
 
         // 9. Download to file using transaction ID
         const blob = new Blob([signedTxJam], { type: 'text/plain' });

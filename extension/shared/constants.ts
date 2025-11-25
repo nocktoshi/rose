@@ -4,26 +4,8 @@
  * for wallet provider API and internal extension communication
  */
 
-/**
- * Public Provider Methods - Called by websites/dapps via window.nockchain
- * Follow EIP-1193 naming convention with 'nock_' prefix
- */
-export const PROVIDER_METHODS = {
-  /**  */
-  CONNECT: "nock_connect",
-
-  /** Sign an arbitrary message */
-  SIGN_MESSAGE: "nock_signMessage",
-
-  /** Sign and send a transaction */
-  SEND_TRANSACTION: "nock_sendTransaction",
-
-  /** Get wallet information (PKH + gRPC endpoint) */
-  GET_WALLET_INFO: "nock_getWalletInfo",
-
-  /** Sign a raw transaction */
-  SIGN_RAW_TX: "nock_signRawTx",
-} as const;
+// Import provider methods from SDK
+import { PROVIDER_METHODS } from '@nockbox/iris-sdk';
 
 /**
  * Internal Extension Methods - Called by popup UI and other extension components
@@ -147,6 +129,9 @@ export const INTERNAL_METHODS = {
   /** Get pending sign raw transaction request */
   GET_PENDING_RAW_TX_REQUEST: "wallet:getPendingRawTxRequest",
 } as const;
+
+// Re-export PROVIDER_METHODS for other files
+export { PROVIDER_METHODS };
 
 /**
  * All RPC methods (combined)

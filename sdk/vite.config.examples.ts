@@ -18,7 +18,7 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            '@iris/sdk': resolve(__dirname, 'src'),
+            '@nockbox/iris-sdk': resolve(__dirname, 'src'),
         },
     },
     server: {
