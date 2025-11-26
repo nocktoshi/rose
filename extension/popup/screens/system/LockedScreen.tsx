@@ -2,29 +2,29 @@
  * Locked Screen - Unlock wallet with password
  */
 
-import { useState } from "react";
-import { INTERNAL_METHODS, ERROR_CODES } from "../../../shared/constants";
-import { useStore } from "../../store";
-import { send } from "../../utils/messaging";
-import { Alert } from "../../components/Alert";
-import { ConfirmModal } from "../../components/ConfirmModal";
-import { EyeIcon } from "../../components/icons/EyeIcon";
-import { EyeOffIcon } from "../../components/icons/EyeOffIcon";
-import { AnimatedLogo } from "../../components/AnimatedLogo";
+import { useState } from 'react';
+import { INTERNAL_METHODS, ERROR_CODES } from '../../../shared/constants';
+import { useStore } from '../../store';
+import { send } from '../../utils/messaging';
+import { Alert } from '../../components/Alert';
+import { ConfirmModal } from '../../components/ConfirmModal';
+import { EyeIcon } from '../../components/icons/EyeIcon';
+import { EyeOffIcon } from '../../components/icons/EyeOffIcon';
+import { AnimatedLogo } from '../../components/AnimatedLogo';
 
 export function LockedScreen() {
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { navigate, syncWallet, wallet, fetchBalance } = useStore();
 
   async function handleUnlock() {
     // Clear previous errors
-    setError("");
+    setError('');
 
     if (!password) {
-      setError("Please enter a password");
+      setError('Please enter a password');
       return;
     }
 
@@ -38,13 +38,11 @@ export function LockedScreen() {
 
     if (result?.error) {
       setError(
-        result.error === ERROR_CODES.BAD_PASSWORD
-          ? "Incorrect password"
-          : `Error: ${result.error}`
+        result.error === ERROR_CODES.BAD_PASSWORD ? 'Incorrect password' : `Error: ${result.error}`
       );
-      setPassword(""); // Clear password on error
+      setPassword(''); // Clear password on error
     } else {
-      setPassword("");
+      setPassword('');
       const accounts = result.accounts || [];
       const currentAccount = result.currentAccount || accounts[0] || null;
 
@@ -69,7 +67,7 @@ export function LockedScreen() {
       console.log('[LockedScreen] Unlock successful, triggering balance fetch...');
       fetchBalance();
 
-      navigate("home");
+      navigate('home');
     }
   }
 
@@ -104,9 +102,9 @@ export function LockedScreen() {
               <h1
                 className="font-serif font-medium text-[var(--color-text-primary)]"
                 style={{
-                  fontSize: "var(--font-size-xl)",
-                  lineHeight: "var(--line-height-relaxed)",
-                  letterSpacing: "-0.02em",
+                  fontSize: 'var(--font-size-xl)',
+                  lineHeight: 'var(--line-height-relaxed)',
+                  letterSpacing: '-0.02em',
                 }}
               >
                 Welcome back
@@ -114,9 +112,9 @@ export function LockedScreen() {
               <p
                 className="font-sans text-[var(--color-text-muted)]"
                 style={{
-                  fontSize: "var(--font-size-sm)",
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.02em",
+                  fontSize: 'var(--font-size-sm)',
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.02em',
                 }}
               >
                 Your safe wallet for Nockchain
@@ -130,29 +128,29 @@ export function LockedScreen() {
               <label
                 className="font-sans font-medium text-[var(--color-text-primary)]"
                 style={{
-                  fontSize: "var(--font-size-sm)",
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.02em",
+                  fontSize: 'var(--font-size-sm)',
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.02em',
                 }}
               >
                 Password
               </label>
               <div className="bg-[var(--color-bg)] border border-[var(--color-surface-700)] rounded-lg p-3 flex items-center gap-2.5 h-[52px]">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => {
+                  onChange={e => {
                     setPassword(e.target.value);
-                    setError("");
+                    setError('');
                   }}
-                  onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
+                  onKeyDown={e => e.key === 'Enter' && handleUnlock()}
                   placeholder="Enter your password"
                   autoFocus
                   className="flex-1 bg-transparent font-sans font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] outline-none"
                   style={{
-                    fontSize: "var(--font-size-base)",
-                    lineHeight: "var(--line-height-snug)",
-                    letterSpacing: "0.01em",
+                    fontSize: 'var(--font-size-base)',
+                    lineHeight: 'var(--line-height-snug)',
+                    letterSpacing: '0.01em',
                   }}
                 />
                 <button
@@ -176,11 +174,11 @@ export function LockedScreen() {
               onClick={handleUnlock}
               className="w-full h-12 px-5 py-[15px] bg-[var(--color-text-primary)] text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
               style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--font-size-base)",
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--font-size-base)',
                 fontWeight: 500,
-                lineHeight: "var(--line-height-snug)",
-                letterSpacing: "0.01em",
+                lineHeight: 'var(--line-height-snug)',
+                letterSpacing: '0.01em',
               }}
             >
               Unlock
@@ -193,9 +191,9 @@ export function LockedScreen() {
           <p
             className="font-sans text-[var(--color-text-muted)]"
             style={{
-              fontSize: "var(--font-size-sm)",
-              lineHeight: "var(--line-height-snug)",
-              letterSpacing: "0.02em",
+              fontSize: 'var(--font-size-sm)',
+              lineHeight: 'var(--line-height-snug)',
+              letterSpacing: '0.02em',
             }}
           >
             Can't login? You can delete your current wallet and create a new one
@@ -204,9 +202,9 @@ export function LockedScreen() {
             onClick={handleResetWallet}
             className="font-sans font-medium text-[var(--color-text-primary)] underline hover:opacity-80"
             style={{
-              fontSize: "var(--font-size-base)",
-              lineHeight: "var(--line-height-snug)",
-              letterSpacing: "0.01em",
+              fontSize: 'var(--font-size-base)',
+              lineHeight: 'var(--line-height-snug)',
+              letterSpacing: '0.01em',
             }}
           >
             Reset wallet

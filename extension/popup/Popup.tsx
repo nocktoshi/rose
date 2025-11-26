@@ -2,13 +2,13 @@
  * Popup UI: App initialization and lifecycle management
  */
 
-import { useEffect } from "react";
-import { useStore } from "./store";
-import { send } from "./utils/messaging";
-import { INTERNAL_METHODS, UI_CONSTANTS } from "../shared/constants";
-import { Account } from "../shared/types";
-import { Router } from "./Router";
-import { useApprovalDetection } from "./hooks/useApprovalDetection";
+import { useEffect } from 'react';
+import { useStore } from './store';
+import { send } from './utils/messaging';
+import { INTERNAL_METHODS, UI_CONSTANTS } from '../shared/constants';
+import { Account } from '../shared/types';
+import { Router } from './Router';
+import { useApprovalDetection } from './hooks/useApprovalDetection';
 
 export function Popup() {
   const {
@@ -20,6 +20,7 @@ export function Popup() {
     setPendingConnectRequest,
     setPendingTransactionRequest,
     setPendingSignRequest,
+    setPendingSignRawTxRequest,
   } = useStore();
 
   // Initialize app on mount
@@ -34,6 +35,7 @@ export function Popup() {
     setPendingConnectRequest,
     setPendingTransactionRequest,
     setPendingSignRequest,
+    setPendingSignRawTxRequest,
     navigate,
   });
 
@@ -41,7 +43,7 @@ export function Popup() {
   useEffect(() => {
     const interval = setInterval(async () => {
       // Only poll if we're not already on the locked screen
-      if (currentScreen === "locked") return;
+      if (currentScreen === 'locked') return;
 
       const state = await send<{
         locked: boolean;
@@ -59,7 +61,7 @@ export function Popup() {
           accounts: state.accounts || [],
           currentAccount: state.currentAccount || null,
         });
-        navigate("locked");
+        navigate('locked');
       }
     }, UI_CONSTANTS.STATE_POLL_INTERVAL);
 

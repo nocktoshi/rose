@@ -32,7 +32,7 @@ export function PasswordInput({
         placeholder={placeholder}
         className={`input-field pr-10 ${className}`}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         onKeyDown={onKeyDown}
         autoFocus={autoFocus}
       />
@@ -42,11 +42,7 @@ export function PasswordInput({
         onClick={() => setShowPassword(!showPassword)}
         tabIndex={-1}
       >
-        {showPassword ? (
-          <EyeOffIcon className="w-5 h-5" />
-        ) : (
-          <EyeIcon className="w-5 h-5" />
-        )}
+        {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
       </button>
     </div>
   );

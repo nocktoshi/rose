@@ -6,7 +6,7 @@ interface IconProps {
   className?: string;
 }
 
-export function EditIcon({ className = "w-4 h-4" }: IconProps) {
+export function EditIcon({ className = 'w-4 h-4' }: IconProps) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path

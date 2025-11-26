@@ -27,7 +27,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Load theme from storage on mount
   useEffect(() => {
-    chrome.storage.local.get([STORAGE_KEY], (result) => {
+    chrome.storage.local.get([STORAGE_KEY], result => {
       const savedTheme = result[STORAGE_KEY] as Theme | undefined;
       if (savedTheme) {
         setThemeState(savedTheme);

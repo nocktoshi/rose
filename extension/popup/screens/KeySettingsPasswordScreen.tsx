@@ -69,14 +69,12 @@ export function KeySettingsPasswordScreen() {
           aria-label="Back"
           className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
           style={{ backgroundColor: 'transparent', color: 'var(--color-text-primary)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <ChevronLeftIcon className="w-5 h-5" />
         </button>
-        <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">
-          Key settings
-        </h1>
+        <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">Key settings</h1>
         <div className="w-8 h-8" />
       </header>
 
@@ -117,8 +115,8 @@ export function KeySettingsPasswordScreen() {
                 onKeyDown={e => {
                   if (e.key === 'Enter') handleConfirm();
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-surface-700)')}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-surface-700)')}
                 disabled={isLoading}
               />
               <button
@@ -126,8 +124,8 @@ export function KeySettingsPasswordScreen() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center transition-colors"
                 style={{ color: 'var(--color-text-muted)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-text-primary)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (

@@ -47,5 +47,6 @@ npm run build
 - **Message Signing**: nbx-wasm (signMessage)
 
 **Initialization:**
+
 - nbx-wasm: `extension/shared/wasm-utils.ts`
 - First-name derivation: `extension/shared/first-name-derivation.ts`

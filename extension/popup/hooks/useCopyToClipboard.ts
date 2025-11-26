@@ -5,7 +5,7 @@
  *
  */
 
-import { useState } from "react";
+import { useState } from 'react';
 
 interface UseCopyToClipboardReturn {
   /** Whether text was recently copied (resets after 2 seconds) */
@@ -25,7 +25,7 @@ export function useCopyToClipboard(): UseCopyToClipboardReturn {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy to clipboard:", err);
+      console.error('Failed to copy to clipboard:', err);
     }
   }
 

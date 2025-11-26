@@ -6,11 +6,11 @@
 import {
   generateMnemonic as generateMnemonicScure,
   validateMnemonic as validateMnemonicScure,
-} from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english.js";
-import { deriveMasterKeyFromMnemonic } from "../lib/nbx-wasm/nbx_wasm.js";
-import { publicKeyToPKH } from "./address-encoding";
-import { ensureWasmInitialized as ensureWasmInit } from "./wasm-utils";
+} from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
+import { deriveMasterKeyFromMnemonic } from '@nockbox/iris-wasm/iris_wasm.js';
+import { publicKeyToPKH } from './address-encoding';
+import { ensureWasmInitialized as ensureWasmInit } from './wasm-utils';
 
 /**
  * Generates a BIP-39 mnemonic (24 words)
@@ -35,18 +35,16 @@ export function validateMnemonic(mnemonic: string): boolean {
  * @param mnemonic - The BIP-39 mnemonic phrase
  * @returns A Base58-encoded Nockchain v1 PKH address (~60 characters)
  */
-export async function deriveAddressFromMaster(
-  mnemonic: string
-): Promise<string> {
+export async function deriveAddressFromMaster(mnemonic: string): Promise<string> {
   await ensureWasmInit();
 
   // Derive master key from mnemonic
-  const masterKey = deriveMasterKeyFromMnemonic(mnemonic, "");
+  const masterKey = deriveMasterKeyFromMnemonic(mnemonic, '');
 
   // DEBUG: Also derive child 0 to compare
   const child0 = masterKey.deriveChild(0);
-  const masterAddr = publicKeyToPKH(masterKey.public_key);
-  const child0Addr = publicKeyToPKH(child0.public_key);
+  const masterAddr = publicKeyToPKH(masterKey.publicKey);
+  const child0Addr = publicKeyToPKH(child0.publicKey);
 
   console.log('[deriveAddressFromMaster] Master address:', masterAddr);
   console.log('[deriveAddressFromMaster] Child-0 address:', child0Addr);
@@ -68,21 +66,18 @@ export async function deriveAddressFromMaster(
  * @param accountIndex - The account derivation index (default 0)
  * @returns A Base58-encoded Nockchain v1 PKH address (~60 characters)
  */
-export async function deriveAddress(
-  mnemonic: string,
-  accountIndex: number = 0
-): Promise<string> {
+export async function deriveAddress(mnemonic: string, accountIndex: number = 0): Promise<string> {
   await ensureWasmInit();
 
   // Derive master key from mnemonic
-  const masterKey = deriveMasterKeyFromMnemonic(mnemonic, "");
+  const masterKey = deriveMasterKeyFromMnemonic(mnemonic, '');
 
   // Derive child key at account index
   const childKey = masterKey.deriveChild(accountIndex);
 
   // Get the public key hash (PKH) for v1 addresses
   // v1 uses TIP5 hash of the public key, base58 encoded
-  const address = publicKeyToPKH(childKey.public_key);
+  const address = publicKeyToPKH(childKey.publicKey);
 
   // Clean up WASM memory
   childKey.free();

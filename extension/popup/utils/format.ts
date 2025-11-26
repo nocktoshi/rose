@@ -43,14 +43,16 @@ export function formatTimeAgo(date: Date): string {
  */
 export function formatUTCTimestamp(timestamp: number): string {
   const date = new Date(timestamp);
-  return date.toLocaleString('en-US', {
-    timeZone: 'UTC',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }) + ' UTC';
+  return (
+    date.toLocaleString('en-US', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }) + ' UTC'
+  );
 }

@@ -50,7 +50,10 @@ export function ResumeBackupScreen() {
   return (
     <div className="relative w-[357px] h-[600px]" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between h-16 px-4 py-3" style={{ borderBottom: '1px solid var(--color-divider)' }}>
+      <div
+        className="flex items-center justify-between h-16 px-4 py-3"
+        style={{ borderBottom: '1px solid var(--color-divider)' }}
+      >
         <button
           onClick={() => navigate('onboarding-start')}
           className="p-2 -ml-2 hover:opacity-70 transition-opacity"
@@ -69,9 +72,9 @@ export function ResumeBackupScreen() {
         <h2
           className="font-sans font-medium"
           style={{
-            fontSize: "var(--font-size-lg)",
-            lineHeight: "var(--line-height-normal)",
-            letterSpacing: "0.01em",
+            fontSize: 'var(--font-size-lg)',
+            lineHeight: 'var(--line-height-normal)',
+            letterSpacing: '0.01em',
             color: 'var(--color-text-primary)',
           }}
         >
@@ -86,9 +89,9 @@ export function ResumeBackupScreen() {
           <h1
             className="font-serif font-medium text-center"
             style={{
-              fontSize: "var(--font-size-xl)",
-              lineHeight: "var(--line-height-relaxed)",
-              letterSpacing: "-0.02em",
+              fontSize: 'var(--font-size-xl)',
+              lineHeight: 'var(--line-height-relaxed)',
+              letterSpacing: '-0.02em',
               color: 'var(--color-text-primary)',
             }}
           >
@@ -98,38 +101,40 @@ export function ResumeBackupScreen() {
           <p
             className="font-sans text-center"
             style={{
-              fontSize: "var(--font-size-sm)",
-              lineHeight: "var(--line-height-snug)",
-              letterSpacing: "0.02em",
+              fontSize: 'var(--font-size-sm)',
+              lineHeight: 'var(--line-height-snug)',
+              letterSpacing: '0.02em',
               color: 'var(--color-text-muted)',
             }}
           >
-            You need to backup your recovery phrase to secure your wallet. Enter your password to continue.
+            You need to backup your recovery phrase to secure your wallet. Enter your password to
+            continue.
           </p>
 
           <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-red-light)' }}>
             <p
               className="font-sans font-medium text-center"
               style={{
-                fontSize: "var(--font-size-xs)",
-                lineHeight: "var(--line-height-tight)",
-                letterSpacing: "0.02em",
+                fontSize: 'var(--font-size-xs)',
+                lineHeight: 'var(--line-height-tight)',
+                letterSpacing: '0.02em',
                 color: 'var(--color-red)',
               }}
             >
-              <strong>Important:</strong> Without backing up your recovery phrase, you risk losing access to your wallet if you forget your password.
+              <strong>Important:</strong> Without backing up your recovery phrase, you risk losing
+              access to your wallet if you forget your password.
             </p>
           </div>
 
           <PasswordInput
             value={password}
-            onChange={(value) => {
+            onChange={value => {
               setPassword(value);
               setError('');
             }}
             placeholder="Password"
             className="my-2"
-            onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
+            onKeyDown={e => e.key === 'Enter' && handleContinue()}
             autoFocus
           />
 
@@ -148,11 +153,11 @@ export function ResumeBackupScreen() {
             style={{
               backgroundColor: 'var(--color-primary)',
               color: '#000000',
-              fontFamily: "var(--font-sans)",
-              fontSize: "var(--font-size-base)",
+              fontFamily: 'var(--font-sans)',
+              fontSize: 'var(--font-size-base)',
               fontWeight: 500,
-              lineHeight: "var(--line-height-snug)",
-              letterSpacing: "0.01em",
+              lineHeight: 'var(--line-height-snug)',
+              letterSpacing: '0.01em',
             }}
           >
             Continue Backup

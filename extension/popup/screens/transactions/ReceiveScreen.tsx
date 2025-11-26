@@ -35,7 +35,10 @@ export function ReceiveScreen() {
         <h3 className="text-center mb-4" style={{ color: 'var(--color-text-primary)' }}>
           Your Address
         </h3>
-        <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+        <div
+          className="rounded-lg p-4 mb-4"
+          style={{ backgroundColor: 'var(--color-surface-800)' }}
+        >
           <p className="text-sm font-mono break-all" style={{ color: 'var(--color-text-primary)' }}>
             {address}
           </p>
@@ -47,12 +50,12 @@ export function ReceiveScreen() {
           className="w-full font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
           style={{
             backgroundColor: 'var(--color-primary)',
-            color: '#000'
+            color: '#000',
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             e.currentTarget.style.opacity = '0.9';
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             e.currentTarget.style.opacity = '1';
           }}
         >
@@ -73,10 +76,7 @@ export function ReceiveScreen() {
       </div>
 
       {/* Done button */}
-      <button
-        onClick={() => navigate('home')}
-        className="w-full btn-secondary mt-auto"
-      >
+      <button onClick={() => navigate('home')} className="w-full btn-secondary mt-auto">
         Done
       </button>
     </ScreenContainer>

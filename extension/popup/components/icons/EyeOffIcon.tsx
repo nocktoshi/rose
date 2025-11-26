@@ -8,8 +8,6 @@ interface IconProps {
   className?: string;
 }
 
-export function EyeOffIcon({ className = "w-4 h-4" }: IconProps) {
-  return (
-    <img src={EyeOffIconSvg} alt="" className={className} />
-  );
+export function EyeOffIcon({ className = 'w-4 h-4' }: IconProps) {
+  return <img src={EyeOffIconSvg} alt="" className={className} />;
 }

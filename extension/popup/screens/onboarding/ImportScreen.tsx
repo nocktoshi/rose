@@ -168,7 +168,7 @@ export function ImportScreen() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       try {
         const keyfile = JSON.parse(e.target?.result as string) as Keyfile;
 
@@ -492,7 +492,8 @@ export function ImportScreen() {
                     letterSpacing: '0.01em',
                   }}
                 >
-                  Only V1 wallets are supported. If you use a seed phrase from V0, this will create a new V1 wallet.{' '}
+                  Only V1 wallets are supported. If you use a seed phrase from V0, this will create
+                  a new V1 wallet.{' '}
                   <a
                     href="https://iriswallet.io/faq"
                     target="_blank"
@@ -602,7 +603,10 @@ export function ImportScreen() {
         >
           <div
             className="w-full max-w-[325px] rounded-lg p-4 flex flex-col gap-4"
-            style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-surface-800)' }}
+            style={{
+              backgroundColor: 'var(--color-bg)',
+              border: '1px solid var(--color-surface-800)',
+            }}
           >
             <h3 className="font-sans font-medium text-base tracking-[0.16px] leading-[22px]">
               Import from keyfile

@@ -6,7 +6,7 @@ interface IconProps {
   className?: string;
 }
 
-export function CopyIcon({ className = "w-5 h-5" }: IconProps) {
+export function CopyIcon({ className = 'w-5 h-5' }: IconProps) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path

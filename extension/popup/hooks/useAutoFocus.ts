@@ -8,7 +8,7 @@
  *
  */
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect } from 'react';
 
 interface UseAutoFocusOptions {
   /** Condition that triggers focus. Defaults to true (focus on mount) */

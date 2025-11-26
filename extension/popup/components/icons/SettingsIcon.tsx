@@ -6,7 +6,7 @@ interface IconProps {
   className?: string;
 }
 
-export function SettingsIcon({ className = "w-6 h-6" }: IconProps) {
+export function SettingsIcon({ className = 'w-6 h-6' }: IconProps) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path

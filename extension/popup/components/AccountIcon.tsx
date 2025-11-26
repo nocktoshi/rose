@@ -48,7 +48,11 @@ interface AccountIconProps {
  * Displays an account icon with custom style and color
  * Fetches the SVG and applies the color dynamically
  */
-export function AccountIcon({ styleId = 1, color = '#FFC413', className = 'h-6 w-6' }: AccountIconProps) {
+export function AccountIcon({
+  styleId = 1,
+  color = '#FFC413',
+  className = 'h-6 w-6',
+}: AccountIconProps) {
   const [svgContent, setSvgContent] = useState<string>('');
 
   useEffect(() => {
@@ -64,7 +68,9 @@ export function AccountIcon({ styleId = 1, color = '#FFC413', className = 'h-6 w
       .catch(err => {
         console.error('Failed to load SVG:', err);
         // Fallback: just use the default without color
-        setSvgContent(`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${color}"/></svg>`);
+        setSvgContent(
+          `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${color}"/></svg>`
+        );
       });
   }, [styleId, color]);
 

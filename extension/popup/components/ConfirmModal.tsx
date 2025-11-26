@@ -32,10 +32,7 @@ export function ConfirmModal({
         style={{ backgroundColor: 'var(--color-modal-overlay)' }}
         onClick={onCancel}
       />
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        onClick={onCancel}
-      >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onCancel}>
         <div
           className="rounded-xl p-6 flex flex-col gap-4 max-w-[325px] w-full"
           style={{ backgroundColor: 'var(--color-bg)' }}
@@ -58,7 +55,10 @@ export function ConfirmModal({
               type="button"
               onClick={onCancel}
               className="flex-1 h-12 rounded-lg text-sm font-medium leading-[18px] tracking-[0.14px] transition-opacity hover:opacity-90"
-              style={{ backgroundColor: 'var(--color-surface-800)', color: 'var(--color-text-primary)' }}
+              style={{
+                backgroundColor: 'var(--color-surface-800)',
+                color: 'var(--color-text-primary)',
+              }}
             >
               {cancelText}
             </button>

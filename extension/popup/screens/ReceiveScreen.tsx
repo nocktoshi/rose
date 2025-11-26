@@ -43,8 +43,8 @@ export function ReceiveScreen() {
           aria-label="Back"
           className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
           style={{ backgroundColor: 'transparent' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <ChevronLeftIcon className="w-5 h-5" />
         </button>
@@ -75,9 +75,13 @@ export function ReceiveScreen() {
             >
               <div className="text-sm leading-[18px] tracking-[0.14px] font-medium text-center break-words">
                 <span style={{ color: 'var(--color-text-primary)' }}>{addressStart}</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{addressMiddle.substring(0, 18)}</span>
+                <span style={{ color: 'var(--color-text-muted)' }}>
+                  {addressMiddle.substring(0, 18)}
+                </span>
                 <br />
-                <span style={{ color: 'var(--color-text-muted)' }}>{addressMiddle.substring(18)}</span>
+                <span style={{ color: 'var(--color-text-muted)' }}>
+                  {addressMiddle.substring(18)}
+                </span>
                 <span style={{ color: 'var(--color-text-primary)' }}>{addressEnd}</span>
               </div>
 
@@ -89,8 +93,10 @@ export function ReceiveScreen() {
                   border: '1px solid var(--color-text-primary)',
                   color: 'var(--color-text-primary)',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-700)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                onMouseEnter={e =>
+                  (e.currentTarget.style.backgroundColor = 'var(--color-surface-700)')
+                }
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <svg
                   width="16"

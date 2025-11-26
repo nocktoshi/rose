@@ -71,8 +71,8 @@ export function RecoveryPhraseScreen() {
           className="mb-6 p-3 rounded-lg"
           style={{ backgroundColor: 'var(--color-red-light)', color: 'var(--color-red)' }}
         >
-          <strong>Warning:</strong> Never share your recovery phrase with anyone. Anyone with
-          access to this phrase can access your funds.
+          <strong>Warning:</strong> Never share your recovery phrase with anyone. Anyone with access
+          to this phrase can access your funds.
         </div>
 
         <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
@@ -82,7 +82,7 @@ export function RecoveryPhraseScreen() {
         <input
           type="password"
           value={password}
-          onChange={(e) => {
+          onChange={e => {
             setPassword(e.target.value);
             setError('');
           }}
@@ -93,9 +93,9 @@ export function RecoveryPhraseScreen() {
             backgroundColor: 'var(--color-bg)',
             color: 'var(--color-text-primary)',
           }}
-          onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
-          onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-surface-700)')}
+          onKeyDown={e => e.key === 'Enter' && handleReveal()}
+          onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+          onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-surface-700)')}
           autoFocus
         />
 
@@ -121,8 +121,8 @@ export function RecoveryPhraseScreen() {
           onClick={() => navigate('settings')}
           className="my-2 w-full rounded-lg px-5 py-3.5 text-sm font-medium transition-colors"
           style={{ backgroundColor: 'var(--color-surface-800)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-700)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-700)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
         >
           Cancel
         </button>
@@ -152,8 +152,8 @@ export function RecoveryPhraseScreen() {
         className="mb-4 p-3 rounded-lg"
         style={{ backgroundColor: 'var(--color-red-light)', color: 'var(--color-red)' }}
       >
-        <strong>Warning:</strong> Write down these 24 words in order and store them safely.
-        Never share them with anyone.
+        <strong>Warning:</strong> Write down these 24 words in order and store them safely. Never
+        share them with anyone.
       </div>
 
       {/* Words grid */}

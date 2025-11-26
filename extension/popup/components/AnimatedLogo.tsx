@@ -3,7 +3,7 @@ import irisLogoNoEye from '../assets/iris-logo-no-eye.svg';
 
 /**
  * AnimatedLogo - Iris flower logo with animated cursor-following eye
- * 
+ *
  * Features:
  * - Smooth velocity-based physics for natural eye movement
  * - Global cursor tracking (eye follows cursor anywhere on screen)
@@ -13,14 +13,14 @@ import irisLogoNoEye from '../assets/iris-logo-no-eye.svg';
  */
 
 const CONFIG = {
-  CENTER: 48,              // Center of 96x96 container
-  EYE_RADIUS: 10,          // Eye pupil radius (20px diameter)
-  MAX_DISTANCE_X: 30,      // Max horizontal distance (wide range to eye corners)
-  MAX_DISTANCE_Y: 14,      // Max vertical distance (almond shape is narrower)
-  SMOOTHING: 0.002,        // Acceleration rate (extremely low = ultra-smooth, calm)
-  DAMPING: 0.94,           // Velocity damping (maximum friction = silky smooth stops)
-  MIN_DISTANCE: 10,        // Dead zone radius (larger = ignores small movements)
-  SCALE_FACTOR: 0.055,     // Cursor distance to eye movement ratio (subtle response)
+  CENTER: 48, // Center of 96x96 container
+  EYE_RADIUS: 10, // Eye pupil radius (20px diameter)
+  MAX_DISTANCE_X: 30, // Max horizontal distance (wide range to eye corners)
+  MAX_DISTANCE_Y: 14, // Max vertical distance (almond shape is narrower)
+  SMOOTHING: 0.002, // Acceleration rate (extremely low = ultra-smooth, calm)
+  DAMPING: 0.94, // Velocity damping (maximum friction = silky smooth stops)
+  MIN_DISTANCE: 10, // Dead zone radius (larger = ignores small movements)
+  SCALE_FACTOR: 0.055, // Cursor distance to eye movement ratio (subtle response)
 };
 
 export function AnimatedLogo() {
@@ -95,11 +95,17 @@ export function AnimatedLogo() {
         // Proportional movement with elliptical constraint (almond-shaped boundary)
         const scaledX = dirX * distance * CONFIG.SCALE_FACTOR;
         const scaledY = dirY * distance * CONFIG.SCALE_FACTOR;
-        
+
         // Apply elliptical boundary constraint (wider horizontally, narrower vertically)
-        const constrainedX = Math.max(-CONFIG.MAX_DISTANCE_X, Math.min(CONFIG.MAX_DISTANCE_X, scaledX));
-        const constrainedY = Math.max(-CONFIG.MAX_DISTANCE_Y, Math.min(CONFIG.MAX_DISTANCE_Y, scaledY));
-        
+        const constrainedX = Math.max(
+          -CONFIG.MAX_DISTANCE_X,
+          Math.min(CONFIG.MAX_DISTANCE_X, scaledX)
+        );
+        const constrainedY = Math.max(
+          -CONFIG.MAX_DISTANCE_Y,
+          Math.min(CONFIG.MAX_DISTANCE_Y, scaledY)
+        );
+
         targetPosRef.current = {
           x: CONFIG.CENTER + constrainedX,
           y: CONFIG.CENTER + constrainedY,
@@ -130,7 +136,7 @@ export function AnimatedLogo() {
         className="w-full h-full absolute inset-0"
         draggable={false}
       />
-      
+
       {/* Animated eye */}
       <div
         ref={eyeRef}

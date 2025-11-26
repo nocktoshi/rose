@@ -42,10 +42,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": [
-        "lib/nbx-wasm/*.wasm",
-        "lib/nbx-wasm/*.js"
-      ],
+      "resources": ["lib/iris-wasm/*.wasm", "lib/iris-wasm/*.js"],
       "matches": ["<all_urls>"]
     }
   ]

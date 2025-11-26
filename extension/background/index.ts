@@ -1,3 +1,4 @@
+/// <reference types="chrome" />
 /**
  * Service Worker: Wallet controller and message router
  * Handles provider requests from content script and popup UI
@@ -17,7 +18,12 @@ import {
   APPROVAL_CONSTANTS,
   RPC_ENDPOINT,
 } from '../shared/constants';
-import type { TransactionRequest, SignRequest, ConnectRequest } from '../shared/types';
+import type {
+  TransactionRequest,
+  SignRequest,
+  ConnectRequest,
+  SignRawTxRequest,
+} from '../shared/types';
 
 const vault = new Vault();
 let lastActivity = Date.now();
@@ -26,7 +32,10 @@ let manuallyLocked = false; // Track if user manually locked (don't auto-unlock)
 let approvalWindowId: number | null = null; // Track the approval popup window for reuse
 let isCreatingWindow = false; // Prevent race condition when creating window
 let currentRequestId: string | null = null; // Currently displayed request
-let requestQueue: Array<{ id: string; type: 'connect' | 'transaction' | 'sign-message' }> = []; // Queued requests
+let requestQueue: Array<{
+  id: string;
+  type: 'connect' | 'transaction' | 'sign-message' | 'sign-raw-tx';
+}> = []; // Queued requests
 
 /**
  * In-memory cache of approved origins
@@ -124,6 +133,20 @@ function isOriginApproved(origin: string): boolean {
   return approvedOrigins.has(origin);
 }
 
+function cancelPendingRequest(requestId: string, code?: number, message?: string): void {
+  const request = pendingRequests.get(requestId);
+  if (!request) {
+    return;
+  }
+  pendingRequests.delete(requestId);
+  request.sendResponse({
+    error: { code: code || 4001, message: message || 'Request was cancelled' },
+  });
+  if (currentRequestId == requestId) {
+    currentRequestId = null;
+  }
+}
+
 /**
  * Check if a request timestamp has expired
  * @param timestamp - Request creation timestamp
@@ -138,7 +161,7 @@ function isRequestExpired(timestamp: number): boolean {
  * Maps request ID to the request data and response callback
  */
 interface PendingRequest {
-  request: TransactionRequest | SignRequest | ConnectRequest;
+  request: TransactionRequest | SignRequest | ConnectRequest | SignRawTxRequest;
   sendResponse: (response: any) => void;
   origin: string;
   needsUnlock?: boolean; // Flag indicating request is waiting for wallet unlock
@@ -150,7 +173,7 @@ const pendingRequests = new Map<string, PendingRequest>();
  * Type guard to check if a request is a ConnectRequest
  */
 function isConnectRequest(
-  request: TransactionRequest | SignRequest | ConnectRequest
+  request: TransactionRequest | SignRequest | ConnectRequest | SignRawTxRequest
 ): request is ConnectRequest {
   return 'timestamp' in request && !('message' in request) && !('to' in request);
 }
@@ -159,16 +182,25 @@ function isConnectRequest(
  * Type guard to check if a request is a SignRequest
  */
 function isSignRequest(
-  request: TransactionRequest | SignRequest | ConnectRequest
+  request: TransactionRequest | SignRequest | ConnectRequest | SignRawTxRequest
 ): request is SignRequest {
   return 'message' in request;
+}
+
+/**
+ * Type guard to check if a request is a SignRawTxRequest
+ */
+function isSignRawTxRequest(
+  request: TransactionRequest | SignRequest | ConnectRequest | SignRawTxRequest
+): request is SignRawTxRequest {
+  return 'rawTx' in request && 'notes' in request && 'spendConditions' in request;
 }
 
 /**
  * Type guard to check if a request is a TransactionRequest
  */
 function isTransactionRequest(
-  request: TransactionRequest | SignRequest | ConnectRequest
+  request: TransactionRequest | SignRequest | ConnectRequest | SignRawTxRequest
 ): request is TransactionRequest {
   return 'to' in request;
 }
@@ -180,7 +212,7 @@ function isTransactionRequest(
  */
 async function createApprovalPopup(
   requestId: string,
-  type: 'connect' | 'transaction' | 'sign-message'
+  type: 'connect' | 'transaction' | 'sign-message' | 'sign-raw-tx'
 ) {
   // If user is currently viewing a different request, queue this one
   if (currentRequestId !== null && currentRequestId !== requestId) {
@@ -201,13 +233,20 @@ async function createApprovalPopup(
     hashPrefix = APPROVAL_CONSTANTS.CONNECT_HASH_PREFIX;
   } else if (type === 'transaction') {
     hashPrefix = APPROVAL_CONSTANTS.TRANSACTION_HASH_PREFIX;
+  } else if (type === 'sign-raw-tx') {
+    hashPrefix = APPROVAL_CONSTANTS.SIGN_RAW_TX_HASH_PREFIX;
   } else {
     hashPrefix = APPROVAL_CONSTANTS.SIGN_MESSAGE_HASH_PREFIX;
   }
   const popupUrl = chrome.runtime.getURL(`popup/index.html#${hashPrefix}${requestId}`);
+  console.log(
+    `[Approval] Creating approval popup for request ${requestId} with URL ${popupUrl} and type ${type}`
+  );
 
   // Try to reuse existing approval window
   if (approvalWindowId !== null) {
+    console.log(`[Approval] Reusing existing approval window ${approvalWindowId}`);
+
     try {
       const existingWindow = await chrome.windows.get(approvalWindowId);
 
@@ -216,8 +255,12 @@ async function createApprovalPopup(
         await chrome.tabs.update(existingWindow.tabs[0].id, { url: popupUrl });
         await chrome.windows.update(approvalWindowId, { focused: true });
         return; // Done - reused existing window
+      } else {
+        await chrome.windows.remove(approvalWindowId);
+        approvalWindowId = null;
       }
     } catch (error) {
+      console.log(error);
       // Window was closed or doesn't exist, create new one
       approvalWindowId = null;
     }
@@ -232,30 +275,16 @@ async function createApprovalPopup(
   // Create new approval window
   isCreatingWindow = true;
   try {
-    const currentWindow = await chrome.windows.getLastFocused();
-
-    // Calculate position for top-right area
     const width = UI_CONSTANTS.POPUP_WIDTH;
     const height = UI_CONSTANTS.POPUP_HEIGHT;
 
-    // Position in top-right of the current window, with some padding
-    // If window dimensions aren't available, use reasonable defaults
-    const left =
-      currentWindow.left !== undefined && currentWindow.width !== undefined
-        ? currentWindow.left + currentWindow.width - width - UI_CONSTANTS.POPUP_RIGHT_OFFSET
-        : undefined; // Let Chrome position it
-    const top =
-      currentWindow.top !== undefined
-        ? currentWindow.top + UI_CONSTANTS.POPUP_TOP_OFFSET
-        : undefined; // Let Chrome position it
-
+    // Let Chrome position the popup automatically to avoid bounds errors
+    // Chrome will position it in a visible location
     const newWindow = await chrome.windows.create({
       url: popupUrl,
       type: 'popup',
       width,
       height,
-      left,
-      top,
       focused: true,
     });
 
@@ -270,12 +299,20 @@ async function createApprovalPopup(
  * Called when user approves or rejects a request
  */
 function processNextRequest() {
-  currentRequestId = null;
+  if (currentRequestId !== null) {
+    cancelPendingRequest(currentRequestId);
+  }
 
   if (requestQueue.length > 0) {
-    const next = requestQueue.shift()!;
-    console.log(`[Queue] Processing next request ${next.id}. Remaining: ${requestQueue.length}`);
-    createApprovalPopup(next.id, next.type);
+    while (true) {
+      const next = requestQueue.shift()!;
+      console.log(`[Queue] Processing next request ${next.id}. Remaining: ${requestQueue.length}`);
+      if (!pendingRequests.has(next.id)) {
+        continue;
+      }
+      createApprovalPopup(next.id, next.type);
+      break;
+    }
   } else {
     console.log('[Queue] No more requests in queue');
   }
@@ -362,55 +399,23 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
     switch (payload?.method) {
       // Provider methods (called from injected provider via content script)
-      case PROVIDER_METHODS.REQUEST_ACCOUNTS:
-        const requestAccountsOrigin = _sender.url || _sender.origin || '';
+      case PROVIDER_METHODS.CONNECT:
+        const connectOrigin = _sender.url || _sender.origin || '';
 
-        // If wallet is locked, open popup to unlock (like MetaMask does)
-        if (vault.isLocked()) {
+        // Check if origin is already approved
+        if (!isOriginApproved(connectOrigin) || vault.isLocked()) {
           // Clear any existing pending unlock requests from same origin to prevent duplicates
           for (const [existingId, existingData] of pendingRequests.entries()) {
-            if (existingData.needsUnlock && existingData.origin === requestAccountsOrigin) {
-              // Reject the old request with user rejection error
-              existingData.sendResponse({
-                error: { code: 4001, message: 'User rejected the request' },
-              });
-              pendingRequests.delete(existingId);
+            if (existingData.origin === connectOrigin) {
+              cancelPendingRequest(existingId);
             }
           }
 
-          // Create a pending request that will continue after unlock
-          const unlockRequestId = crypto.randomUUID();
-          const unlockRequest: ConnectRequest = {
-            id: unlockRequestId,
-            origin: requestAccountsOrigin,
-            timestamp: Date.now(),
-          };
-
-          // Store pending request with response callback
-          // Mark it as 'needsUnlock' so we know to process it after unlock
-          pendingRequests.set(unlockRequestId, {
-            request: unlockRequest,
-            sendResponse,
-            origin: unlockRequest.origin,
-            needsUnlock: true, // Flag to indicate this is waiting for unlock
-          });
-
-          // Open popup to unlock (shows home screen with unlock prompt)
-          // Use createApprovalPopup to properly track the window
-          // Pass a temporary "unlock" request that will be replaced with connect request after unlock
-          await createApprovalPopup(unlockRequestId, 'connect');
-
-          // Response will be sent after user unlocks and approves
-          return;
-        }
-
-        // Check if origin is already approved
-        if (!isOriginApproved(requestAccountsOrigin)) {
           // Origin not approved - show connection approval popup
           const connectRequestId = crypto.randomUUID();
           const connectRequest: ConnectRequest = {
             id: connectRequestId,
-            origin: requestAccountsOrigin,
+            origin: connectOrigin,
             timestamp: Date.now(),
           };
 
@@ -429,8 +434,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         }
 
         // Origin approved - return address
-        const address = vault.getAddress();
-        sendResponse([address]);
+        sendResponse({
+          pkh: vault.getAddress(),
+          grpcEndpoint: RPC_ENDPOINT,
+        });
 
         // Emit connect event when dApp connects successfully
         await emitWalletEvent('connect', { chainId: 'nockchain-1' });
@@ -467,6 +474,57 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
         // Create approval popup
         await createApprovalPopup(newSignRequestId, 'sign-message');
+
+        // Response will be sent when user approves/rejects
+        return;
+
+      case PROVIDER_METHODS.SIGN_RAW_TX:
+        // Validate origin
+        const signRawTxOrigin = _sender.url || _sender.origin || '';
+        if (!isOriginApproved(signRawTxOrigin)) {
+          sendResponse({ error: { code: 4100, message: 'Unauthorized origin' } });
+          return;
+        }
+
+        if (vault.isLocked()) {
+          sendResponse({ error: ERROR_CODES.LOCKED });
+          return;
+        }
+
+        const rawTxParams = payload.params?.[0];
+        if (
+          !rawTxParams ||
+          !rawTxParams.rawTx ||
+          !rawTxParams.notes ||
+          !rawTxParams.spendConditions
+        ) {
+          sendResponse({ error: { code: -32602, message: 'Invalid params' } });
+          return;
+        }
+
+        const outputs = await vault.computeOutputs(rawTxParams.rawTx);
+
+        // Create sign raw tx approval request
+        const signRawTxId = crypto.randomUUID();
+        const signRawTxRequest: SignRawTxRequest = {
+          id: signRawTxId,
+          origin: signRawTxOrigin,
+          rawTx: rawTxParams.rawTx,
+          notes: rawTxParams.notes,
+          spendConditions: rawTxParams.spendConditions,
+          outputs: outputs,
+          timestamp: Date.now(),
+        };
+
+        // Store pending request with response callback
+        pendingRequests.set(signRawTxId, {
+          request: signRawTxRequest,
+          sendResponse,
+          origin: signRawTxRequest.origin,
+        });
+
+        // Create approval popup
+        await createApprovalPopup(signRawTxId, 'sign-raw-tx');
 
         // Response will be sent when user approves/rejects
         return;
@@ -513,6 +571,25 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         // Response will be sent when user approves/rejects
         return;
 
+      case PROVIDER_METHODS.GET_WALLET_INFO:
+        // Validate origin
+        const getInfoOrigin = _sender.url || _sender.origin || '';
+        if (!isOriginApproved(getInfoOrigin)) {
+          sendResponse({ error: { code: 4100, message: 'Unauthorized origin' } });
+          return;
+        }
+
+        if (vault.isLocked()) {
+          sendResponse({ error: ERROR_CODES.LOCKED });
+          return;
+        }
+
+        sendResponse({
+          pkh: vault.getAddress(),
+          grpcEndpoint: RPC_ENDPOINT,
+        });
+        return;
+
       // Internal methods (called from popup)
       case INTERNAL_METHODS.SET_AUTO_LOCK:
         autoLockMinutes = payload.params?.[0] ?? 15;
@@ -532,33 +609,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           // Clear manual lock flag when successfully unlocked
           manuallyLocked = false;
           await emitWalletEvent('connect', { chainId: 'nockchain-1' });
-
-          // Process ONLY THE FIRST pending connect request that was waiting for unlock
-          // This prevents multiple popups from opening
-          for (const [requestId, pendingData] of pendingRequests.entries()) {
-            if (pendingData.needsUnlock && pendingData.request && 'origin' in pendingData.request) {
-              const connectRequest = pendingData.request as ConnectRequest;
-
-              // Check if origin needs approval
-              if (!isOriginApproved(connectRequest.origin)) {
-                // Window is already open from unlock flow - clear currentRequestId so it can update
-                currentRequestId = null;
-                // Remove the needsUnlock flag - it's now in the approval flow
-                delete pendingData.needsUnlock;
-                // Update the existing window to show the connect approval screen
-                createApprovalPopup(requestId, 'connect'); // Will reuse existing window
-              } else {
-                // Origin already approved - send address immediately and close window
-                const addr = vault.getAddress();
-                pendingData.sendResponse([addr]);
-                pendingRequests.delete(requestId);
-                processNextRequest(); // Process next request or close window
-              }
-
-              // Only process the first one, then break
-              break;
-            }
-          }
         }
         return;
 
@@ -726,6 +776,16 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         }
         return;
 
+      case INTERNAL_METHODS.GET_PENDING_SIGN_RAW_TX_REQUEST:
+        const getPendingSignRawTxId = payload.params?.[0];
+        const signRawTxPending = pendingRequests.get(getPendingSignRawTxId);
+        if (signRawTxPending && isSignRawTxRequest(signRawTxPending.request)) {
+          sendResponse(signRawTxPending.request);
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
       case INTERNAL_METHODS.APPROVE_TRANSACTION:
         const approveTxId = payload.params?.[0];
         const approveTxPending = pendingRequests.get(approveTxId);
@@ -734,10 +794,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
           // Check if request has expired (replay prevention)
           if (isRequestExpired(txRequest.timestamp)) {
-            approveTxPending.sendResponse({
-              error: { code: 4003, message: 'Request expired' },
-            });
-            pendingRequests.delete(approveTxId);
+            cancelPendingRequest(approveTxId, 4003, 'Request expired');
             sendResponse({ error: 'Request expired' });
             return;
           }
@@ -755,7 +812,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
               amount: txRequest.amount,
               fee: txRequest.fee,
             });
-            pendingRequests.delete(approveTxId);
+            cancelPendingRequest(approveTxId);
             processNextRequest();
             sendResponse({ success: true });
           } catch (error) {
@@ -766,7 +823,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                 message: error instanceof Error ? error.message : 'Transaction signing failed',
               },
             });
-            pendingRequests.delete(approveTxId);
+            cancelPendingRequest(approveTxId);
             processNextRequest();
             sendResponse({
               error: error instanceof Error ? error.message : 'Transaction signing failed',
@@ -781,10 +838,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         const rejectTxId = payload.params?.[0];
         const rejectTxPending = pendingRequests.get(rejectTxId);
         if (rejectTxPending) {
-          rejectTxPending.sendResponse({
-            error: { code: 4001, message: 'User rejected the transaction' },
-          });
-          pendingRequests.delete(rejectTxId);
+          cancelPendingRequest(rejectTxId, 4001, 'User rejected the transaction');
           processNextRequest();
           sendResponse({ success: true });
         } else {
@@ -800,10 +854,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
           // Check if request has expired (replay prevention)
           if (isRequestExpired(signRequest.timestamp)) {
-            approveSignPending.sendResponse({
-              error: { code: 4003, message: 'Request expired' },
-            });
-            pendingRequests.delete(approveSignId);
+            cancelPendingRequest(approveSignId, 4003, 'Request expired');
             sendResponse({ error: 'Request expired' });
             return;
           }
@@ -811,15 +862,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           try {
             const signature = await vault.signMessage([signRequest.message]);
             approveSignPending.sendResponse({ signature });
-            pendingRequests.delete(approveSignId);
+            cancelPendingRequest(approveSignId);
             processNextRequest();
             sendResponse({ success: true });
           } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to sign message';
-            approveSignPending.sendResponse({
-              error: { code: 4001, message: errorMessage },
-            });
-            pendingRequests.delete(approveSignId);
+            cancelPendingRequest(approveSignId, 4001, errorMessage);
             processNextRequest();
             sendResponse({ error: errorMessage });
           }
@@ -832,10 +880,56 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         const rejectSignId = payload.params?.[0];
         const rejectSignPending = pendingRequests.get(rejectSignId);
         if (rejectSignPending) {
-          rejectSignPending.sendResponse({
-            error: { code: 4001, message: 'User rejected the signature request' },
-          });
-          pendingRequests.delete(rejectSignId);
+          cancelPendingRequest(rejectSignId, 4001, 'User rejected the signature request');
+          processNextRequest();
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
+      case INTERNAL_METHODS.APPROVE_SIGN_RAW_TX:
+        const approveSignRawTxId = payload.params?.[0];
+        const approveSignRawTxPending = pendingRequests.get(approveSignRawTxId);
+
+        if (approveSignRawTxPending && isSignRawTxRequest(approveSignRawTxPending.request)) {
+          const signRawTxRequest = approveSignRawTxPending.request;
+
+          // Check if request has expired (replay prevention)
+          if (isRequestExpired(signRawTxRequest.timestamp)) {
+            cancelPendingRequest(approveSignRawTxId, 4003, 'Request expired');
+            sendResponse({ error: 'Request expired' });
+            return;
+          }
+
+          try {
+            const signature = await vault.signRawTx({
+              rawTx: signRawTxRequest.rawTx,
+              notes: signRawTxRequest.notes,
+              spendConditions: signRawTxRequest.spendConditions,
+            });
+            approveSignRawTxPending.sendResponse(signature);
+            cancelPendingRequest(approveSignRawTxId);
+            processNextRequest();
+            sendResponse({ success: true });
+          } catch (err) {
+            console.error('Failed to sign raw transaction:', err);
+            const errorMessage =
+              err instanceof Error ? err.message : 'Failed to sign raw transaction';
+            cancelPendingRequest(approveSignRawTxId, 4001, errorMessage);
+            processNextRequest();
+            sendResponse({ error: errorMessage });
+          }
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
+      case INTERNAL_METHODS.REJECT_SIGN_RAW_TX:
+        const rejectSignRawTxId = payload.params?.[0];
+        const rejectSignRawTxPending = pendingRequests.get(rejectSignRawTxId);
+        if (rejectSignRawTxPending) {
+          cancelPendingRequest(rejectSignRawTxId, 4001, 'User rejected the signature request');
           processNextRequest();
           sendResponse({ success: true });
         } else {
@@ -861,10 +955,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
           // Check if request has expired (replay prevention)
           if (isRequestExpired(connectRequest.timestamp)) {
-            approveConnectPending.sendResponse({
-              error: { code: 4003, message: 'Request expired' },
-            });
-            pendingRequests.delete(approveConnectId);
+            cancelPendingRequest(approveConnectId, 4003, 'Request expired');
             sendResponse({ error: 'Request expired' });
             return;
           }
@@ -872,10 +963,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           // Add origin to approved list
           await approveOrigin(connectRequest.origin);
 
-          // Return address
-          const connectAddress = vault.getAddress();
-          approveConnectPending.sendResponse([connectAddress]);
-          pendingRequests.delete(approveConnectId);
+          // Return wallet info
+          approveConnectPending.sendResponse({
+            pkh: vault.getAddress(),
+            grpcEndpoint: RPC_ENDPOINT,
+          });
+          cancelPendingRequest(approveConnectId);
           processNextRequest();
           sendResponse({ success: true });
 
@@ -890,12 +983,20 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         const rejectConnectId = payload.params?.[0];
         const rejectConnectPending = pendingRequests.get(rejectConnectId);
         if (rejectConnectPending) {
-          rejectConnectPending.sendResponse({
-            error: { code: 4001, message: 'User rejected the connection' },
-          });
-          pendingRequests.delete(rejectConnectId);
+          cancelPendingRequest(rejectConnectId, 4001, 'User rejected the connection');
           processNextRequest();
           sendResponse({ success: true });
+        } else {
+          sendResponse({ error: ERROR_CODES.NOT_FOUND });
+        }
+        return;
+
+      case INTERNAL_METHODS.GET_PENDING_RAW_TX_REQUEST:
+        const getPendingRawTxId = payload.params?.[0];
+        const rawTxPending = pendingRequests.get(getPendingRawTxId);
+
+        if (rawTxPending && isSignRawTxRequest(rawTxPending.request)) {
+          sendResponse(rawTxPending.request);
         } else {
           sendResponse({ error: ERROR_CODES.NOT_FOUND });
         }

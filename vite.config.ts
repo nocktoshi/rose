@@ -16,22 +16,22 @@ export default defineConfig({
 
         // Add back the icons that @crxjs strips
         builtManifest.icons = {
-          "16": "icons/icon16.png",
-          "32": "icons/icon32.png",
-          "48": "icons/icon48.png",
-          "128": "icons/icon128.png"
+          '16': 'icons/icon16.png',
+          '32': 'icons/icon32.png',
+          '48': 'icons/icon48.png',
+          '128': 'icons/icon128.png',
         };
 
         builtManifest.action.default_icon = {
-          "16": "icons/icon16.png",
-          "32": "icons/icon32.png",
-          "48": "icons/icon48.png",
-          "128": "icons/icon128.png"
+          '16': 'icons/icon16.png',
+          '32': 'icons/icon32.png',
+          '48': 'icons/icon48.png',
+          '128': 'icons/icon128.png',
         };
 
         writeFileSync(manifestPath, JSON.stringify(builtManifest, null, 2));
-      }
-    }
+      },
+    },
   ],
   root: 'extension',
   build: {
@@ -42,11 +42,11 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Preserve WASM files during build
-        assetFileNames: (assetInfo) => {
+        assetFileNames: assetInfo => {
           if (assetInfo.name?.endsWith('.wasm')) {
             // Preserve WASM files in their lib subdirectories
-            if (assetInfo.name.includes('nbx_wasm')) {
-              return 'lib/nbx-wasm/[name][extname]';
+            if (assetInfo.name.includes('iris_wasm')) {
+              return 'lib/iris-wasm/[name][extname]';
             }
             return 'lib/[name][extname]';
           }
@@ -54,8 +54,8 @@ export default defineConfig({
         },
         // Disable dynamic imports in service worker to avoid document.* injection
         inlineDynamicImports: false,
-      }
-    }
+      },
+    },
   },
-  assetsInclude: ['**/*.wasm']
+  assetsInclude: ['**/*.wasm'],
 });

@@ -55,7 +55,10 @@ export function SentScreen() {
       </div>
 
       {/* Success message */}
-      <h3 className="text-2xl font-semibold text-center mb-2" style={{ color: 'var(--color-text-primary)' }}>
+      <h3
+        className="text-2xl font-semibold text-center mb-2"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
         Sent!
       </h3>
       <p className="text-center mb-8" style={{ color: 'var(--color-text-muted)' }}>
@@ -63,17 +66,33 @@ export function SentScreen() {
       </p>
 
       {/* Transaction details */}
-      <div className="rounded-lg p-4 mb-4 space-y-3" style={{ backgroundColor: 'var(--color-surface-800)' }}>
+      <div
+        className="rounded-lg p-4 mb-4 space-y-3"
+        style={{ backgroundColor: 'var(--color-surface-800)' }}
+      >
         <div className="flex justify-between items-center">
-          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Amount</span>
-          <span className="font-mono" style={{ color: 'var(--color-text-primary)' }}>{amount} NOCK</span>
+          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+            Amount
+          </span>
+          <span className="font-mono" style={{ color: 'var(--color-text-primary)' }}>
+            {amount} NOCK
+          </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Fee</span>
-          <span className="font-mono" style={{ color: 'var(--color-text-primary)' }}>{fee} NOCK</span>
+          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+            Fee
+          </span>
+          <span className="font-mono" style={{ color: 'var(--color-text-primary)' }}>
+            {fee} NOCK
+          </span>
         </div>
-        <div className="pt-3 flex justify-between items-center" style={{ borderTop: '1px solid var(--color-divider)' }}>
-          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Total</span>
+        <div
+          className="pt-3 flex justify-between items-center"
+          style={{ borderTop: '1px solid var(--color-divider)' }}
+        >
+          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+            Total
+          </span>
           <span className="font-mono font-semibold" style={{ color: 'var(--color-text-primary)' }}>
             {total.toFixed(2)} NOCK
           </span>
@@ -82,24 +101,28 @@ export function SentScreen() {
 
       {/* Transaction ID */}
       <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: 'var(--color-surface-800)' }}>
-        <p className="text-sm mb-2" style={{ color: 'var(--color-text-muted)' }}>Transaction ID:</p>
-        <button
-          onClick={() => copyToClipboard(txid)}
-          className="w-full text-left"
-        >
-          <p className="text-sm font-mono break-all mb-2" style={{ color: 'var(--color-text-primary)' }}>
+        <p className="text-sm mb-2" style={{ color: 'var(--color-text-muted)' }}>
+          Transaction ID:
+        </p>
+        <button onClick={() => copyToClipboard(txid)} className="w-full text-left">
+          <p
+            className="text-sm font-mono break-all mb-2"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
             {txid}
           </p>
         </button>
         {copied && (
-          <p className="text-xs" style={{ color: 'var(--color-green)' }}>Copied to clipboard!</p>
+          <p className="text-xs" style={{ color: 'var(--color-green)' }}>
+            Copied to clipboard!
+          </p>
         )}
         <button
           onClick={handleViewDetails}
           className="flex items-center gap-2 text-sm transition-colors mt-2"
           style={{ color: 'var(--color-text-muted)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-text-primary)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
         >
           <ArrowUpRightIcon className="w-4 h-4" />
           View Details

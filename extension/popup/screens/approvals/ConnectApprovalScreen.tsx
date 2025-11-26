@@ -1,16 +1,16 @@
-import { useStore } from "../../store";
-import { ChevronLeftIcon } from "../../components/icons/ChevronLeftIcon";
-import { AccountIcon } from "../../components/AccountIcon";
-import { truncateAddress } from "../../utils/format";
-import { send } from "../../utils/messaging";
-import { INTERNAL_METHODS } from "../../../shared/constants";
-import { useAutoRejectOnClose } from "../../hooks/useAutoRejectOnClose";
+import { useStore } from '../../store';
+import { ChevronLeftIcon } from '../../components/icons/ChevronLeftIcon';
+import { AccountIcon } from '../../components/AccountIcon';
+import { truncateAddress } from '../../utils/format';
+import { send } from '../../utils/messaging';
+import { INTERNAL_METHODS } from '../../../shared/constants';
+import { useAutoRejectOnClose } from '../../hooks/useAutoRejectOnClose';
 
 export function ConnectApprovalScreen() {
   const { navigate, pendingConnectRequest, setPendingConnectRequest, wallet } = useStore();
 
   if (!pendingConnectRequest) {
-    navigate("home");
+    navigate('home');
     return null;
   }
 
@@ -54,7 +54,10 @@ export function ConnectApprovalScreen() {
       <div className="px-4 pb-2">
         {/* Site Icon & Info */}
         <div className="text-center mb-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3" style={{ backgroundColor: surface }}>
+          <div
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
+            style={{ backgroundColor: surface }}
+          >
             <span className="text-2xl font-bold" style={{ color: textPrimary }}>
               {domain.charAt(0).toUpperCase()}
             </span>
@@ -89,15 +92,18 @@ export function ConnectApprovalScreen() {
           <label className="text-xs block mb-1.5 font-medium" style={{ color: textMuted }}>
             Connecting Account
           </label>
-          <div className="rounded-lg p-3 flex items-center gap-2.5" style={{ backgroundColor: surface }}>
-            <AccountIcon 
-              styleId={wallet.currentAccount?.iconStyleId} 
-              color={wallet.currentAccount?.iconColor} 
-              className="w-8 h-8 shrink-0" 
+          <div
+            className="rounded-lg p-3 flex items-center gap-2.5"
+            style={{ backgroundColor: surface }}
+          >
+            <AccountIcon
+              styleId={wallet.currentAccount?.iconStyleId}
+              color={wallet.currentAccount?.iconColor}
+              className="w-8 h-8 shrink-0"
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium" style={{ color: textPrimary }}>
-                {wallet.currentAccount?.name || "Unknown"}
+                {wallet.currentAccount?.name || 'Unknown'}
               </p>
               <p className="text-xs font-mono mt-0.5" style={{ color: textMuted }}>
                 {truncateAddress(wallet.currentAccount?.address)}
@@ -108,7 +114,10 @@ export function ConnectApprovalScreen() {
       </div>
 
       {/* Footer Buttons */}
-      <div className="mt-auto px-4 py-2.5 shrink-0 flex gap-3" style={{ borderTop: `1px solid ${divider}` }}>
+      <div
+        className="mt-auto px-4 py-2.5 shrink-0 flex gap-3"
+        style={{ borderTop: `1px solid ${divider}` }}
+      >
         <button onClick={handleReject} className="btn-secondary flex-1">
           Cancel
         </button>

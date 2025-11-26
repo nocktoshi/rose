@@ -1,16 +1,16 @@
-import { useStore } from "../../store";
-import { ChevronLeftIcon } from "../../components/icons/ChevronLeftIcon";
-import { AccountIcon } from "../../components/AccountIcon";
-import { truncateAddress } from "../../utils/format";
-import { send } from "../../utils/messaging";
-import { INTERNAL_METHODS } from "../../../shared/constants";
-import { useAutoRejectOnClose } from "../../hooks/useAutoRejectOnClose";
+import { useStore } from '../../store';
+import { ChevronLeftIcon } from '../../components/icons/ChevronLeftIcon';
+import { AccountIcon } from '../../components/AccountIcon';
+import { truncateAddress } from '../../utils/format';
+import { send } from '../../utils/messaging';
+import { INTERNAL_METHODS } from '../../../shared/constants';
+import { useAutoRejectOnClose } from '../../hooks/useAutoRejectOnClose';
 
 export function SignMessageScreen() {
   const { navigate, pendingSignRequest, setPendingSignRequest, wallet } = useStore();
 
   if (!pendingSignRequest) {
-    navigate("home");
+    navigate('home');
     return null;
   }
 
@@ -70,8 +70,14 @@ export function SignMessageScreen() {
           <label className="text-xs block mb-1.5 font-medium" style={{ color: textMuted }}>
             Message
           </label>
-          <div className="rounded-lg p-3 max-h-48 overflow-y-auto" style={{ backgroundColor: surface }}>
-            <pre className="text-sm whitespace-pre-wrap break-words font-mono" style={{ color: textPrimary }}>
+          <div
+            className="rounded-lg p-3 max-h-48 overflow-y-auto"
+            style={{ backgroundColor: surface }}
+          >
+            <pre
+              className="text-sm whitespace-pre-wrap break-words font-mono"
+              style={{ color: textPrimary }}
+            >
               {message}
             </pre>
           </div>
@@ -82,15 +88,18 @@ export function SignMessageScreen() {
           <label className="text-xs block mb-1.5 font-medium" style={{ color: textMuted }}>
             Signing Account
           </label>
-          <div className="rounded-lg p-3 flex items-center gap-2.5" style={{ backgroundColor: surface }}>
-            <AccountIcon 
-              styleId={wallet.currentAccount?.iconStyleId} 
-              color={wallet.currentAccount?.iconColor} 
-              className="w-8 h-8 shrink-0" 
+          <div
+            className="rounded-lg p-3 flex items-center gap-2.5"
+            style={{ backgroundColor: surface }}
+          >
+            <AccountIcon
+              styleId={wallet.currentAccount?.iconStyleId}
+              color={wallet.currentAccount?.iconColor}
+              className="w-8 h-8 shrink-0"
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium" style={{ color: textPrimary }}>
-                {wallet.currentAccount?.name || "Unknown"}
+                {wallet.currentAccount?.name || 'Unknown'}
               </p>
               <p className="text-xs font-mono mt-0.5" style={{ color: textMuted }}>
                 {truncateAddress(wallet.currentAccount?.address)}
@@ -101,7 +110,10 @@ export function SignMessageScreen() {
       </div>
 
       {/* Footer Buttons */}
-      <div className="mt-auto px-4 py-2.5 shrink-0 flex gap-3" style={{ borderTop: `1px solid ${divider}` }}>
+      <div
+        className="mt-auto px-4 py-2.5 shrink-0 flex gap-3"
+        style={{ borderTop: `1px solid ${divider}` }}
+      >
         <button onClick={handleDecline} className="btn-secondary flex-1">
           Decline
         </button>

@@ -41,12 +41,7 @@ interface UseNumericInputReturn {
  * <button onClick={amount.decrement}>-</button>
  */
 export function useNumericInput(options: UseNumericInputOptions = {}): UseNumericInputReturn {
-  const {
-    initialValue = '',
-    min = 0,
-    max = Infinity,
-    step = 1,
-  } = options;
+  const { initialValue = '', min = 0, max = Infinity, step = 1 } = options;
 
   const [value, setValue] = useState(initialValue);
 

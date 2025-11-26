@@ -34,12 +34,12 @@ export function ThemeSettingsScreen() {
       style={{
         backgroundColor: disabled ? 'transparent' : 'transparent',
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={e => {
         if (!disabled) {
           e.currentTarget.style.backgroundColor = 'var(--color-surface-800)';
         }
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={e => {
         e.currentTarget.style.backgroundColor = 'transparent';
       }}
       role="radio"
@@ -73,8 +73,8 @@ export function ThemeSettingsScreen() {
           onClick={handleBack}
           aria-label="Back"
           className="w-8 h-8 bg-transparent rounded-lg p-2 flex items-center justify-center shrink-0 transition-colors focus:outline-none focus-visible:ring-2"
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <ChevronLeftIcon className="w-5 h-5" />
         </button>

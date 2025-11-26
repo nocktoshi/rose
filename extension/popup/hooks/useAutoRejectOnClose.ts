@@ -8,8 +8,8 @@
  * @param rejectMethod - The internal method to call for rejection
  */
 
-import { useEffect } from "react";
-import { send } from "../utils/messaging";
+import { useEffect } from 'react';
+import { send } from '../utils/messaging';
 
 export function useAutoRejectOnClose(requestId: string, rejectMethod: string) {
   useEffect(() => {
@@ -18,7 +18,7 @@ export function useAutoRejectOnClose(requestId: string, rejectMethod: string) {
       send(rejectMethod, [requestId]).catch(console.error);
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [requestId, rejectMethod]);
 }

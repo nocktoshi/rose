@@ -7,7 +7,7 @@
  *
  */
 
-import { useEffect, RefObject } from "react";
+import { useEffect, RefObject } from 'react';
 
 export function useClickOutside<T extends HTMLElement>(
   ref: RefObject<T | null>,
@@ -25,9 +25,9 @@ export function useClickOutside<T extends HTMLElement>(
     }
 
     // Listen for mousedown events
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
 
     // Cleanup listener on unmount or when dependencies change
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [ref, handler, enabled]);
 }

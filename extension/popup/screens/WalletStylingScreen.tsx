@@ -275,7 +275,7 @@ export function WalletStylingScreen() {
                   scrollPaddingRight: 0,
                 }}
               >
-                {colors.map((color) => {
+                {colors.map(color => {
                   const selected = selectedColor === color;
                   return (
                     <button

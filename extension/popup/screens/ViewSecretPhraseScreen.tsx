@@ -118,12 +118,15 @@ export function ViewSecretPhraseScreen() {
           {/* Seed Phrase Grid */}
           <div className="relative flex flex-col gap-2">
             {/* 12 rows of 2 words each */}
-            {[0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22].map((startIndex) => (
+            {[0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22].map(startIndex => (
               <div key={startIndex} className="flex gap-2">
                 {/* Left word */}
                 <div
                   className="flex-1 rounded-lg overflow-hidden"
-                  style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-surface-800)' }}
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    border: '1px solid var(--color-surface-800)',
+                  }}
                 >
                   <div className="flex items-center gap-2.5 p-2">
                     <div
@@ -143,7 +146,10 @@ export function ViewSecretPhraseScreen() {
                 {/* Right word */}
                 <div
                   className="flex-1 rounded-lg overflow-hidden"
-                  style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-surface-800)' }}
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    border: '1px solid var(--color-surface-800)',
+                  }}
                 >
                   <div className="flex items-center gap-2.5 p-2">
                     <div
@@ -166,7 +172,10 @@ export function ViewSecretPhraseScreen() {
             {!isRevealed && (
               <div
                 className="absolute inset-0 backdrop-blur-[6px] rounded-lg"
-                style={{ backgroundColor: 'var(--color-popover)', border: '1px solid var(--color-surface-900)' }}
+                style={{
+                  backgroundColor: 'var(--color-popover)',
+                  border: '1px solid var(--color-surface-900)',
+                }}
               />
             )}
           </div>

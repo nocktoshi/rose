@@ -21,15 +21,24 @@ function minutesToOption(minutes: number): LockTimeOption {
 
 function optionToMinutes(option: LockTimeOption): number {
   switch (option) {
-    case '1min': return 1;
-    case '5min': return 5;
-    case '10min': return 10;
-    case '15min': return 15;
-    case '30min': return 30;
-    case '1hour': return 60;
-    case '4hours': return 240;
-    case 'never': return 0;
-    default: return 15;
+    case '1min':
+      return 1;
+    case '5min':
+      return 5;
+    case '10min':
+      return 10;
+    case '15min':
+      return 15;
+    case '30min':
+      return 30;
+    case '1hour':
+      return 60;
+    case '4hours':
+      return 240;
+    case 'never':
+      return 0;
+    default:
+      return 15;
   }
 }
 
@@ -90,8 +99,8 @@ export function LockTimeScreen() {
           aria-label="Back"
           className="w-8 h-8 p-2 flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2"
           style={{ color: 'var(--color-text-primary)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <ChevronLeftIcon className="w-5 h-5" />
         </button>
@@ -111,8 +120,10 @@ export function LockTimeScreen() {
               type="button"
               onClick={() => handleTimeSelect(option.value)}
               className="flex items-center justify-between p-3 rounded-lg text-left transition-colors focus:outline-none focus-visible:ring-2"
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              onMouseEnter={e =>
+                (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')
+              }
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               role="radio"
               aria-checked={selected}
             >

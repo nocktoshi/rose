@@ -1,18 +1,22 @@
-import { useStore } from "../../store";
-import { ChevronLeftIcon } from "../../components/icons/ChevronLeftIcon";
-import { ChevronRightIcon } from "../../components/icons/ChevronRightIcon";
-import { AccountIcon } from "../../components/AccountIcon";
-import { truncateAddress } from "../../utils/format";
-import { send } from "../../utils/messaging";
-import { INTERNAL_METHODS, NOCK_TO_NICKS, DEFAULT_TRANSACTION_FEE } from "../../../shared/constants";
-import { formatNock, formatNick } from "../../../shared/currency";
-import { useAutoRejectOnClose } from "../../hooks/useAutoRejectOnClose";
+import { useStore } from '../../store';
+import { ChevronLeftIcon } from '../../components/icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '../../components/icons/ChevronRightIcon';
+import { AccountIcon } from '../../components/AccountIcon';
+import { truncateAddress } from '../../utils/format';
+import { send } from '../../utils/messaging';
+import {
+  INTERNAL_METHODS,
+  NOCK_TO_NICKS,
+  DEFAULT_TRANSACTION_FEE,
+} from '../../../shared/constants';
+import { formatNock, formatNick } from '../../../shared/currency';
+import { useAutoRejectOnClose } from '../../hooks/useAutoRejectOnClose';
 
 export function TransactionApprovalScreen() {
   const { navigate, pendingTransactionRequest, setPendingTransactionRequest, wallet } = useStore();
 
   if (!pendingTransactionRequest) {
-    navigate("home");
+    navigate('home');
     return null;
   }
 
@@ -56,9 +60,17 @@ export function TransactionApprovalScreen() {
       {/* Content */}
       <div className="px-4 pb-2">
         {/* Site Badge */}
-        <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg mb-3" style={{ backgroundColor: surface }}>
-          <span className="text-xs" style={{ color: textMuted }}>From</span>
-          <span className="text-sm font-semibold truncate max-w-[200px]" style={{ color: textPrimary }}>
+        <div
+          className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg mb-3"
+          style={{ backgroundColor: surface }}
+        >
+          <span className="text-xs" style={{ color: textMuted }}>
+            From
+          </span>
+          <span
+            className="text-sm font-semibold truncate max-w-[200px]"
+            style={{ color: textPrimary }}
+          >
             {displayOrigin}
           </span>
         </div>
@@ -75,21 +87,28 @@ export function TransactionApprovalScreen() {
 
         <div className="space-y-2">
           {/* From/To */}
-          <div className="rounded-lg p-3 flex items-center gap-2" style={{ backgroundColor: surface }}>
+          <div
+            className="rounded-lg p-3 flex items-center gap-2"
+            style={{ backgroundColor: surface }}
+          >
             <div className="flex-1">
-              <div className="text-xs mb-1" style={{ color: textMuted }}>From</div>
+              <div className="text-xs mb-1" style={{ color: textMuted }}>
+                From
+              </div>
               <div className="flex items-center gap-1.5">
-                <AccountIcon 
-                  styleId={wallet.currentAccount?.iconStyleId} 
-                  color={wallet.currentAccount?.iconColor} 
-                  className="w-4 h-4" 
+                <AccountIcon
+                  styleId={wallet.currentAccount?.iconStyleId}
+                  color={wallet.currentAccount?.iconColor}
+                  className="w-4 h-4"
                 />
                 <span className="text-sm">{truncateAddress(wallet.currentAccount?.address)}</span>
               </div>
             </div>
             <ChevronRightIcon className="w-4 h-4 shrink-0" />
             <div className="flex-1">
-              <div className="text-xs mb-1" style={{ color: textMuted }}>To</div>
+              <div className="text-xs mb-1" style={{ color: textMuted }}>
+                To
+              </div>
               <span className="text-sm">{truncateAddress(to)}</span>
             </div>
           </div>
@@ -100,7 +119,9 @@ export function TransactionApprovalScreen() {
               <span>Network fee</span>
               <div className="text-right">
                 <div>{formatNock(fee / NOCK_TO_NICKS)} NOCK</div>
-                <div className="text-[10px]" style={{ color: textMuted }}>{formatNick(fee)} nicks</div>
+                <div className="text-[10px]" style={{ color: textMuted }}>
+                  {formatNick(fee)} nicks
+                </div>
               </div>
             </div>
             <div className="h-px" style={{ backgroundColor: 'var(--color-surface-700)' }} />
@@ -108,7 +129,9 @@ export function TransactionApprovalScreen() {
               <span>Total</span>
               <div className="text-right">
                 <div>{formatNock(total / NOCK_TO_NICKS)} NOCK</div>
-                <div className="text-[10px] font-normal" style={{ color: textMuted }}>{formatNick(total)} nicks</div>
+                <div className="text-[10px] font-normal" style={{ color: textMuted }}>
+                  {formatNick(total)} nicks
+                </div>
               </div>
             </div>
           </div>
@@ -121,7 +144,10 @@ export function TransactionApprovalScreen() {
       </div>
 
       {/* Footer Buttons */}
-      <div className="mt-auto px-4 py-2.5 shrink-0 flex gap-3" style={{ borderTop: `1px solid ${divider}` }}>
+      <div
+        className="mt-auto px-4 py-2.5 shrink-0 flex gap-3"
+        style={{ borderTop: `1px solid ${divider}` }}
+      >
         <button onClick={handleReject} className="btn-secondary flex-1">
           Reject
         </button>

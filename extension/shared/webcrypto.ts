@@ -20,23 +20,23 @@ export async function deriveKeyPBKDF2(
 ): Promise<{ key: CryptoKey; salt: Uint8Array }> {
   const enc = new TextEncoder();
   const baseKey = await crypto.subtle.importKey(
-    "raw",
+    'raw',
     enc.encode(password),
-    { name: "PBKDF2" },
+    { name: 'PBKDF2' },
     false,
-    ["deriveKey"]
+    ['deriveKey']
   );
   const key = await crypto.subtle.deriveKey(
     {
-      name: "PBKDF2",
+      name: 'PBKDF2',
       salt: salt as BufferSource,
       iterations,
       hash,
     },
     baseKey,
-    { name: "AES-GCM", length: 256 },
+    { name: 'AES-GCM', length: 256 },
     false,
-    ["encrypt", "decrypt"]
+    ['encrypt', 'decrypt']
   );
   // Return key and salt as plain object (safe - no mutation of CryptoKey)
   return { key, salt };
@@ -49,7 +49,7 @@ export async function encryptGCM(
   const iv = rand(12);
   const ct = new Uint8Array(
     await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: iv as BufferSource },
+      { name: 'AES-GCM', iv: iv as BufferSource },
       key,
       data as BufferSource
     )
@@ -57,13 +57,9 @@ export async function encryptGCM(
   return { iv, ct };
 }
 
-export async function decryptGCM(
-  key: CryptoKey,
-  iv: Uint8Array,
-  ct: Uint8Array
-): Promise<string> {
+export async function decryptGCM(key: CryptoKey, iv: Uint8Array, ct: Uint8Array): Promise<string> {
   const pt = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: iv as BufferSource },
+    { name: 'AES-GCM', iv: iv as BufferSource },
     key,
     ct as BufferSource
   );

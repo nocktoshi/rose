@@ -4,12 +4,8 @@
 
 import type { Transaction, NockchainEvent, EventListener, InjectedNockchain } from './types.js';
 import { TransactionBuilder } from './transaction.js';
-import {
-  WalletNotInstalledError,
-  UserRejectedError,
-  RpcError,
-  NoAccountError,
-} from './errors.js';
+import { WalletNotInstalledError, UserRejectedError, RpcError, NoAccountError } from './errors.js';
+import { PROVIDER_METHODS } from './constants.js';
 
 /**
  * NockchainProvider class - Main interface for dApps to interact with Iris wallet
@@ -62,24 +58,25 @@ export class NockchainProvider {
   }
 
   /**
-   * Request connection to user accounts
+   * Connect to the wallet and request access
    * This will prompt the user to approve the connection
-   * @returns Promise resolving to an array of account addresses
+   * @returns Promise resolving to wallet info with PKH and gRPC endpoint
    * @throws {UserRejectedError} If the user rejects the request
    * @throws {RpcError} If the RPC call fails
    */
-  async requestAccounts(): Promise<string[]> {
-    const accounts = await this.request<string[]>({
-      method: 'nock_requestAccounts',
+  async connect(): Promise<{ pkh: string; grpcEndpoint: string }> {
+    const info = await this.request<{ pkh: string; grpcEndpoint: string }>({
+      method: PROVIDER_METHODS.CONNECT,
     });
 
-    this._accounts = accounts ?? [];
-    return this.accounts;
+    // Store the PKH as the connected account
+    this._accounts = [info.pkh];
+    return info;
   }
 
   /**
    * Get the currently connected accounts (if any)
-   * @returns Array of connected account addresses
+   * @returns Array of connected account addresses (PKH)
    */
   get accounts(): string[] {
     return [...this._accounts];
@@ -95,7 +92,7 @@ export class NockchainProvider {
 
   /**
    * Check if the wallet is connected
-   * @returns true if at least one account is connected
+   * @returns true if wallet is connected
    */
   get isConnected(): boolean {
     return this._accounts.length > 0;
@@ -115,7 +112,7 @@ export class NockchainProvider {
     }
 
     return this.request<string>({
-      method: 'nock_sendTransaction',
+      method: PROVIDER_METHODS.SEND_TRANSACTION,
       params: [transaction],
     });
   }
@@ -134,8 +131,69 @@ export class NockchainProvider {
     }
 
     return this.request<string>({
-      method: 'nock_signMessage',
+      method: PROVIDER_METHODS.SIGN_MESSAGE,
       params: [message],
+    });
+  }
+
+  /**
+   * Sign a raw transaction
+   * Accepts either wasm objects (with toProtobuf() method) or protobuf JS objects
+   * @param params - The transaction parameters (rawTx, notes, spendConditions)
+   * @returns Promise resolving to the signed raw transaction as protobuf Uint8Array
+   * @throws {NoAccountError} If no account is connected
+   * @throws {UserRejectedError} If the user rejects the signing request
+   * @throws {RpcError} If the RPC call fails
+   *
+   * @example
+   * ```typescript
+   * // Option 1: Pass wasm objects directly (auto-converts to protobuf)
+   * const rawTx = builder.build();
+   * const txNotes = builder.allNotes();
+   *
+   * const signedTx = await provider.signRawTx({
+   *   rawTx: rawTx,  // wasm RawTx object
+   *   notes: txNotes.notes,  // array of wasm Note objects
+   *   spendConditions: txNotes.spendConditions  // array of wasm SpendCondition objects
+   * });
+   *
+   * // Option 2: Pass protobuf JS objects directly
+   * const signedTx = await provider.signRawTx({
+   *   rawTx: rawTxProtobufObject,  // protobuf JS object
+   *   notes: noteProtobufObjects,  // array of protobuf JS objects
+   *   spendConditions: spendCondProtobufObjects  // array of protobuf JS objects
+   * });
+   * ```
+   */
+  async signRawTx(params: {
+    rawTx: any;
+    notes: any[];
+    spendConditions: any[];
+  }): Promise<Uint8Array> {
+    if (!this.isConnected) {
+      throw new NoAccountError();
+    }
+
+    // Helper to convert to protobuf if it's a wasm object
+    const toProtobuf = (obj: any): any => {
+      // If object has toProtobuf method, it's a wasm object - convert it
+      if (obj && typeof obj.toProtobuf === 'function') {
+        return obj.toProtobuf();
+      }
+      // Otherwise assume it's already a protobuf JS object
+      return obj;
+    };
+
+    // Convert wasm objects to protobuf (if needed)
+    const protobufParams = {
+      rawTx: toProtobuf(params.rawTx),
+      notes: params.notes.map(toProtobuf),
+      spendConditions: params.spendConditions.map(toProtobuf),
+    };
+
+    return this.request<Uint8Array>({
+      method: PROVIDER_METHODS.SIGN_RAW_TX,
+      params: [protobufParams],
     });
   }
 
@@ -309,7 +367,7 @@ export class NockchainProvider {
   private emit<T = unknown>(event: NockchainEvent, data: T): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
-      listeners.forEach((listener) => {
+      listeners.forEach(listener => {
         try {
           listener(data);
         } catch (error) {

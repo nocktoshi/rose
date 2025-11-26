@@ -2,10 +2,10 @@
  * Onboarding Verify Screen - Verify user wrote down mnemonic correctly
  */
 
-import { useState, useMemo } from "react";
-import { useStore } from "../../store";
-import { Alert } from "../../components/Alert";
-import lockIcon from "../../assets/lock-icon.svg";
+import { useState, useMemo } from 'react';
+import { useStore } from '../../store';
+import { Alert } from '../../components/Alert';
+import lockIcon from '../../assets/lock-icon.svg';
 
 /**
  * Generates 6 unique random positions from 0-23 for seed phrase verification
@@ -28,7 +28,7 @@ function generateRandomPositions(): number[] {
 export function VerifyScreen() {
   const { onboardingMnemonic, navigate, setOnboardingMnemonic } = useStore();
   const [inputs, setInputs] = useState<Record<number, string>>({});
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
 
   // Generate random positions once per mnemonic (stable across re-renders)
   const testPositions = useMemo(() => generateRandomPositions(), [onboardingMnemonic]);
@@ -36,46 +36,40 @@ export function VerifyScreen() {
   if (!onboardingMnemonic) {
     return (
       <div className="w-[357px] h-[600px] bg-[var(--color-bg)] flex items-center justify-center p-4">
-        <Alert type="error">
-          No mnemonic found. Please restart onboarding.
-        </Alert>
+        <Alert type="error">No mnemonic found. Please restart onboarding.</Alert>
       </div>
     );
   }
 
-  const words = onboardingMnemonic.split(" ");
+  const words = onboardingMnemonic.split(' ');
 
   function handleInputChange(position: number, value: string) {
-    setInputs((prev) => ({ ...prev, [position]: value.trim().toLowerCase() }));
-    setError("");
+    setInputs(prev => ({ ...prev, [position]: value.trim().toLowerCase() }));
+    setError('');
   }
 
   function handleVerify() {
     // Check if all positions are filled
-    const allFilled = testPositions.every((pos) => inputs[pos]?.length > 0);
+    const allFilled = testPositions.every(pos => inputs[pos]?.length > 0);
     if (!allFilled) {
-      setError("Please fill in all word fields");
+      setError('Please fill in all word fields');
       return;
     }
 
     // Verify all words are correct
-    const allCorrect = testPositions.every(
-      (pos) => inputs[pos] === words[pos].toLowerCase()
-    );
+    const allCorrect = testPositions.every(pos => inputs[pos] === words[pos].toLowerCase());
 
     if (allCorrect) {
       // Clear the mnemonic from memory and navigate to success
       setOnboardingMnemonic(null);
-      navigate("onboarding-success");
+      navigate('onboarding-success');
     } else {
-      setError(
-        "One or more words are incorrect. Please check your recovery phrase and try again."
-      );
+      setError('One or more words are incorrect. Please check your recovery phrase and try again.');
     }
   }
 
   function handleBack() {
-    navigate("onboarding-backup");
+    navigate('onboarding-backup');
   }
 
   return (
@@ -100,9 +94,9 @@ export function VerifyScreen() {
         <h2
           className="font-sans font-medium text-[var(--color-text-primary)]"
           style={{
-            fontSize: "var(--font-size-lg)",
-            lineHeight: "var(--line-height-normal)",
-            letterSpacing: "0.01em",
+            fontSize: 'var(--font-size-lg)',
+            lineHeight: 'var(--line-height-normal)',
+            letterSpacing: '0.01em',
           }}
         >
           Save your recovery phrase
@@ -122,9 +116,9 @@ export function VerifyScreen() {
               <h1
                 className="font-serif font-medium text-[var(--color-text-primary)]"
                 style={{
-                  fontSize: "var(--font-size-xl)",
-                  lineHeight: "var(--line-height-relaxed)",
-                  letterSpacing: "-0.02em",
+                  fontSize: 'var(--font-size-xl)',
+                  lineHeight: 'var(--line-height-relaxed)',
+                  letterSpacing: '-0.02em',
                 }}
               >
                 Verify recovery phrase.
@@ -132,9 +126,9 @@ export function VerifyScreen() {
               <p
                 className="font-sans text-[var(--color-text-muted)]"
                 style={{
-                  fontSize: "var(--font-size-sm)",
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.02em",
+                  fontSize: 'var(--font-size-sm)',
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.02em',
                 }}
               >
                 Please write down the words with this number
@@ -144,9 +138,9 @@ export function VerifyScreen() {
 
           {/* Input fields */}
           <div className="flex flex-col gap-2 w-full">
-            {[0, 1, 2].map((row) => (
+            {[0, 1, 2].map(row => (
               <div key={row} className="flex gap-2 w-full">
-                {[0, 1].map((col) => {
+                {[0, 1].map(col => {
                   const index = row * 2 + col;
                   const position = testPositions[index];
                   const wordNumber = position + 1;
@@ -159,25 +153,23 @@ export function VerifyScreen() {
                       <span
                         className="bg-[var(--color-surface-900)] rounded w-7 h-7 flex items-center justify-center font-sans font-medium text-[var(--color-text-primary)] flex-shrink-0"
                         style={{
-                          fontSize: "var(--font-size-base)",
-                          lineHeight: "var(--line-height-snug)",
-                          letterSpacing: "0.01em",
+                          fontSize: 'var(--font-size-base)',
+                          lineHeight: 'var(--line-height-snug)',
+                          letterSpacing: '0.01em',
                         }}
                       >
                         {wordNumber}
                       </span>
                       <input
                         type="text"
-                        value={inputs[position] || ""}
-                        onChange={(e) =>
-                          handleInputChange(position, e.target.value)
-                        }
+                        value={inputs[position] || ''}
+                        onChange={e => handleInputChange(position, e.target.value)}
                         placeholder="word"
                         className="flex-1 min-w-0 bg-transparent font-sans font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] outline-none"
                         style={{
-                          fontSize: "var(--font-size-base)",
-                          lineHeight: "var(--line-height-snug)",
-                          letterSpacing: "0.01em",
+                          fontSize: 'var(--font-size-base)',
+                          lineHeight: 'var(--line-height-snug)',
+                          letterSpacing: '0.01em',
                         }}
                       />
                     </div>
@@ -198,11 +190,11 @@ export function VerifyScreen() {
               onClick={handleBack}
               className="flex-1 h-12 px-5 py-[15px] bg-[var(--color-surface-800)] text-[var(--color-text-primary)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
               style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--font-size-base)",
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--font-size-base)',
                 fontWeight: 500,
-                lineHeight: "var(--line-height-snug)",
-                letterSpacing: "0.01em",
+                lineHeight: 'var(--line-height-snug)',
+                letterSpacing: '0.01em',
               }}
             >
               Back
@@ -211,11 +203,11 @@ export function VerifyScreen() {
               onClick={handleVerify}
               className="flex-1 h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
               style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--font-size-base)",
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--font-size-base)',
                 fontWeight: 500,
-                lineHeight: "var(--line-height-snug)",
-                letterSpacing: "0.01em",
+                lineHeight: 'var(--line-height-snug)',
+                letterSpacing: '0.01em',
               }}
             >
               Create wallet

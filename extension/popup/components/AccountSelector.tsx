@@ -21,13 +21,20 @@ export function AccountSelector() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const editInputRef = useAutoFocus<HTMLInputElement>({ when: editingIndex !== null, select: true });
+  const editInputRef = useAutoFocus<HTMLInputElement>({
+    when: editingIndex !== null,
+    select: true,
+  });
 
   // Close dropdown when clicking outside
-  useClickOutside(dropdownRef, () => {
-    setIsOpen(false);
-    setEditingIndex(null);
-  }, isOpen);
+  useClickOutside(
+    dropdownRef,
+    () => {
+      setIsOpen(false);
+      setEditingIndex(null);
+    },
+    isOpen
+  );
 
   async function handleSwitchAccount(index: number) {
     const result = await send<{ ok?: boolean; account?: Account; error?: string }>(
@@ -97,14 +104,14 @@ export function AccountSelector() {
       return;
     }
 
-    const result = await send<{ ok?: boolean; error?: string }>(
-      INTERNAL_METHODS.RENAME_ACCOUNT,
-      [editingIndex, editingName.trim()]
-    );
+    const result = await send<{ ok?: boolean; error?: string }>(INTERNAL_METHODS.RENAME_ACCOUNT, [
+      editingIndex,
+      editingName.trim(),
+    ]);
 
     if (result?.ok) {
       // Update wallet state with new name
-      const updatedAccounts = wallet.accounts.map((acc) =>
+      const updatedAccounts = wallet.accounts.map(acc =>
         acc.index === editingIndex ? { ...acc, name: editingName.trim() } : acc
       );
       const updatedCurrentAccount =
@@ -161,51 +168,55 @@ export function AccountSelector() {
         <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden z-50">
           {/* Account list */}
           <div className="max-h-64 overflow-y-auto no-scrollbar">
-            {wallet.accounts.filter(acc => !acc.hidden).map((account) => (
-              <div
-                key={account.index}
-                className={`w-full flex items-center gap-2 p-3 ${
-                  editingIndex !== account.index ? 'hover:bg-gray-700 cursor-pointer' : ''
-                } transition-colors ${
-                  currentAccount?.index === account.index ? 'bg-gray-700' : ''
-                }`}
-                onClick={() => editingIndex !== account.index && handleSwitchAccount(account.index)}
-              >
-                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex-shrink-0" />
-                <div className="text-left flex-1 min-w-0">
-                  {editingIndex === account.index ? (
-                    <input
-                      ref={editInputRef}
-                      type="text"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onKeyDown={handleEditKeyDown}
-                      onBlur={saveRename}
-                      className="bg-gray-900 border border-blue-500 rounded px-2 py-1 text-sm w-full focus:outline-none"
-                      placeholder="Account name"
-                    />
-                  ) : (
-                    <>
-                      <div className="font-semibold text-sm flex items-center gap-2">
-                        {account.name}
-                        <button
-                          onClick={(e) => startEditing(account, e)}
-                          className="text-gray-400 hover:text-white transition-colors"
-                        >
-                          <EditIcon className="w-3 h-3" />
-                        </button>
-                      </div>
-                      <div className="text-xs text-gray-400 truncate">
-                        {truncateAddress(account.address)}
-                      </div>
-                    </>
+            {wallet.accounts
+              .filter(acc => !acc.hidden)
+              .map(account => (
+                <div
+                  key={account.index}
+                  className={`w-full flex items-center gap-2 p-3 ${
+                    editingIndex !== account.index ? 'hover:bg-gray-700 cursor-pointer' : ''
+                  } transition-colors ${
+                    currentAccount?.index === account.index ? 'bg-gray-700' : ''
+                  }`}
+                  onClick={() =>
+                    editingIndex !== account.index && handleSwitchAccount(account.index)
+                  }
+                >
+                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex-shrink-0" />
+                  <div className="text-left flex-1 min-w-0">
+                    {editingIndex === account.index ? (
+                      <input
+                        ref={editInputRef}
+                        type="text"
+                        value={editingName}
+                        onChange={e => setEditingName(e.target.value)}
+                        onKeyDown={handleEditKeyDown}
+                        onBlur={saveRename}
+                        className="bg-gray-900 border border-blue-500 rounded px-2 py-1 text-sm w-full focus:outline-none"
+                        placeholder="Account name"
+                      />
+                    ) : (
+                      <>
+                        <div className="font-semibold text-sm flex items-center gap-2">
+                          {account.name}
+                          <button
+                            onClick={e => startEditing(account, e)}
+                            className="text-gray-400 hover:text-white transition-colors"
+                          >
+                            <EditIcon className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <div className="text-xs text-gray-400 truncate">
+                          {truncateAddress(account.address)}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {currentAccount?.index === account.index && editingIndex !== account.index && (
+                    <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
                   )}
                 </div>
-                {currentAccount?.index === account.index && editingIndex !== account.index && (
-                  <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
-                )}
-              </div>
-            ))}
+              ))}
           </div>
 
           {/* Divider */}

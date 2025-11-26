@@ -2,11 +2,11 @@
  * Onboarding Success Screen - Wallet created successfully
  */
 
-import { useEffect } from "react";
-import { useStore } from "../../store";
-import { markOnboardingComplete } from "../../../shared/onboarding";
-import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
-import checkmarkIcon from "../../assets/checkmark-icon.svg";
+import { useEffect } from 'react';
+import { useStore } from '../../store';
+import { markOnboardingComplete } from '../../../shared/onboarding';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import checkmarkIcon from '../../assets/checkmark-icon.svg';
 
 export function SuccessScreen() {
   const { navigate, wallet, goBack, fetchBalance } = useStore();
@@ -26,13 +26,13 @@ export function SuccessScreen() {
     return { start, middle, end };
   }
 
-  const formattedAddress = formatAddress(wallet.address || "");
+  const formattedAddress = formatAddress(wallet.address || '');
 
   async function handleStartUsing() {
     // Fetch balance before navigating to home screen
     console.log('[SuccessScreen] Fetching balance before navigating to home...');
     await fetchBalance();
-    navigate("home");
+    navigate('home');
   }
 
   return (
@@ -57,9 +57,9 @@ export function SuccessScreen() {
         <h2
           className="font-sans font-medium text-[var(--color-text-primary)]"
           style={{
-            fontSize: "var(--font-size-lg)",
-            lineHeight: "var(--line-height-normal)",
-            letterSpacing: "0.01em",
+            fontSize: 'var(--font-size-lg)',
+            lineHeight: 'var(--line-height-normal)',
+            letterSpacing: '0.01em',
           }}
         >
           Wallet created!
@@ -79,9 +79,9 @@ export function SuccessScreen() {
               <h1
                 className="font-serif font-medium text-[var(--color-text-primary)]"
                 style={{
-                  fontSize: "var(--font-size-xl)",
-                  lineHeight: "var(--line-height-relaxed)",
-                  letterSpacing: "-0.02em",
+                  fontSize: 'var(--font-size-xl)',
+                  lineHeight: 'var(--line-height-relaxed)',
+                  letterSpacing: '-0.02em',
                 }}
               >
                 Your wallet is ready!
@@ -89,9 +89,9 @@ export function SuccessScreen() {
               <p
                 className="font-sans text-[var(--color-text-muted)]"
                 style={{
-                  fontSize: "var(--font-size-sm)",
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.02em",
+                  fontSize: 'var(--font-size-sm)',
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.02em',
                 }}
               >
                 Welcome to Nockchain
@@ -104,9 +104,9 @@ export function SuccessScreen() {
             <p
               className="font-sans font-medium text-center text-[var(--color-text-primary)]"
               style={{
-                fontSize: "var(--font-size-sm)",
-                lineHeight: "var(--line-height-snug)",
-                letterSpacing: "0.02em",
+                fontSize: 'var(--font-size-sm)',
+                lineHeight: 'var(--line-height-snug)',
+                letterSpacing: '0.02em',
               }}
             >
               Your address
@@ -116,12 +116,12 @@ export function SuccessScreen() {
               <p
                 className="font-sans font-medium text-center text-[var(--color-text-primary)] break-words w-full"
                 style={{
-                  fontSize: "var(--font-size-base)",
-                  lineHeight: "var(--line-height-snug)",
-                  letterSpacing: "0.01em",
+                  fontSize: 'var(--font-size-base)',
+                  lineHeight: 'var(--line-height-snug)',
+                  letterSpacing: '0.01em',
                 }}
               >
-                {typeof formattedAddress === "string" ? (
+                {typeof formattedAddress === 'string' ? (
                   formattedAddress
                 ) : (
                   <>
@@ -136,7 +136,7 @@ export function SuccessScreen() {
 
               {/* Copy button */}
               <button
-                onClick={() => copyToClipboard(wallet.address || "")}
+                onClick={() => copyToClipboard(wallet.address || '')}
                 className="border border-[var(--color-text-primary)] rounded-full px-4 py-1.5 flex items-center gap-1.5 hover:opacity-80 transition-opacity"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -159,12 +159,12 @@ export function SuccessScreen() {
                 <span
                   className="font-sans font-medium text-[var(--color-text-primary)]"
                   style={{
-                    fontSize: "var(--font-size-base)",
-                    lineHeight: "var(--line-height-snug)",
-                    letterSpacing: "0.01em",
+                    fontSize: 'var(--font-size-base)',
+                    lineHeight: 'var(--line-height-snug)',
+                    letterSpacing: '0.01em',
                   }}
                 >
-                  {copied ? "Copied!" : "Copy address"}
+                  {copied ? 'Copied!' : 'Copy address'}
                 </span>
               </button>
             </div>
@@ -177,11 +177,11 @@ export function SuccessScreen() {
             onClick={handleStartUsing}
             className="w-full h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: "var(--font-size-base)",
+              fontFamily: 'var(--font-sans)',
+              fontSize: 'var(--font-size-base)',
               fontWeight: 500,
-              lineHeight: "var(--line-height-snug)",
-              letterSpacing: "0.01em",
+              lineHeight: 'var(--line-height-snug)',
+              letterSpacing: '0.01em',
             }}
           >
             Start using wallet

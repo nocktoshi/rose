@@ -4,20 +4,8 @@
  * for wallet provider API and internal extension communication
  */
 
-/**
- * Public Provider Methods - Called by websites/dapps via window.nockchain
- * Follow EIP-1193 naming convention with 'nock_' prefix
- */
-export const PROVIDER_METHODS = {
-  /** Request user's wallet accounts */
-  REQUEST_ACCOUNTS: 'nock_requestAccounts',
-
-  /** Sign an arbitrary message */
-  SIGN_MESSAGE: 'nock_signMessage',
-
-  /** Sign and send a transaction */
-  SEND_TRANSACTION: 'nock_sendTransaction',
-} as const;
+// Import provider methods from SDK
+import { PROVIDER_METHODS } from '@nockbox/iris-sdk';
 
 /**
  * Internal Extension Methods - Called by popup UI and other extension components
@@ -87,6 +75,9 @@ export const INTERNAL_METHODS = {
   /** Get pending sign message request for approval */
   GET_PENDING_SIGN_REQUEST: 'wallet:getPendingSignRequest',
 
+  /** Get pending sign raw transaction request for approval */
+  GET_PENDING_SIGN_RAW_TX_REQUEST: 'wallet:getPendingSignRawTxRequest',
+
   /** Approve pending sign message request */
   APPROVE_SIGN_MESSAGE: 'wallet:approveSignMessage',
 
@@ -108,6 +99,9 @@ export const INTERNAL_METHODS = {
   /** Sign a transaction (internal popup-initiated transactions) */
   SIGN_TRANSACTION: 'wallet:signTransaction',
 
+  /** Build and sign a transaction without broadcasting */
+  BUILD_AND_SIGN_TRANSACTION: 'wallet:buildAndSignTransaction',
+
   /** Estimate transaction fee for a given recipient and amount */
   ESTIMATE_TRANSACTION_FEE: 'wallet:estimateTransactionFee',
 
@@ -117,9 +111,21 @@ export const INTERNAL_METHODS = {
   /** Send transaction using UTXO store (build, lock, broadcast atomically) */
   SEND_TRANSACTION_V2: 'wallet:sendTransactionV2',
 
-  /** Get wallet transactions from UTXO store */
-  GET_WALLET_TRANSACTIONS: 'wallet:getWalletTransactions',
+  /** Broadcast a raw signed transaction (internal popup-initiated transactions) */
+  BROADCAST_TRANSACTION: 'wallet:broadcastTransaction',
+
+  /** Approve pending sign raw transaction request */
+  APPROVE_SIGN_RAW_TX: 'wallet:approveSignRawTx',
+
+  /** Reject pending sign raw transaction request */
+  REJECT_SIGN_RAW_TX: 'wallet:rejectSignRawTx',
+
+  /** Get pending sign raw transaction request */
+  GET_PENDING_RAW_TX_REQUEST: 'wallet:getPendingRawTxRequest',
 } as const;
+
+// Re-export PROVIDER_METHODS for other files
+export { PROVIDER_METHODS };
 
 /**
  * All RPC methods (combined)
@@ -259,9 +265,10 @@ export const DEFAULT_FEE_PER_WORD = 1 << 15; // 32,768 nicks = 0.5 NOCK per word
  */
 export const USER_ACTIVITY_METHODS = new Set([
   // Provider methods (user-initiated actions from dApps)
-  PROVIDER_METHODS.REQUEST_ACCOUNTS,
+  PROVIDER_METHODS.CONNECT,
   PROVIDER_METHODS.SIGN_MESSAGE,
   PROVIDER_METHODS.SEND_TRANSACTION,
+  PROVIDER_METHODS.SIGN_RAW_TX,
 
   // Internal methods (user actions in the UI)
   INTERNAL_METHODS.UNLOCK,
@@ -346,6 +353,8 @@ export const APPROVAL_CONSTANTS = {
   TRANSACTION_HASH_PREFIX: 'transaction-approval-',
   /** Hash prefix for sign message approval requests */
   SIGN_MESSAGE_HASH_PREFIX: 'sign-message-approval-',
+  /** Hash prefix for sign raw transaction approval requests */
+  SIGN_RAW_TX_HASH_PREFIX: 'sign-raw-tx-approval-',
 } as const;
 
 /**
