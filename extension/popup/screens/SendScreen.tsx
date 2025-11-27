@@ -4,12 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { truncateAddress } from '../utils/format';
 import { send } from '../utils/messaging';
 import { INTERNAL_METHODS, NOCK_TO_NICKS } from '../../shared/constants';
-import {
-  roundNockToSendable,
-  formatNock,
-  isDustAmount,
-  MIN_SENDABLE_NOCK,
-} from '../../shared/currency';
+import { formatNock, isDustAmount, MIN_SENDABLE_NOCK } from '../../shared/currency';
 import type { Account } from '../../shared/types';
 import { AccountIcon } from '../components/AccountIcon';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
@@ -155,16 +150,6 @@ export function SendScreen() {
     } finally {
       setIsCalculatingFee(false);
     }
-  }
-
-  function handleAmountBlur() {
-    if (!amount || amount === '') return;
-
-    const numAmount = parseFloat(amount.replace(/,/g, ''));
-    if (isNaN(numAmount) || numAmount <= 0 || !isFinite(numAmount)) return;
-
-    const roundedAmount = roundNockToSendable(numAmount);
-    setAmount(formatNock(roundedAmount));
   }
 
   function handleEditFee() {
@@ -582,7 +567,6 @@ export function SendScreen() {
               setIsSendingMax(false); // User manually edited, no longer sending max
             }
           }}
-          onBlur={handleAmountBlur}
         />
         <div className="w-full h-px" style={{ backgroundColor: 'var(--color-surface-700)' }} />
         <div className="flex items-center gap-2">
