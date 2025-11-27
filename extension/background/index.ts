@@ -1080,15 +1080,54 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         }
         return;
 
-      case INTERNAL_METHODS.SEND_TRANSACTION_V2:
-        // params: [to, amount, fee?] - amount and fee in nicks
-        // Uses UTXO store for proper note locking and successive transaction support
+      case INTERNAL_METHODS.ESTIMATE_MAX_SEND:
+        // params: [to] - estimates max sendable amount for "send max" feature
         if (vault.isLocked()) {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
 
-        const [sendToV2, sendAmountV2, sendFeeV2] = payload.params || [];
+        const [maxSendTo] = payload.params || [];
+        if (!isNockAddress(maxSendTo)) {
+          sendResponse({ error: ERROR_CODES.BAD_ADDRESS });
+          return;
+        }
+
+        try {
+          console.log('[Background] Estimating max send amount:', {
+            to: maxSendTo.slice(0, 20) + '...',
+          });
+
+          const maxResult = await vault.estimateMaxSendAmount(maxSendTo);
+
+          if ('error' in maxResult) {
+            sendResponse({ error: maxResult.error });
+          } else {
+            sendResponse({
+              maxAmount: maxResult.maxAmount,
+              fee: maxResult.fee,
+              totalAvailable: maxResult.totalAvailable,
+              utxoCount: maxResult.utxoCount,
+            });
+          }
+        } catch (error) {
+          console.error('[Background] Max send estimation error:', error);
+          sendResponse({
+            error: error instanceof Error ? error.message : 'Max send estimation failed',
+          });
+        }
+        return;
+
+      case INTERNAL_METHODS.SEND_TRANSACTION_V2:
+        // params: [to, amount, fee?, sendMax?] - amount and fee in nicks
+        // Uses UTXO store for proper note locking and successive transaction support
+        // sendMax: if true, uses all available UTXOs and sets refundPKH = recipient for sweep
+        if (vault.isLocked()) {
+          sendResponse({ error: ERROR_CODES.LOCKED });
+          return;
+        }
+
+        const [sendToV2, sendAmountV2, sendFeeV2, sendMaxV2] = payload.params || [];
         if (!isNockAddress(sendToV2)) {
           sendResponse({ error: ERROR_CODES.BAD_ADDRESS });
           return;
@@ -1100,12 +1139,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         }
 
         try {
-          console.log('[Background] Sending transaction via V2 (UTXO store)...');
+          console.log('[Background] Sending transaction via V2 (UTXO store)...', { sendMax: sendMaxV2 });
 
           const v2Result = await vault.sendTransactionV2(
             sendToV2,
             sendAmountV2,
-            sendFeeV2 // optional, can be undefined
+            sendFeeV2, // optional, can be undefined
+            sendMaxV2 // optional, sweep all UTXOs to recipient
           );
 
           if ('error' in v2Result) {

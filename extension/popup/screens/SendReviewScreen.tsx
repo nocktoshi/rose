@@ -55,6 +55,7 @@ export function SendReviewScreen() {
       const feeInNicks = nockToNick(lastTransaction.fee);
 
       // Send transaction using V2 (builds, locks notes, broadcasts atomically)
+      // If sendMax is true, this is a sweep transaction (all UTXOs to recipient)
       const result = await send<{
         txid?: string;
         broadcasted?: boolean;
@@ -64,6 +65,7 @@ export function SendReviewScreen() {
         lastTransaction.to,
         amountInNicks,
         feeInNicks,
+        lastTransaction.sendMax, // Pass sendMax flag for sweep transactions
       ]);
 
       if (result?.error) {

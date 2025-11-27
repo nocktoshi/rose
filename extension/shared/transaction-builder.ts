@@ -416,6 +416,8 @@ export async function buildPayment(
  * @param senderPublicKey - Your public key (97 bytes, for creating spend condition)
  * @param privateKey - Your private key (32 bytes)
  * @param fee - Transaction fee in nicks (optional, WASM will auto-calculate if not provided)
+ * @param refundPKH - Override for change address (optional, defaults to sender's PKH).
+ *                    Set to recipientPKH for "send max" to sweep all funds to recipient.
  * @returns Constructed transaction
  */
 export async function buildMultiNotePayment(
@@ -424,7 +426,8 @@ export async function buildMultiNotePayment(
   amount: number,
   senderPublicKey: Uint8Array,
   privateKey: Uint8Array,
-  fee?: number
+  fee?: number,
+  refundPKH?: string
 ): Promise<ConstructedTransaction> {
   // Initialize WASM
   await ensureWasmInitialized();
@@ -475,6 +478,10 @@ export async function buildMultiNotePayment(
 
   console.log('[TxBuilder] All spend conditions verified, building transaction...');
 
+  // Use provided refundPKH or default to sender's PKH
+  // For "send max", refundPKH = recipientPKH to sweep all funds to recipient
+  const changeAddress = refundPKH ?? senderPKH;
+
   // Build transaction with all notes and their individual spend conditions
   return buildTransaction({
     notes,
@@ -482,7 +489,7 @@ export async function buildMultiNotePayment(
     recipientPKH,
     amount,
     fee,
-    refundPKH: senderPKH,
+    refundPKH: changeAddress,
     privateKey,
     // include_lock_data: false for lower fees (0.5 NOCK per word saved)
     includeLockData: false,

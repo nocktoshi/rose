@@ -1005,6 +1005,135 @@ export class Vault {
   }
 
   /**
+   * Estimate the maximum amount that can be sent (for "send max" feature)
+   *
+   * This calculates: maxAmount = totalSpendableBalance - fee
+   * Where fee is calculated for a sweep transaction (all UTXOs → 1 output)
+   *
+   * Uses refundPKH = recipientPKH so WASM creates 1 consolidated output,
+   * giving us the exact fee for a sweep transaction.
+   *
+   * @param to - Recipient PKH address (base58-encoded)
+   * @returns Max sendable amount and fee in nicks, or { error }
+   */
+  async estimateMaxSendAmount(
+    to: string
+  ): Promise<{ maxAmount: number; fee: number; totalAvailable: number; utxoCount: number } | { error: string }> {
+    if (this.state.locked || !this.mnemonic) {
+      return { error: ERROR_CODES.LOCKED };
+    }
+
+    const currentAccount = this.getCurrentAccount();
+    if (!currentAccount) {
+      return { error: ERROR_CODES.NO_ACCOUNT };
+    }
+
+    try {
+      // Initialize WASM modules
+      await initWasmModules();
+
+      // Derive keys
+      const masterKey = wasm.deriveMasterKeyFromMnemonic(this.mnemonic, '');
+      const childIndex = currentAccount.index ?? this.state.currentAccountIndex;
+      const accountKey =
+        currentAccount.derivation === 'master' ? masterKey : masterKey.deriveChild(childIndex);
+
+      if (!accountKey.privateKey || !accountKey.publicKey) {
+        if (currentAccount.derivation !== 'master') {
+          accountKey.free();
+        }
+        masterKey.free();
+        return { error: 'Cannot estimate max: keys unavailable' };
+      }
+
+      try {
+        const rpcClient = createBrowserClient();
+
+        console.log('[Vault] Fetching UTXOs for max send estimation...');
+        const balanceResult = await queryV1Balance(currentAccount.address, rpcClient);
+
+        if (balanceResult.utxoCount === 0) {
+          return { error: 'No UTXOs available. Your wallet has zero balance.' };
+        }
+
+        const notes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
+        const totalAvailable = notes.reduce((sum, note) => sum + note.assets, 0);
+
+        console.log('[Vault] Max send estimation:', {
+          totalUTXOs: notes.length,
+          totalAvailableNOCK: (totalAvailable / NOCK_TO_NICKS).toFixed(2),
+        });
+
+        // Convert ALL notes to transaction builder format
+        const txBuilderNotes = await Promise.all(
+          notes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
+        );
+
+        // Build a sweep transaction to get exact fee:
+        // - Set refundPKH = recipientPKH (sweep mode: 1 consolidated output)
+        // - WASM's simpleSpend selects minimum notes needed for the amount
+        // - To force ALL notes to be used, pass an amount that REQUIRES all notes
+        // - We pass (totalAvailable - smallestNote/2) so removing any note would be insufficient
+        const sortedByValue = [...notes].sort((a, b) => a.assets - b.assets);
+        const smallestNote = sortedByValue[0].assets;
+        // Amount that requires all notes: total minus half the smallest note
+        // This ensures WASM cannot satisfy the amount without using every note
+        const estimationAmount = totalAvailable - Math.floor(smallestNote / 2);
+
+        console.log('[Vault] Max estimation forcing all notes:', {
+          smallestNoteNOCK: (smallestNote / NOCK_TO_NICKS).toFixed(2),
+          estimationAmountNOCK: (estimationAmount / NOCK_TO_NICKS).toFixed(2),
+        });
+
+        if (estimationAmount <= 0) {
+          return { error: 'Balance too low to send. Need more than fee amount.' };
+        }
+
+        const constructedTx = await buildMultiNotePayment(
+          txBuilderNotes,
+          to,
+          estimationAmount,
+          accountKey.publicKey,
+          accountKey.privateKey,
+          undefined, // let WASM auto-calc fee
+          to // refundPKH = recipient (sweep mode)
+        );
+
+        const fee = constructedTx.feeUsed;
+        const maxAmount = totalAvailable - fee;
+
+        if (maxAmount <= 0) {
+          return { error: 'Balance too low. Fee would exceed available funds.' };
+        }
+
+        console.log('[Vault] Max send calculation:', {
+          totalAvailableNOCK: (totalAvailable / NOCK_TO_NICKS).toFixed(4),
+          feeNOCK: (fee / NOCK_TO_NICKS).toFixed(4),
+          maxAmountNOCK: (maxAmount / NOCK_TO_NICKS).toFixed(4),
+          utxoCount: notes.length,
+        });
+
+        return {
+          maxAmount,
+          fee,
+          totalAvailable,
+          utxoCount: notes.length,
+        };
+      } finally {
+        if (currentAccount.derivation !== 'master') {
+          accountKey.free();
+        }
+        masterKey.free();
+      }
+    } catch (error) {
+      console.error('[Vault] Max send estimation failed:', error);
+      return {
+        error: 'Max send estimation failed: ' + (error instanceof Error ? error.message : String(error)),
+      };
+    }
+  }
+
+  /**
    * Send a transaction to the network
    * This is the high-level API for sending NOCK to a recipient
    * TODO: Clean up logs
@@ -1203,12 +1332,14 @@ export class Vault {
    * @param to - Recipient PKH address
    * @param amount - Amount in nicks
    * @param fee - Fee in nicks (optional, WASM will calculate if not provided)
+   * @param sendMax - If true, sweep all available UTXOs to recipient (no change back)
    * @returns Transaction result with txId and wallet transaction record
    */
   async sendTransactionV2(
     to: string,
     amount: number,
-    fee?: number
+    fee?: number,
+    sendMax?: boolean
   ): Promise<
     { txId: string; walletTx: WalletTransaction; broadcasted: boolean } | { error: string }
   > {
@@ -1260,31 +1391,44 @@ export class Vault {
 
           // 2. Estimate fee if not provided (rough estimate: 2 NOCK should cover most cases)
           const estimatedFee = fee ?? 2 * NOCK_TO_NICKS;
-          const targetAmount = amount + estimatedFee;
 
-          // 3. Select notes using greedy algorithm (from stored notes for state tracking)
-          const selectedStoredNotes = selectNotesForAmount(availableStoredNotes, targetAmount);
+          let selectedStoredNotes: typeof availableStoredNotes;
+          let expectedChange: number;
 
-          if (!selectedStoredNotes) {
-            return {
-              error: `Insufficient available funds`,
-            };
+          if (sendMax) {
+            // SEND MAX: Use ALL available UTXOs, no change back to sender
+            selectedStoredNotes = availableStoredNotes;
+            expectedChange = 0; // All goes to recipient (minus fee)
+            console.log(
+              `[Vault V2] SEND MAX: Using all ${selectedStoredNotes.length} UTXOs (${(totalAvailable / NOCK_TO_NICKS).toFixed(2)} NOCK)`
+            );
+          } else {
+            // NORMAL: Select only notes needed for amount + fee
+            const targetAmount = amount + estimatedFee;
+            const selected = selectNotesForAmount(availableStoredNotes, targetAmount);
+
+            if (!selected) {
+              return {
+                error: `Insufficient available funds`,
+              };
+            }
+
+            selectedStoredNotes = selected;
+            const selectedTotal = selectedStoredNotes.reduce((sum, n) => sum + n.assets, 0);
+            expectedChange = selectedTotal - amount - estimatedFee;
+
+            console.log(
+              `[Vault V2] Selected ${selectedStoredNotes.length} notes (${(selectedTotal / NOCK_TO_NICKS).toFixed(2)} NOCK) for tx ${walletTxId.slice(0, 8)}...`
+            );
           }
 
           selectedNoteIds = selectedStoredNotes.map(n => n.noteId);
           const selectedTotal = selectedStoredNotes.reduce((sum, n) => sum + n.assets, 0);
 
-          console.log(
-            `[Vault V2] Selected ${selectedStoredNotes.length} notes (${(selectedTotal / NOCK_TO_NICKS).toFixed(2)} NOCK) for tx ${walletTxId.slice(0, 8)}...`
-          );
-
           // 4. Mark notes as in_flight BEFORE building transaction
           await markNotesInFlight(currentAccount.address, selectedNoteIds, walletTxId);
 
           // 5. Create wallet transaction record (status: created)
-          // Calculate expected change (will come back to us after confirmation)
-          const expectedChange = selectedTotal - amount - estimatedFee;
-
           const walletTx: WalletTransaction = {
             id: walletTxId,
             accountAddress: currentAccount.address,
@@ -1334,7 +1478,11 @@ export class Vault {
             recipient: to.slice(0, 20) + '...',
             amount: (amount / NOCK_TO_NICKS).toFixed(2) + ' NOCK',
             fee: fee ? (fee / NOCK_TO_NICKS).toFixed(2) + ' NOCK' : 'auto',
+            sendMax: !!sendMax,
           });
+
+          // For sendMax: set refundPKH = recipient so all funds go to recipient (sweep)
+          const refundAddress = sendMax ? to : undefined;
 
           const constructedTx = await buildMultiNotePayment(
             txBuilderNotes,
@@ -1342,7 +1490,8 @@ export class Vault {
             amount,
             accountKey.publicKey,
             accountKey.privateKey,
-            fee
+            fee,
+            refundAddress
           );
 
           // 7. Broadcast transaction

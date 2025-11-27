@@ -105,6 +105,9 @@ export const INTERNAL_METHODS = {
   /** Estimate transaction fee for a given recipient and amount */
   ESTIMATE_TRANSACTION_FEE: 'wallet:estimateTransactionFee',
 
+  /** Estimate max sendable amount (for "send max" feature) */
+  ESTIMATE_MAX_SEND: 'wallet:estimateMaxSend',
+
   /** Send a transaction (internal popup-initiated transactions - builds, signs, and broadcasts) */
   SEND_TRANSACTION: 'wallet:sendTransaction',
 

@@ -74,8 +74,76 @@ export function SendScreen() {
     setWalletDropdownOpen(false);
   }
 
-  function handleMaxAmount() {
-    setAmount(formatNock(currentBalance));
+  async function handleMaxAmount() {
+    setIsSendingMax(true);
+    setIsCalculatingFee(true);
+    setError('');
+
+    try {
+      // Use recipient address if valid, otherwise use a dummy address for estimation
+      let addressToUse = receiverAddress.trim();
+
+      if (addressToUse) {
+        try {
+          const bytes = base58.decode(addressToUse);
+          if (bytes.length !== 40) {
+            addressToUse = ''; // Invalid, will use dummy
+          }
+        } catch {
+          addressToUse = ''; // Invalid base58, will use dummy
+        }
+      }
+
+      // If no valid address, use dummy (fee doesn't depend on recipient)
+      if (!addressToUse) {
+        const dummyBytes = new Uint8Array(40).fill(0);
+        addressToUse = base58.encode(dummyBytes);
+      }
+
+      const result = await send<{
+        maxAmount?: number;
+        fee?: number;
+        totalAvailable?: number;
+        utxoCount?: number;
+        error?: string;
+      }>(INTERNAL_METHODS.ESTIMATE_MAX_SEND, [addressToUse]);
+
+      if (result?.error) {
+        console.error('[SendScreen] Max estimation error:', result.error);
+        setError(result.error);
+        setIsSendingMax(false);
+        return;
+      }
+
+      if (result?.maxAmount !== undefined && result?.fee !== undefined) {
+        // Set amount to max (already accounts for fee)
+        // IMPORTANT: Floor to 5 decimal places to avoid rounding up beyond available balance
+        // Standard rounding could make 395.9621276... become 395.96213 which exceeds available
+        const maxAmountNock = Math.floor((result.maxAmount / NOCK_TO_NICKS) * 100000) / 100000;
+        const feeNock = result.fee / NOCK_TO_NICKS;
+
+        setAmount(formatNock(maxAmountNock));
+        setFee(feeNock.toString());
+        setEditedFee(feeNock.toString());
+        setMinimumFee(feeNock);
+        setIsFeeManuallyEdited(true); // Lock fee for max send
+        setFeeWarning('');
+
+        console.log('[SendScreen] Max send calculated:', {
+          maxAmount: maxAmountNock,
+          fee: feeNock,
+          totalAvailable: result.totalAvailable ? result.totalAvailable / NOCK_TO_NICKS : 0,
+          utxoCount: result.utxoCount,
+        });
+      }
+    } catch (err) {
+      console.error('[SendScreen] Max estimation failed:', err);
+      // Fallback: just set balance (will fail validation if fee not covered)
+      setAmount(formatNock(currentBalance));
+      setIsSendingMax(false);
+    } finally {
+      setIsCalculatingFee(false);
+    }
   }
 
   function handleAmountBlur() {
@@ -195,6 +263,7 @@ export function SendScreen() {
       fee: feeNum,
       to: receiverAddress.trim(),
       from: currentAccount?.address,
+      sendMax: isSendingMax, // Flag for sweep transaction (all UTXOs to recipient)
     });
 
     navigate('send-review');
@@ -501,6 +570,7 @@ export function SendScreen() {
             const value = e.target.value;
             if (value === '' || /^[\d,]*\.?\d{0,5}$/.test(value)) {
               setAmount(value);
+              setIsSendingMax(false); // User manually edited, no longer sending max
             }
           }}
           onBlur={handleAmountBlur}

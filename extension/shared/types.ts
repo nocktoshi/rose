@@ -83,6 +83,8 @@ export interface TransactionDetails {
   from?: string;
   /** Protobuf transaction object for debugging/export (dev feature) */
   protobufTx?: any;
+  /** Whether this is a sweep transaction (all UTXOs sent to recipient) */
+  sendMax?: boolean;
 }
 
 /**
