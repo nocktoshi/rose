@@ -5,16 +5,24 @@
 import { useState } from 'react';
 import { useStore } from '../../store';
 import { Alert } from '../../components/Alert';
+import { CheckIcon } from '../../components/icons/CheckIcon';
 import lockIcon from '../../assets/lock-icon.svg';
 
 export function BackupScreen() {
   const { onboardingMnemonic, navigate } = useStore();
   const [isRevealed, setIsRevealed] = useState(false);
   const [hasConfirmed, setHasConfirmed] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
 
-  function handleCopyAll() {
+  async function handleCopyAll() {
     if (onboardingMnemonic) {
-      navigator.clipboard.writeText(onboardingMnemonic);
+      try {
+        await navigator.clipboard.writeText(onboardingMnemonic);
+        setCopiedAll(true);
+        setTimeout(() => setCopiedAll(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy secret phrase:', err);
+      }
     }
   }
 
@@ -207,7 +215,8 @@ export function BackupScreen() {
           <div className="flex gap-3">
             <button
               onClick={handleCopyAll}
-              className="flex-1 h-12 px-5 py-[15px] rounded-lg flex items-center justify-center transition-opacity bg-[var(--color-surface-900)] text-[var(--color-text-primary)] hover:opacity-90"
+              disabled={copiedAll}
+              className="flex-1 h-12 px-5 py-[15px] rounded-lg flex items-center justify-center gap-2 transition-opacity bg-[var(--color-surface-900)] text-[var(--color-text-primary)] hover:opacity-90 disabled:opacity-100"
               style={{
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--font-size-base)',
@@ -216,7 +225,8 @@ export function BackupScreen() {
                 letterSpacing: '0.01em',
               }}
             >
-              Copy all
+              {copiedAll && <CheckIcon className="w-5 h-5" />}
+              {copiedAll ? 'Copied!' : 'Copy all'}
             </button>
             <button
               onClick={handleContinue}

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
+import { CheckIcon } from '../components/icons/CheckIcon';
 import IrisLogo40 from '../assets/iris-logo-40.svg';
 import { truncateAddress, formatUTCTimestamp } from '../utils/format';
 import { NOCK_TO_NICKS } from '../../shared/constants';
@@ -16,6 +17,8 @@ export function TransactionDetailsScreen() {
     walletTransactions,
     setSelectedTransaction,
   } = useStore();
+
+  const [copiedTxId, setCopiedTxId] = useState(false);
 
   // Fetch fresh transaction data on mount
   React.useEffect(() => {
@@ -129,8 +132,14 @@ export function TransactionDetailsScreen() {
       window.open(`https://nockscan.net/tx/${txHash}`, '_blank');
     }
   }
-  function handleCopyTransactionId() {
-    navigator.clipboard.writeText(transactionId);
+  async function handleCopyTransactionId() {
+    try {
+      await navigator.clipboard.writeText(transactionId);
+      setCopiedTxId(true);
+      setTimeout(() => setCopiedTxId(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy transaction ID:', err);
+    }
   }
 
   return (
@@ -295,17 +304,21 @@ export function TransactionDetailsScreen() {
               <button
                 type="button"
                 onClick={handleCopyTransactionId}
-                className="flex-1 py-[7px] px-3 bg-transparent rounded-full text-sm font-medium leading-[18px] tracking-[0.14px] transition-colors focus:outline-none focus-visible:ring-2 whitespace-nowrap"
+                disabled={copiedTxId}
+                className="flex-1 py-[7px] px-3 bg-transparent rounded-full text-sm font-medium leading-[18px] tracking-[0.14px] transition-colors focus:outline-none focus-visible:ring-2 whitespace-nowrap disabled:opacity-100 flex items-center justify-center gap-1.5"
                 style={{
                   border: '1px solid var(--color-surface-700)',
                   color: 'var(--color-text-primary)',
                 }}
-                onMouseEnter={e =>
-                  (e.currentTarget.style.backgroundColor = 'var(--color-surface-800)')
-                }
+                onMouseEnter={e => {
+                  if (!copiedTxId) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-surface-800)';
+                  }
+                }}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
-                Copy transaction ID
+                {copiedTxId && <CheckIcon className="w-3.5 h-3.5" />}
+                {copiedTxId ? 'Copied!' : 'Copy transaction ID'}
               </button>
             </div>
           </div>
