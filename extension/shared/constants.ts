@@ -189,6 +189,9 @@ export const STORAGE_KEYS = {
   /** Auto-lock timeout in minutes */
   AUTO_LOCK_MINUTES: 'autoLockMinutes',
 
+  /** Whether balance is hidden (privacy mode) */
+  BALANCE_HIDDEN: 'balanceHidden',
+
   /** Onboarding state - tracks whether secret phrase backup is complete */
   ONBOARDING_STATE: 'onboardingState',
 

@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
 import { truncateAddress } from '../utils/format';
 import { send } from '../utils/messaging';
-import { INTERNAL_METHODS, REQUIRED_CONFIRMATIONS, NOCK_TO_NICKS } from '../../shared/constants';
+import { INTERNAL_METHODS, NOCK_TO_NICKS, STORAGE_KEYS } from '../../shared/constants';
 import type { Account } from '../../shared/types';
 import { AccountIcon } from '../components/AccountIcon';
 import { EyeIcon } from '../components/icons/EyeIcon';
@@ -111,6 +111,20 @@ export function HomeScreen() {
       checkConnection();
     }
   }, [isBalanceFetching]);
+
+  // Load balance hidden preference on mount
+  useEffect(() => {
+    chrome.storage.local.get([STORAGE_KEYS.BALANCE_HIDDEN]).then(result => {
+      setBalanceHidden(result[STORAGE_KEYS.BALANCE_HIDDEN] ?? false);
+    });
+  }, []);
+
+  // Toggle balance visibility and persist setting
+  function toggleBalanceHidden() {
+    const newValue = !balanceHidden;
+    setBalanceHidden(newValue);
+    chrome.storage.local.set({ [STORAGE_KEYS.BALANCE_HIDDEN]: newValue });
+  }
 
   // Get accounts from vault (filter out hidden accounts)
   const accounts = (wallet.accounts || []).filter(acc => !acc.hidden);
@@ -559,7 +573,7 @@ export function HomeScreen() {
               <button
                 className="ml-1"
                 style={{ color: 'var(--color-text-muted)' }}
-                onClick={() => setBalanceHidden(b => !b)}
+                onClick={toggleBalanceHidden}
                 aria-label="Toggle balance visibility"
               >
                 {balanceHidden ? (
