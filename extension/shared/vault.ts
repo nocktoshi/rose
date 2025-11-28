@@ -1144,9 +1144,6 @@ export class Vault {
    * Uses the account mutex to prevent race conditions on rapid sends.
    * Locks notes before building and releases them on failure.
    *
-   * TODO: Test using stored protoNote from UTXO store instead of fetching fresh.
-   * The fresh RPC fetch may be unnecessary
-   *
    * @param to - Recipient PKH address
    * @param amount - Amount in nicks
    * @param fee - Fee in nicks (optional, WASM will calculate if not provided)
@@ -1255,34 +1252,11 @@ export class Vault {
           };
           await addWalletTransaction(walletTx);
 
-          // 6. Fetch FRESH notes from RPC to get protoNote data
-          // TODO: Test using stored protoNote from UTXO store instead - may not need this fetch
+          // 6. Convert stored notes to transaction builder format
+          const sortedStoredNotes = [...selectedStoredNotes].sort((a, b) => b.assets - a.assets);
+          const txBuilderNotes = sortedStoredNotes.map(convertStoredNoteForTxBuilder);
+
           const rpcClient = createBrowserClient();
-          const balanceResult = await queryV1Balance(currentAccount.address, rpcClient);
-          const allRpcNotes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
-
-          // Create a map for quick lookup of fresh notes by noteId
-          const selectedNoteIdSet = new Set(selectedNoteIds);
-          const freshSelectedNotes = allRpcNotes.filter(note => {
-            const noteId = `${note.nameFirstBase58 || base58.encode(note.nameFirst)}:${note.nameLastBase58 || base58.encode(note.nameLast)}`;
-            return selectedNoteIdSet.has(noteId);
-          });
-
-          if (freshSelectedNotes.length !== selectedNoteIds.length) {
-            console.warn(
-              `[Vault V2] Note count mismatch: selected ${selectedNoteIds.length}, found fresh ${freshSelectedNotes.length}`
-            );
-            // This can happen if a note was spent between selection and RPC fetch
-            // The transaction will likely fail, but we'll let WASM handle it
-          }
-
-          // Sort fresh notes by assets descending (same order as selection)
-          const sortedFreshNotes = [...freshSelectedNotes].sort((a, b) => b.assets - a.assets);
-
-          // Convert fresh RPC notes to transaction builder format
-          const txBuilderNotes = await Promise.all(
-            sortedFreshNotes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
-          );
 
           // For sendMax: set refundPKH = recipient so all funds go to recipient (sweep)
           const refundAddress = sendMax ? to : undefined;
