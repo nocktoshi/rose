@@ -136,7 +136,7 @@ export function LockedScreen() {
                     letterSpacing: '0.02em',
                   }}
                 >
-                  Your safe wallet for Nockchain
+                  Your Nockchain companion
                 </p>
               </div>
             </div>
