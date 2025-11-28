@@ -63,6 +63,9 @@ export const INTERNAL_METHODS = {
   /** Report RPC connection status from popup (where gRPC calls happen) */
   REPORT_RPC_STATUS: 'wallet:reportRpcStatus',
 
+  /** Report user activity (e.g., popup opened) - resets auto-lock timer */
+  REPORT_ACTIVITY: 'wallet:reportActivity',
+
   /** Get pending transaction request for approval */
   GET_PENDING_TRANSACTION: 'wallet:getPendingTransaction',
 
@@ -209,6 +212,9 @@ export const STORAGE_KEYS = {
 
   /** Storage schema version for migrations */
   SCHEMA_VERSION: 'schemaVersion',
+
+  /** Last user activity timestamp for auto-lock (survives SW restarts) */
+  LAST_ACTIVITY: 'lastActivity',
 } as const;
 
 /** Current storage schema version - increment when making breaking changes */
@@ -276,6 +282,10 @@ export const USER_ACTIVITY_METHODS = new Set([
   INTERNAL_METHODS.HIDE_ACCOUNT,
   INTERNAL_METHODS.SET_AUTO_LOCK,
   INTERNAL_METHODS.GET_MNEMONIC, // Viewing secret phrase is user activity
+  INTERNAL_METHODS.SEND_TRANSACTION_V2,
+  INTERNAL_METHODS.ESTIMATE_TRANSACTION_FEE,
+  INTERNAL_METHODS.ESTIMATE_MAX_SEND,
+  INTERNAL_METHODS.REPORT_ACTIVITY,
 ]);
 
 /**

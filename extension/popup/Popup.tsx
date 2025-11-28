@@ -28,6 +28,11 @@ export function Popup() {
     initialize();
   }, [initialize]);
 
+  // Report activity when popup opens (resets auto-lock timer)
+  useEffect(() => {
+    send(INTERNAL_METHODS.REPORT_ACTIVITY);
+  }, []);
+
   // Handle approval requests from URL hash
   useApprovalDetection({
     walletAddress: wallet.address,

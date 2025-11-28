@@ -326,11 +326,19 @@ async function emitWalletEvent(eventType: string, data: unknown) {
 
 // Initialize auto-lock setting, load approved origins, vault state, connection monitoring, and schedule alarms
 (async () => {
-  const stored = await chrome.storage.local.get([STORAGE_KEYS.AUTO_LOCK_MINUTES]);
+  const stored = await chrome.storage.local.get([
+    STORAGE_KEYS.AUTO_LOCK_MINUTES,
+    STORAGE_KEYS.LAST_ACTIVITY,
+  ]);
   autoLockMinutes = stored[STORAGE_KEYS.AUTO_LOCK_MINUTES] ?? AUTOLOCK_MINUTES;
+  // Load persisted lastActivity (survives SW restarts), fallback to now if not set
+  lastActivity = stored[STORAGE_KEYS.LAST_ACTIVITY] ?? Date.now();
   await loadApprovedOrigins();
   await vault.init(); // Load encrypted vault header to detect vault existence
-  scheduleAlarm();
+  // Only schedule alarm if auto-lock is enabled
+  if (autoLockMinutes > 0) {
+    scheduleAlarm();
+  }
 })();
 
 // Clean up approval window ID when window is closed
@@ -345,10 +353,13 @@ chrome.windows.onRemoved.addListener(windowId => {
 /**
  * Track user activity for auto-lock timer
  * Only counts user-initiated actions, not passive polling
+ * Persists to storage so it survives service worker restarts
  */
 function touchActivity(method?: string) {
   if (method && USER_ACTIVITY_METHODS.has(method as any)) {
     lastActivity = Date.now();
+    // Persist to storage (fire and forget - don't await)
+    chrome.storage.local.set({ [STORAGE_KEYS.LAST_ACTIVITY]: lastActivity });
   }
 }
 
@@ -572,11 +583,20 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
       // Internal methods (called from popup)
       case INTERNAL_METHODS.SET_AUTO_LOCK:
-        autoLockMinutes = payload.params?.[0] ?? 15;
+        autoLockMinutes = payload.params?.[0] ?? 0;
         await chrome.storage.local.set({
           [STORAGE_KEYS.AUTO_LOCK_MINUTES]: autoLockMinutes,
         });
-        scheduleAlarm();
+        // Start or stop alarm based on setting
+        if (autoLockMinutes > 0) {
+          // Reset activity timestamp when enabling auto-lock
+          lastActivity = Date.now();
+          await chrome.storage.local.set({ [STORAGE_KEYS.LAST_ACTIVITY]: lastActivity });
+          scheduleAlarm();
+        } else {
+          // Clear alarm when disabling auto-lock
+          chrome.alarms.clear(ALARM_NAMES.AUTO_LOCK);
+        }
         sendResponse({ ok: true });
         return;
 
@@ -696,6 +716,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
       case INTERNAL_METHODS.GET_AUTO_LOCK:
         sendResponse({ minutes: autoLockMinutes });
+        return;
+
+      case INTERNAL_METHODS.REPORT_ACTIVITY:
+        // Just acknowledge - activity tracking already handled above
+        sendResponse({ ok: true });
         return;
 
       case INTERNAL_METHODS.GET_BALANCE_FROM_STORE:
@@ -1194,14 +1219,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 chrome.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name !== ALARM_NAMES.AUTO_LOCK) return;
 
-  // Don't auto-lock if user manually locked - respect their choice
-  if (manuallyLocked) {
-    scheduleAlarm();
-    return;
+  // Don't auto-lock if set to "never" (0 minutes) - stop the alarm cycle
+  if (autoLockMinutes === 0) {
+    return; // Don't reschedule - alarm stops until user enables auto-lock
   }
 
-  // Don't auto-lock if set to "never" (0 minutes)
-  if (autoLockMinutes === 0) {
+  // Don't auto-lock if user manually locked - respect their choice
+  if (manuallyLocked) {
     scheduleAlarm();
     return;
   }
