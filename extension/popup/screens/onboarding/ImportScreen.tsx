@@ -2,7 +2,7 @@
  * Onboarding Import Screen - Import wallet from mnemonic
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Alert } from '../../components/Alert';
 import { useAutoFocus } from '../../hooks/useAutoFocus';
@@ -17,6 +17,13 @@ import { importKeyfile, type Keyfile } from '../../../shared/keyfile';
 
 export function ImportScreen() {
   const { navigate, syncWallet, onboardingMnemonic, setOnboardingMnemonic } = useStore();
+
+  // Clear any stale mnemonic state on mount to ensure fresh start
+  useEffect(() => {
+    if (onboardingMnemonic) {
+      setOnboardingMnemonic(null);
+    }
+  }, []);
   const [words, setWords] = useState<string[]>(Array(UI_CONSTANTS.MNEMONIC_WORD_COUNT).fill(''));
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
