@@ -34,8 +34,8 @@ import {
 import { NOCK_TO_NICKS } from './constants';
 import { base58 } from '@scure/base';
 
-/** Transaction expiry timeout: 24 hours */
-const TX_EXPIRY_MS = 24 * 60 * 60 * 1000;
+/** Transaction expiry timeout: 6 hours */
+const TX_EXPIRY_MS = 6 * 60 * 60 * 1000;
 
 /**
  * Convert Note (from RPC) to FetchedUTXO (for diff computation)

@@ -225,13 +225,14 @@ export function HomeScreen() {
   const fullAddress = currentAccount?.address || '';
 
   // Helper to convert WalletTransaction status to display status
-  const getDisplayStatus = (status: string): 'pending' | 'confirmed' | 'failed' => {
+  const getDisplayStatus = (status: string): 'pending' | 'confirmed' | 'failed' | 'expired' => {
     switch (status) {
       case 'confirmed':
         return 'confirmed';
       case 'failed':
-      case 'expired':
         return 'failed';
+      case 'expired':
+        return 'expired';
       default:
         return 'pending';
     }
@@ -757,6 +758,12 @@ export function HomeScreen() {
                             {t.status === 'failed' && (
                               <>
                                 <span style={{ color: 'var(--color-red)' }}>Failed</span>
+                                <span>·</span>
+                              </>
+                            )}
+                            {t.status === 'expired' && (
+                              <>
+                                <span style={{ color: 'var(--color-text-muted)' }}>Expired</span>
                                 <span>·</span>
                               </>
                             )}
