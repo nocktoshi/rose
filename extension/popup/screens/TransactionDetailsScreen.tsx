@@ -12,7 +12,6 @@ export function TransactionDetailsScreen() {
     navigate,
     selectedTransaction,
     wallet,
-    priceUsd,
     fetchWalletTransactions,
     walletTransactions,
     setSelectedTransaction,
@@ -69,7 +68,11 @@ export function TransactionDetailsScreen() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-  const usdValue = `$${(amountNock * priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  // Only show USD value if we have historical price stored
+  const usdValue = selectedTransaction.priceUsdAtTime
+    ? `$${(amountNock * selectedTransaction.priceUsdAtTime).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : null;
 
   // Determine status display
   let statusText: string;
@@ -118,7 +121,11 @@ export function TransactionDetailsScreen() {
   const totalNock =
     selectedTransaction.direction === 'outgoing' ? amountNock + feeNock : amountNock;
   const total = `${totalNock.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`;
-  const totalUsd = `$${(totalNock * priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  // Only show total USD if we have historical price stored
+  const totalUsd = selectedTransaction.priceUsdAtTime
+    ? `$${(totalNock * selectedTransaction.priceUsdAtTime).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : null;
   const transactionId = selectedTransaction.txHash || selectedTransaction.id;
   const transactionTimeUTC = formatUTCTimestamp(selectedTransaction.createdAt);
 
@@ -186,12 +193,14 @@ export function TransactionDetailsScreen() {
                 {transactionType === 'sent' && '-'}
                 {amount} <span style={{ color: 'var(--color-text-muted)' }}>NOCK</span>
               </h2>
-              <p
-                className="m-0 text-[13px] font-medium leading-[18px] tracking-[0.26px]"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                {usdValue}
-              </p>
+              {usdValue && (
+                <p
+                  className="m-0 text-[13px] font-medium leading-[18px] tracking-[0.26px]"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  {usdValue}
+                </p>
+              )}
             </div>
           </div>
 
@@ -271,12 +280,14 @@ export function TransactionDetailsScreen() {
                   <div className="whitespace-nowrap" style={{ color: 'var(--color-text-primary)' }}>
                     {total}
                   </div>
-                  <div
-                    className="text-[13px] leading-[18px] tracking-[0.26px] whitespace-nowrap"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
-                    {totalUsd}
-                  </div>
+                  {totalUsd && (
+                    <div
+                      className="text-[13px] leading-[18px] tracking-[0.26px] whitespace-nowrap"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      {totalUsd}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

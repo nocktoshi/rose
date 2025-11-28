@@ -9,7 +9,7 @@ import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 
 export function SendReviewScreen() {
-  const { navigate, wallet, lastTransaction } = useStore();
+  const { navigate, wallet, lastTransaction, priceUsd } = useStore();
 
   // If no transaction data, go back to send screen
   if (!lastTransaction) {
@@ -64,6 +64,7 @@ export function SendReviewScreen() {
         amountInNicks,
         feeInNicks,
         lastTransaction.sendMax, // Pass sendMax flag for sweep transactions
+        priceUsd, // Store USD price at time of transaction for historical display
       ]);
 
       if (result?.error) {

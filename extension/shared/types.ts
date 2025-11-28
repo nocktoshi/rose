@@ -314,6 +314,9 @@ export interface WalletTransaction {
   /** When the transaction was last updated (ms since epoch) */
   updatedAt: number;
 
+  /** USD price per NOCK at the time of transaction */
+  priceUsdAtTime?: number;
+
   /** Current status */
   status: WalletTxStatus;
 

@@ -54,9 +54,6 @@ export const INTERNAL_METHODS = {
   /** Get auto-lock timeout setting */
   GET_AUTO_LOCK: 'wallet:getAutoLock',
 
-  /** Get wallet balance from blockchain */
-  GET_BALANCE: 'wallet:getBalance',
-
   /** Get balance from UTXO store (excludes in-flight notes) */
   GET_BALANCE_FROM_STORE: 'wallet:getBalanceFromStore',
 
@@ -102,9 +99,6 @@ export const INTERNAL_METHODS = {
   /** Sign a transaction (internal popup-initiated transactions) */
   SIGN_TRANSACTION: 'wallet:signTransaction',
 
-  /** Build and sign a transaction without broadcasting */
-  BUILD_AND_SIGN_TRANSACTION: 'wallet:buildAndSignTransaction',
-
   /** Estimate transaction fee for a given recipient and amount */
   ESTIMATE_TRANSACTION_FEE: 'wallet:estimateTransactionFee',
 
@@ -116,9 +110,6 @@ export const INTERNAL_METHODS = {
 
   /** Send transaction using UTXO store (build, lock, broadcast atomically) */
   SEND_TRANSACTION_V2: 'wallet:sendTransactionV2',
-
-  /** Broadcast a raw signed transaction (internal popup-initiated transactions) */
-  BROADCAST_TRANSACTION: 'wallet:broadcastTransaction',
 
   /** Approve pending sign raw transaction request */
   APPROVE_SIGN_RAW_TX: 'wallet:approveSignRawTx',

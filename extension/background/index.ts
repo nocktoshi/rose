@@ -698,19 +698,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         sendResponse({ minutes: autoLockMinutes });
         return;
 
-      case INTERNAL_METHODS.GET_BALANCE:
-        const balanceResult = await vault.getBalance();
-        if ('error' in balanceResult) {
-          sendResponse({ error: balanceResult.error });
-        } else {
-          sendResponse({
-            totalNock: balanceResult.totalNock,
-            totalNicks: balanceResult.totalNicks.toString(), // Convert bigint to string for JSON
-            utxoCount: balanceResult.utxoCount,
-          });
-        }
-        return;
-
       case INTERNAL_METHODS.GET_BALANCE_FROM_STORE:
         // Get balance from UTXO store - excludes in-flight notes
         // Optional param: account address. If not provided, uses current account.
@@ -1099,15 +1086,17 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return;
 
       case INTERNAL_METHODS.SEND_TRANSACTION_V2:
-        // params: [to, amount, fee?, sendMax?] - amount and fee in nicks
+        // params: [to, amount, fee?, sendMax?, priceUsdAtTime?] - amount and fee in nicks
         // Uses UTXO store for proper note locking and successive transaction support
         // sendMax: if true, uses all available UTXOs and sets refundPKH = recipient for sweep
+        // priceUsdAtTime: USD price per NOCK at time of transaction (for historical display)
         if (vault.isLocked()) {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
 
-        const [sendToV2, sendAmountV2, sendFeeV2, sendMaxV2] = payload.params || [];
+        const [sendToV2, sendAmountV2, sendFeeV2, sendMaxV2, priceUsdAtTimeV2] =
+          payload.params || [];
         if (!isNockAddress(sendToV2)) {
           sendResponse({ error: ERROR_CODES.BAD_ADDRESS });
           return;
@@ -1123,7 +1112,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             sendToV2,
             sendAmountV2,
             sendFeeV2, // optional, can be undefined
-            sendMaxV2 // optional, sweep all UTXOs to recipient
+            sendMaxV2, // optional, sweep all UTXOs to recipient
+            priceUsdAtTimeV2 // optional, USD price at time of tx
           );
 
           if ('error' in v2Result) {

@@ -10,14 +10,15 @@ import {
   deriveAddressFromMaster,
   validateMnemonic,
 } from './wallet-crypto';
-import { ERROR_CODES, STORAGE_KEYS, ACCOUNT_COLORS, PRESET_WALLET_STYLES } from './constants';
-import { Account } from './types';
 import {
-  buildMultiNotePayment,
-  type Note,
-  buildTransaction,
-  buildPayment,
-} from './transaction-builder';
+  ERROR_CODES,
+  STORAGE_KEYS,
+  ACCOUNT_COLORS,
+  PRESET_WALLET_STYLES,
+  NOCK_TO_NICKS,
+} from './constants';
+import { Account } from './types';
+import { buildMultiNotePayment, type Note } from './transaction-builder';
 import * as wasm from '@nockbox/iris-wasm/iris_wasm.js';
 import { queryV1Balance } from './balance-query';
 import { createBrowserClient } from './rpc-client-browser';
@@ -34,9 +35,6 @@ import {
   updateWalletTransaction,
 } from './utxo-store';
 import type { StoredNote, WalletTransaction } from './types';
-
-// Constants
-const NOCK_TO_NICKS = 65_536;
 
 /**
  * Convert a balance query note to transaction builder note format
@@ -73,6 +71,23 @@ async function convertNoteForTxBuilder(note: BalanceNote, ownerPKH: string): Pro
     nameFirst,
     nameLast,
     noteDataHash,
+    assets: note.assets,
+    protoNote: note.protoNote,
+  };
+}
+
+/**
+ * Convert a stored note to transaction builder note format
+ * StoredNotes already have base58 strings, so this is a simple field mapping
+ * @param note - Note from UTXO store
+ * @returns Note in format expected by transaction builder
+ */
+function convertStoredNoteForTxBuilder(note: StoredNote): Note {
+  return {
+    originPage: note.originPage,
+    nameFirst: note.nameFirst,
+    nameLast: note.nameLast,
+    noteDataHash: note.noteDataHashBase58,
     assets: note.assets,
     protoNote: note.protoNote,
   };
@@ -655,50 +670,6 @@ export class Vault {
   }
 
   /**
-   * Get balance for the current account
-   * Queries the blockchain via RPC for V1 PKH address balance
-   *
-   * @returns Balance information including total NOCK, nicks, and UTXO count
-   */
-  async getBalance(): Promise<
-    | {
-        totalNock: number;
-        totalNicks: bigint;
-        utxoCount: number;
-      }
-    | { error: string }
-  > {
-    if (this.state.locked) {
-      return { error: ERROR_CODES.LOCKED };
-    }
-
-    const currentAccount = this.getCurrentAccount();
-    if (!currentAccount) {
-      return { error: ERROR_CODES.NO_ACCOUNT };
-    }
-
-    try {
-      // Create RPC client
-      const rpcClient = createBrowserClient();
-
-      // Query balance using V1 balance query (derives first-names automatically)
-      const balanceResult = await queryV1Balance(currentAccount.address, rpcClient);
-
-      return {
-        totalNock: balanceResult.totalNock,
-        totalNicks: balanceResult.totalNicks,
-        utxoCount: balanceResult.utxoCount,
-      };
-    } catch (error) {
-      console.error('[Vault] Error fetching balance:', error);
-      return {
-        error:
-          'Failed to fetch balance: ' + (error instanceof Error ? error.message : 'Unknown error'),
-      };
-    }
-  }
-
-  /**
    * Gets the mnemonic phrase (only when unlocked)
    * Requires password verification for security
    */
@@ -1003,20 +974,17 @@ export class Vault {
       }
 
       try {
-        const rpcClient = createBrowserClient();
-        const balanceResult = await queryV1Balance(currentAccount.address, rpcClient);
+        // Get available (not in-flight) notes from UTXO store
+        const notes = await getAvailableNotes(currentAccount.address);
 
-        if (balanceResult.utxoCount === 0) {
-          return { error: 'No UTXOs available. Your wallet has zero balance.' };
+        if (notes.length === 0) {
+          return { error: 'No spendable UTXOs available.' };
         }
 
-        const notes = [...balanceResult.simpleNotes, ...balanceResult.coinbaseNotes];
         const totalAvailable = notes.reduce((sum, note) => sum + note.assets, 0);
 
-        // Convert ALL notes to transaction builder format
-        const txBuilderNotes = await Promise.all(
-          notes.map(note => convertNoteForTxBuilder(note, currentAccount.address))
-        );
+        // Convert stored notes to transaction builder format
+        const txBuilderNotes = notes.map(convertStoredNoteForTxBuilder);
 
         // Build a sweep transaction to get exact fee:
         // - Set refundPKH = recipientPKH (sweep mode: 1 consolidated output)
@@ -1183,13 +1151,15 @@ export class Vault {
    * @param amount - Amount in nicks
    * @param fee - Fee in nicks (optional, WASM will calculate if not provided)
    * @param sendMax - If true, sweep all available UTXOs to recipient (no change back)
+   * @param priceUsdAtTime - USD price per NOCK at time of transaction (for historical display)
    * @returns Transaction result with txId and wallet transaction record
    */
   async sendTransactionV2(
     to: string,
     amount: number,
     fee?: number,
-    sendMax?: boolean
+    sendMax?: boolean,
+    priceUsdAtTime?: number
   ): Promise<
     { txId: string; walletTx: WalletTransaction; broadcasted: boolean } | { error: string }
   > {
@@ -1275,6 +1245,7 @@ export class Vault {
             direction: 'outgoing',
             createdAt: Date.now(),
             updatedAt: Date.now(),
+            priceUsdAtTime,
             status: 'created',
             inputNoteIds: selectedNoteIds,
             recipient: to,
@@ -1375,25 +1346,6 @@ export class Vault {
   }
 
   /**
-   * Gets the last sync timestamp for an account
-   */
-  async getLastSync(accountAddress: string): Promise<number> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.LAST_TX_SYNC]);
-    const timestamps: import('./types').LastSyncTimestamps =
-      result[STORAGE_KEYS.LAST_TX_SYNC] || {};
-    return timestamps[accountAddress] || 0;
-  }
-
-  /**
-   * Checks if cache should be refreshed (older than 5 minutes)
-   */
-  async shouldRefreshCache(accountAddress: string): Promise<boolean> {
-    const lastSync = await this.getLastSync(accountAddress);
-    const fiveMinutes = 5 * 60 * 1000;
-    return Date.now() - lastSync > fiveMinutes;
-  }
-
-  /**
    * Sign a raw transaction using iris-wasm
    *
    * @param params - Transaction parameters with raw tx jam and notes/spend conditions
@@ -1445,7 +1397,7 @@ export class Vault {
       // Sign
       builder.sign(accountKey.privateKey);
 
-      // Build signed tx
+      // Build signed tx (returns NockchainTx)
       const signedTx = builder.build();
 
       // Convert to protobuf for return

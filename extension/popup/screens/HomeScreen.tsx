@@ -259,6 +259,11 @@ export function HomeScreen() {
       const type = tx.direction === 'outgoing' ? 'sent' : 'received';
       const address = tx.direction === 'outgoing' ? tx.recipient : tx.sender;
 
+      // Only show USD value if we have historical price stored
+      const usdValue = tx.priceUsdAtTime
+        ? `$${(amountNock * tx.priceUsdAtTime).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : null;
+
       acc[date].push({
         type,
         from: truncateAddress(address || ''),
@@ -266,7 +271,7 @@ export function HomeScreen() {
           type === 'sent'
             ? `-${amountNock.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`
             : `${amountNock.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`,
-        usdValue: `$${(amountNock * priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        usdValue,
         status: getDisplayStatus(tx.status),
         confirmations: tx.confirmations,
         txid: tx.txHash || tx.id,
@@ -770,12 +775,14 @@ export function HomeScreen() {
                           >
                             {t.amount}
                           </div>
-                          <div
-                            className="text-[12px] whitespace-nowrap"
-                            style={{ color: 'var(--color-text-muted)' }}
-                          >
-                            {t.usdValue}
-                          </div>
+                          {t.usdValue && (
+                            <div
+                              className="text-[12px] whitespace-nowrap"
+                              style={{ color: 'var(--color-text-muted)' }}
+                            >
+                              {t.usdValue}
+                            </div>
+                          )}
                         </div>
                       </button>
                     ))}
