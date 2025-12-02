@@ -264,12 +264,13 @@ export function HomeScreen() {
     }
   };
 
-  // Filter to only show outgoing transactions (hide incoming/change for now)
-  // TODO: Add proper incoming transaction support
-  const outgoingTransactions = walletTransactions.filter(tx => tx.direction === 'outgoing');
+  // Filter to show outgoing and incoming transactions (exclude 'self' which is internal transfers)
+  const displayTransactions = walletTransactions.filter(
+    tx => tx.direction === 'outgoing' || tx.direction === 'incoming'
+  );
 
   // Group wallet transactions by date
-  const transactionsByDate = outgoingTransactions.reduce(
+  const transactionsByDate = displayTransactions.reduce(
     (acc, tx) => {
       const date = new Date(tx.createdAt).toLocaleDateString('en-US', {
         day: 'numeric',
@@ -284,6 +285,7 @@ export function HomeScreen() {
       // Convert amount from nicks to NOCK
       const amountNock = (tx.amount || 0) / NOCK_TO_NICKS;
       const type = tx.direction === 'outgoing' ? 'sent' : 'received';
+      // For incoming transactions, show sender if known, otherwise leave empty
       const address = tx.direction === 'outgoing' ? tx.recipient : tx.sender;
 
       // Only show USD value if we have historical price stored
@@ -705,7 +707,7 @@ export function HomeScreen() {
 
           {/* Groups */}
           <div className="px-4 pb-6 flex-1 flex flex-col">
-            {outgoingTransactions.length === 0 ? (
+            {displayTransactions.length === 0 ? (
               /* Empty state */
               <div className="flex flex-col items-center justify-center gap-2 flex-1">
                 <div

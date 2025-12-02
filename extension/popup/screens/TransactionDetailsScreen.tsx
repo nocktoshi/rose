@@ -111,13 +111,19 @@ export function TransactionDetailsScreen() {
   const fromAddress =
     selectedTransaction.direction === 'outgoing'
       ? truncateAddress(currentAddress)
-      : truncateAddress(counterpartyAddress || '');
+      : counterpartyAddress
+        ? truncateAddress(counterpartyAddress)
+        : 'Unknown';
   const toAddress =
     selectedTransaction.direction === 'outgoing'
       ? truncateAddress(counterpartyAddress || '')
       : truncateAddress(currentAddress);
 
-  const networkFee = `${feeNock.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`;
+  // For incoming transactions, we don't have fee info
+  const networkFee =
+    selectedTransaction.direction === 'outgoing'
+      ? `${feeNock.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`
+      : '-';
   const totalNock =
     selectedTransaction.direction === 'outgoing' ? amountNock + feeNock : amountNock;
   const total = `${totalNock.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NOCK`;

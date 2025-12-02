@@ -519,3 +519,14 @@ export async function getPendingOutgoingTransactions(
         t.status === 'broadcasted_unconfirmed')
   );
 }
+
+/**
+ * Get all outgoing transactions (pending + confirmed) for change detection
+ * This is needed to identify change UTXOs even after a transaction is confirmed
+ */
+export async function getAllOutgoingTransactions(
+  accountAddress: string
+): Promise<WalletTransaction[]> {
+  const transactions = await getWalletTransactions(accountAddress);
+  return transactions.filter(t => t.direction === 'outgoing');
+}

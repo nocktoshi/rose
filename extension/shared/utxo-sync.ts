@@ -21,7 +21,9 @@ import {
   withAccountLock,
   getWalletTransactions,
   updateWalletTransaction,
+  addWalletTransaction,
   getPendingOutgoingTransactions,
+  getAllOutgoingTransactions,
   generateNoteId,
 } from './utxo-store';
 import {
@@ -84,9 +86,10 @@ export async function syncAccountUTXOs(
     // 2. Get local state
     const localNotes = await getAccountNotes(accountAddress);
     const pendingTxs = await getPendingOutgoingTransactions(accountAddress);
+    const allOutgoingTxs = await getAllOutgoingTransactions(accountAddress);
 
-    // 3. Compute diff
-    const diff = computeUTXODiff(localNotes, fetchedUTXOs, pendingTxs);
+    // 3. Compute diff (pass all outgoing txs for change detection)
+    const diff = computeUTXODiff(localNotes, fetchedUTXOs, pendingTxs, allOutgoingTxs);
 
     // 4. Process spent notes
     if (diff.nowSpent.length > 0) {
@@ -121,9 +124,23 @@ export async function syncAccountUTXOs(
         storedNote.pendingTxId = walletTxId; // Link to originating tx
         newChange++;
       } else {
-        // For now, we DON'T create WalletTransaction records for incoming UTXOs.
-        // This avoids confusing the user with "received" transactions that are actually change.
-        // The balance will still update correctly, and users can see incoming on a block explorer.
+        // This is a true incoming transaction (not change from our own tx)
+        // Create a WalletTransaction record so it appears in the transaction list
+        const incomingTxId = crypto.randomUUID();
+        const now = Date.now();
+
+        await addWalletTransaction({
+          id: incomingTxId,
+          txHash: newUTXO.sourceHash, // The transaction that created this UTXO
+          accountAddress,
+          direction: 'incoming',
+          createdAt: now,
+          updatedAt: now,
+          status: 'confirmed', // Incoming UTXOs are already confirmed when we see them
+          amount: newUTXO.assets,
+          receivedNoteIds: [newUTXO.noteId],
+        });
+
         newIncoming++;
       }
 

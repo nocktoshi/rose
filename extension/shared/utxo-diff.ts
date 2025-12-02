@@ -12,13 +12,15 @@ import type { StoredNote, FetchedUTXO, UTXODiff, WalletTransaction } from './typ
  *
  * @param localNotes - Notes currently in our local store
  * @param fetchedUTXOs - UTXOs fetched from the chain
- * @param pendingOutgoingTxs - Our pending outgoing transactions (to identify change)
+ * @param pendingOutgoingTxs - Our pending outgoing transactions (for confirmation detection)
+ * @param allOutgoingTxs - All outgoing transactions including confirmed (for change detection)
  * @returns Diff result with new, unchanged, and spent notes
  */
 export function computeUTXODiff(
   localNotes: StoredNote[],
   fetchedUTXOs: FetchedUTXO[],
-  pendingOutgoingTxs: WalletTransaction[]
+  pendingOutgoingTxs: WalletTransaction[],
+  allOutgoingTxs?: WalletTransaction[]
 ): UTXODiff {
   // Build lookup maps
   const localMap = new Map<string, StoredNote>();
@@ -31,13 +33,13 @@ export function computeUTXODiff(
     fetchedMap.set(utxo.noteId, utxo);
   }
 
-  // Build set of our pending tx hashes to identify change
-  const ourPendingTxHashes = new Set<string>();
-  const txHashToTxId = new Map<string, string>();
-  for (const tx of pendingOutgoingTxs) {
-    if (tx.txHash) {
-      ourPendingTxHashes.add(tx.txHash);
-      txHashToTxId.set(tx.txHash, tx.id);
+  // Build a map of expectedChange amounts to tx IDs for change detection
+  // We match new UTXOs by their amount against expected change from our outgoing transactions
+  const txsForChangeDetection = allOutgoingTxs || pendingOutgoingTxs;
+  const expectedChangeToTxId = new Map<number, string>();
+  for (const tx of txsForChangeDetection) {
+    if (tx.expectedChange && tx.expectedChange > 0) {
+      expectedChangeToTxId.set(tx.expectedChange, tx.id);
     }
   }
 
@@ -55,12 +57,13 @@ export function computeUTXODiff(
       // This is a new UTXO we haven't seen before
       newUTXOs.push(fetched);
 
-      // Check if this is change from one of our pending transactions
-      if (fetched.sourceHash && ourPendingTxHashes.has(fetched.sourceHash)) {
-        const walletTxId = txHashToTxId.get(fetched.sourceHash);
-        if (walletTxId) {
-          isChangeMap.set(noteId, walletTxId);
-        }
+      // Check if this is change from one of our outgoing transactions
+      // Match by expectedChange amount (RPC doesn't provide usable sourceHash)
+      const matchedTxId = expectedChangeToTxId.get(fetched.assets);
+      if (matchedTxId) {
+        isChangeMap.set(noteId, matchedTxId);
+        // Remove from map to prevent double-matching
+        expectedChangeToTxId.delete(fetched.assets);
       }
     } else if (local.state !== 'spent') {
       // Still exists on chain and in our store
