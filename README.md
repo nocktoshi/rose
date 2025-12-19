@@ -80,7 +80,7 @@ npm login --registry http://localhost:4873
 
 ### Publish workflow
 
-1) **Publish `@nockbox/iris-wasm`** from your local `iris-wasm` repo checkout:
+1. **Publish `@nockbox/iris-wasm`** from your local `iris-wasm` repo checkout:
 
 ```bash
 # in the iris-wasm package directory
@@ -88,7 +88,7 @@ npm version 0.1.3 --no-git-tag-version
 npm publish --registry http://localhost:4873
 ```
 
-2) **Bump + publish `@nockbox/iris-sdk`** (this repo’s `sdk/`):
+2. **Bump + publish `@nockbox/iris-sdk`** (this repo’s `sdk/`):
 
 ```bash
 cd sdk
@@ -99,7 +99,7 @@ npm run build
 npm publish --registry http://localhost:4873
 ```
 
-3) **Consume in Iris** using normal npm deps (no `file:`):
+3. **Consume in Iris** using normal npm deps (no `file:`):
 
 ```bash
 cd ..
