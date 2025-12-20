@@ -50,7 +50,7 @@ npm run build
 
 ## WASM Modules
 
-WASM binaries are **pre-built and included** in `extension/lib/`. No build required.
+WASM binaries are **pre-built and included** in `@nockbox/iris-sdk`. No build required.
 
 ## Local development: publishing `@nockbox/iris-wasm` / `@nockbox/iris-sdk` to a local npm registry
 

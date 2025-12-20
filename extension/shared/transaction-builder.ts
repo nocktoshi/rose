@@ -7,7 +7,7 @@ import * as wasm from '@nockbox/iris-wasm/iris_wasm.js';
 import { publicKeyToPKHDigest } from './address-encoding.js';
 import { base58 } from '@scure/base';
 import { DEFAULT_FEE_PER_WORD } from './constants.js';
-import { ensureWasmInitialized } from './wasm-utils.js';
+import { initWasmModules } from './wasm-utils.js';
 
 /**
  * Discover the correct spend condition for a note by matching lock-root to name.first
@@ -23,7 +23,7 @@ export async function discoverSpendConditionForNote(
   senderPKH: string,
   note: { nameFirst: string; originPage: number }
 ): Promise<wasm.SpendCondition> {
-  await ensureWasmInitialized();
+  await initWasmModules();
 
   const candidates: Array<{ name: string; condition: wasm.SpendCondition }> = [];
 
@@ -141,7 +141,7 @@ export interface ConstructedTransaction {
  */
 export async function buildTransaction(params: TransactionParams): Promise<ConstructedTransaction> {
   // Initialize both WASM modules
-  await ensureWasmInitialized();
+  await initWasmModules();
 
   const {
     notes,
@@ -249,7 +249,7 @@ export async function buildPayment(
   fee?: number
 ): Promise<ConstructedTransaction> {
   // Initialize WASM
-  await ensureWasmInitialized();
+  await initWasmModules();
 
   const totalNeeded = amount + (fee || 0);
 
@@ -315,7 +315,7 @@ export async function buildMultiNotePayment(
   refundPKH?: string
 ): Promise<ConstructedTransaction> {
   // Initialize WASM
-  await ensureWasmInitialized();
+  await initWasmModules();
 
   if (notes.length === 0) {
     throw new Error('At least one note is required');
@@ -385,7 +385,7 @@ export async function buildMultiNotePayment(
 export async function createSinglePKHSpendCondition(
   publicKey: Uint8Array
 ): Promise<wasm.SpendCondition> {
-  await ensureWasmInitialized();
+  await initWasmModules();
 
   const pkhDigest = publicKeyToPKHDigest(publicKey);
   const pkh = wasm.Pkh.single(pkhDigest);
@@ -402,7 +402,7 @@ export async function createSinglePKHSpendCondition(
 export async function calculateNoteDataHash(
   spendCondition: wasm.SpendCondition
 ): Promise<Uint8Array> {
-  await ensureWasmInitialized();
+  await initWasmModules();
 
   const hashDigest = spendCondition.hash();
   // The digest value is already a base58 string, decode it to bytes

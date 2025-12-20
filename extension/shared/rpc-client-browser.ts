@@ -6,7 +6,7 @@
 import { GrpcClient } from '@nockbox/iris-wasm/iris_wasm.js';
 import type { Note } from './types';
 import { base58 } from '@scure/base';
-import { ensureWasmInitialized } from './wasm-utils.js';
+import { initWasmModules } from './wasm-utils.js';
 import { RPC_ENDPOINT, INTERNAL_METHODS } from './constants.js';
 
 /**
@@ -47,7 +47,7 @@ export class NockchainBrowserRPCClient {
       return this.client;
     }
 
-    await ensureWasmInitialized();
+    await initWasmModules();
     this.client = new GrpcClient(this.endpoint);
     return this.client;
   }

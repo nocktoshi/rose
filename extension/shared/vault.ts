@@ -781,7 +781,7 @@ export class Vault {
       throw new Error('Wallet is locked');
     }
 
-    // Initialize WASM modules
+    // Initialize WASM modules (once per context)
     await initWasmModules();
 
     const msg = (Array.isArray(params) ? params[0] : params) ?? '';

@@ -11,6 +11,7 @@
  */
 
 import { base16, base64, base64url } from '@scure/base';
+import { Noun } from '@nockbox/iris-wasm/iris_wasm.js';
 import type {
   Note as WasmNote,
   NoteDataEntry as WasmNoteDataEntry,
@@ -39,7 +40,36 @@ function hexToBytes(hex: string): Uint8Array | null {
     return null;
   }
 }
+function decodeMemoJamListUx(blob: Uint8Array): string | null {
+  try {
+    const noun = Noun.cue(blob);
+    const jsNoun = noun.toJs(); // atom => hex string, cell => [head, tail]
 
+    const bytes: number[] = [];
+    let x: unknown = jsNoun;
+
+    while (Array.isArray(x) && x.length === 2) {
+      const head = x[0];
+      const tail = x[1];
+
+      if (typeof head !== 'string') return null;
+      const v = Number.parseInt(head, 16);
+      if (!Number.isFinite(v) || v < 0 || v > 255) return null;
+
+      bytes.push(v);
+      x = tail;
+    }
+
+    // list terminator must be atom 0 (hex string "0")
+    if (typeof x !== 'string') return null;
+    if (Number.parseInt(x, 16) !== 0) return null;
+
+    const decoded = bytesToUtf8(Uint8Array.from(bytes)).trim();
+    return decoded.length ? decoded : null;
+  } catch {
+    return null;
+  }
+}
 function base64ToBytes(b64: string): Uint8Array | null {
   const normalized = b64.trim();
   if (!normalized) return null;
@@ -88,24 +118,38 @@ function decodeMemoValue(maybe: unknown): string | null {
   if (v == null) return null;
 
   if (v instanceof Uint8Array) {
+    // NEW: wasm/protobuf stores memo as jam(noun), not raw UTF-8 bytes
+    const jamDecoded = decodeMemoJamListUx(v);
+    if (jamDecoded) return jamDecoded;
+
+    // fallback (legacy / unexpected)
     const decoded = bytesToUtf8(v).trim();
     return decoded.length ? decoded : null;
+  }
+
+  // NEW: protobuf blobs may come through as number[]
+  if (Array.isArray(v) && v.every((n) => Number.isInteger(n) && n >= 0 && n <= 255)) {
+    return decodeMemoValue(Uint8Array.from(v));
   }
 
   if (typeof v === 'string') {
     const raw = v.trim();
     if (!raw) return null;
 
-    // If it's already readable, prefer returning it directly.
-    // attempt decoding for base64/hex-ish strings in case it is hex
     const asHex = hexToBytes(raw);
     if (asHex) {
+      const jamDecoded = decodeMemoJamListUx(asHex);
+      if (jamDecoded) return jamDecoded;
+
       const decoded = bytesToUtf8(asHex).trim();
       return decoded.length ? decoded : raw;
     }
 
     const asB64 = base64ToBytes(raw);
     if (asB64) {
+      const jamDecoded = decodeMemoJamListUx(asB64);
+      if (jamDecoded) return jamDecoded;
+
       const decoded = bytesToUtf8(asB64).trim();
       return decoded.length ? decoded : raw;
     }
@@ -113,7 +157,6 @@ function decodeMemoValue(maybe: unknown): string | null {
     return raw;
   }
 
-  // Common protobuf-ish wrappers: { blob: Uint8Array | { value: ... } }
   if (isRecord(v)) {
     if ('blob' in v) return decodeMemoValue(v.blob);
     if ('memo' in v) return decodeMemoValue(v.memo);
@@ -133,7 +176,9 @@ function getNoteDataEntries(
 ): ReadonlyArray<WasmNoteDataEntry | ProtobufNoteDataEntryLike> {
   // WASM path (strongly typed)
   if (isWasmNote(note)) {
-    return note.noteData.entries;
+    const noteData: any = (note as any).noteData;
+    const entries = typeof noteData?.entries === 'function' ? noteData.entries() : noteData?.entries;
+    return Array.isArray(entries) ? entries : [];
   }
 
   // Protobuf-ish object path (resilient)
@@ -152,12 +197,16 @@ function extractMemoFromOutputs(
   for (const output of outputs) {
     const entries = getNoteDataEntries(output);
     for (const entry of entries) {
-      const key = unwrapValue((entry as any)?.key);
+      const keyRaw = (entry as any)?.key;
+      const keyVal = typeof keyRaw === 'function' ? keyRaw.call(entry) : keyRaw;
+      const key = unwrapValue(keyVal);
       const keyStr = typeof key === 'string' ? key : null;
       if (!keyStr) continue;
       if (keyStr.toLowerCase() !== 'memo') continue;
 
-      const memo = decodeMemoValue((entry as any)?.blob);
+      const blobRaw = (entry as any)?.blob;
+      const blobVal = typeof blobRaw === 'function' ? blobRaw.call(entry) : blobRaw;
+      const memo = decodeMemoValue(blobVal);
       if (memo) return memo;
     }
   }

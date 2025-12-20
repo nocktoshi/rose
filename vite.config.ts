@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 import { crx } from '@crxjs/vite-plugin';
-import { readFileSync, writeFileSync, cpSync, existsSync, mkdirSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { cwd } from 'node:process';
 import manifest from './extension/manifest.json' with { type: 'json' };
 
 export default defineConfig({
@@ -11,7 +12,7 @@ export default defineConfig({
     {
       name: 'fix-manifest-icons',
       writeBundle() {
-        const manifestPath = resolve(__dirname, 'dist/manifest.json');
+        const manifestPath = resolve(cwd(), 'dist/manifest.json');
         const builtManifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
 
         // Add back the icons that @crxjs strips
@@ -42,15 +43,7 @@ export default defineConfig({
     minify: 'terser',
     rollupOptions: {
       output: {
-        // Preserve WASM files during build
         assetFileNames: assetInfo => {
-          if (assetInfo.name?.endsWith('.wasm')) {
-            // Preserve WASM files in their lib subdirectories
-            if (assetInfo.name.includes('iris_wasm')) {
-              return 'lib/iris-wasm/[name][extname]';
-            }
-            return 'lib/[name][extname]';
-          }
           return 'assets/[name]-[hash][extname]';
         },
         // Disable dynamic imports in service worker to avoid document.* injection
