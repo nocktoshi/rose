@@ -51,10 +51,6 @@ export const INTERNAL_METHODS = {
   /** Get mnemonic phrase (requires password verification) */
   GET_MNEMONIC: 'wallet:getMnemonic',
 
-  // ============================================================================
-  // v0 Migration (seed stored in extension; dApp never sees it)
-  // ============================================================================
-
   /** Returns whether a v0 seedphrase is stored (requires unlocked) */
   HAS_V0_SEEDPHRASE: 'wallet:hasV0Seedphrase',
 
