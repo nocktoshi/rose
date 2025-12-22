@@ -30,7 +30,7 @@ import type {
 const vault = new Vault();
 // Ensure WASM is initialized once per service worker context.
 // Some background flows (message routing, tx handling) require WASM to be ready.
-const initPromise = ensureWasmInitialized();
+const wasmInitPromise = ensureWasmInitialized();
 let lastActivity = Date.now();
 let autoLockMinutes = AUTOLOCK_MINUTES;
 let manuallyLocked = false; // Track if user manually locked (don't auto-unlock)
@@ -432,8 +432,10 @@ async function emitWalletEvent(eventType: string, data: unknown) {
   }
 }
 
-// Initialize auto-lock setting, load approved origins, vault state, connection monitoring, and schedule alarms
-(async () => {
+// Initialize auto-lock setting, load approved origins, vault state, connection monitoring, and schedule alarms.
+// IMPORTANT: this promise is awaited by message and alarm handlers to prevent race conditions on SW start.
+const initPromise = (async () => {
+  await wasmInitPromise;
   const stored = (await chrome.storage.local.get([
     STORAGE_KEYS.AUTO_LOCK_MINUTES,
     STORAGE_KEYS.LAST_ACTIVITY,
