@@ -12,7 +12,7 @@ npm i @nockbox/iris-sdk
 
 - **`NockchainProvider`**: connect to Iris and request signatures / transactions (EIP-1193-ish API).
 - **`TransactionBuilder`**: small fluent helper for constructing the simple “send transaction” payload.
-- **WASM re-exports**: convenience re-export of `@nockbox/iris-wasm` under `@nockbox/iris-sdk/wasm`.
+- **WASM**: use `@nockbox/iris-wasm` directly for `TxBuilder`, `GrpcClient`, etc.
 - **React Hook**: `useIris()` for one-time WASM init + gRPC client + provider wiring.
 
 ## Basic usage (provider)
@@ -41,7 +41,7 @@ const txId = await provider.sendTransaction(tx);
 
 ## WASM / raw transaction signing
 
-If you’re using `@nockbox/iris-wasm` types like `TxBuilder`, import them via the SDK’s subpath:
+If you’re using `@nockbox/iris-wasm` types like `TxBuilder`, import them directly:
 
 ```ts
 import {
@@ -52,15 +52,8 @@ import {
   GrpcClient,
   RawTx,
   Note,
-} from '@nockbox/iris-sdk/wasm';
+} from '@nockbox/iris-wasm/iris_wasm.js';
 import { NockchainProvider } from '@nockbox/iris-sdk';
-```
-
-The SDK also exposes a namespace export:
-
-```ts
-import { wasm } from '@nockbox/iris-sdk';
-// wasm.TxBuilder, wasm.Pkh, ...
 ```
 
 See `sdk/examples/` for an end-to-end example of building + signing a raw transaction.

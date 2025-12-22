@@ -113,6 +113,19 @@ function bytesToUtf8(bytes: Uint8Array): string {
   }
 }
 
+function looksLikeReadableText(s: string): boolean {
+  if (s.includes('\uFFFD')) return false;
+
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    const isAllowedWhitespace = c === 0x09 || c === 0x0a || c === 0x0d;
+    const isControl = (c >= 0x00 && c <= 0x1f) || (c >= 0x7f && c <= 0x9f);
+    if (isControl && !isAllowedWhitespace) return false;
+  }
+
+  return true;
+}
+
 function decodeMemoValue(maybe: unknown): string | null {
   const v = unwrapValue(maybe);
   if (v == null) return null;
@@ -142,7 +155,8 @@ function decodeMemoValue(maybe: unknown): string | null {
       if (jamDecoded) return jamDecoded;
 
       const decoded = bytesToUtf8(asHex).trim();
-      return decoded.length ? decoded : raw;
+      if (decoded.length && looksLikeReadableText(decoded)) return decoded;
+      return raw;
     }
 
     const asB64 = base64ToBytes(raw);
@@ -151,7 +165,8 @@ function decodeMemoValue(maybe: unknown): string | null {
       if (jamDecoded) return jamDecoded;
 
       const decoded = bytesToUtf8(asB64).trim();
-      return decoded.length ? decoded : raw;
+      if (decoded.length && looksLikeReadableText(decoded)) return decoded;
+      return raw;
     }
 
     return raw;

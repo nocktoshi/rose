@@ -1,28 +1,35 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NockchainProvider } from '../provider.js';
-import wasm from '../wasm.js';
-import { GrpcClient } from '@nockbox/iris-sdk/wasm';
+import initWasm, { GrpcClient } from '@nockbox/iris-wasm/iris_wasm.js';
 
-const IRIS_SDK_INIT_KEY = '__nockbox_iris_sdk_init_promise__';
+const IRIS_SDK_WASM_INIT_KEY = '__nockbox_iris_sdk_wasm_init_promise__';
+const IRIS_SDK_PROVIDER_KEY = '__nockbox_iris_sdk_provider__';
 
 /**
- * Initialize Iris WASM + RPC client + wallet provider once per page load.
+ * Initialize Iris WASM once per page load.
  * Uses globalThis so React StrictMode + Vite HMR won't accidentally re-init.
  */
-type IrisInit = Promise<{ provider: NockchainProvider; rpcClient: GrpcClient }>;
+type WasmInit = ReturnType<typeof initWasm>;
 
-function initWasmModules({ rpcUrl }: { rpcUrl: string }): IrisInit {
+function ensureWasmInitializedOnce(): WasmInit {
   const g = globalThis as typeof globalThis & Record<string, unknown>;
-  if (!g[IRIS_SDK_INIT_KEY]) {
-    g[IRIS_SDK_INIT_KEY] = (async () => {
-      await wasm();
-      return {
-        rpcClient: new GrpcClient(rpcUrl),
-        provider: new NockchainProvider(),
-      };
-    })();
-  }
-  return g[IRIS_SDK_INIT_KEY] as IrisInit;
+
+  const existing = g[IRIS_SDK_WASM_INIT_KEY];
+  if (existing && existing instanceof Promise) return existing as WasmInit;
+
+  const p = initWasm();
+  g[IRIS_SDK_WASM_INIT_KEY] = p;
+  return p;
+}
+
+function getProviderOnce(): NockchainProvider {
+  const g = globalThis as typeof globalThis & Record<string, unknown>;
+  const existing = g[IRIS_SDK_PROVIDER_KEY];
+  if (existing instanceof NockchainProvider) return existing;
+
+  const provider = new NockchainProvider();
+  g[IRIS_SDK_PROVIDER_KEY] = provider;
+  return provider;
 }
 
 export type UseIrisStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -41,11 +48,11 @@ export function useIris({ rpcUrl = 'https://rpc.nockbox.org' }: { rpcUrl?: strin
     setStatus('loading');
     setError(null);
 
-    initWasmModules(options)
-      .then(({ provider: p, rpcClient: c }) => {
+    ensureWasmInitializedOnce()
+      .then(() => {
         if (cancelled) return;
-        setProvider(p);
-        setRpcClient(c);
+        setProvider(getProviderOnce());
+        setRpcClient(new GrpcClient(options.rpcUrl));
         setStatus('ready');
       })
       .catch(err => {
@@ -62,7 +69,7 @@ export function useIris({ rpcUrl = 'https://rpc.nockbox.org' }: { rpcUrl?: strin
   return {
     provider,
     rpcClient,
-    wasm,
+    wasm: initWasm,
     status,
     error,
     isReady: status === 'ready',

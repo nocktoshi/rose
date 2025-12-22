@@ -8,5 +8,4 @@ export * from './provider.js';
 export * from './transaction.js';
 export * from './errors.js';
 export * from './constants.js';
-export * as wasm from './wasm.js';
 export * from './hooks/index.js';
