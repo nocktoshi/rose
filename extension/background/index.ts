@@ -6,7 +6,7 @@
 
 import { Vault } from '../shared/vault';
 import { isNockAddress } from '../shared/validators';
-import { ensureWasmInitialized } from '../shared/wasm-utils';
+import { initIrisSdkOnce } from '../shared/wasm-utils';
 import {
   PROVIDER_METHODS,
   INTERNAL_METHODS,
@@ -34,7 +34,7 @@ function isRecord(x: unknown): x is Record<string, unknown> {
 const vault = new Vault();
 // Ensure WASM is initialized once per service worker context.
 // Some background flows (message routing, tx handling) require WASM to be ready.
-const wasmInitPromise = ensureWasmInitialized();
+const wasmInitPromise = initIrisSdkOnce();
 let lastActivity = Date.now();
 let autoLockMinutes = AUTOLOCK_MINUTES;
 let manuallyLocked = false; // Track if user manually locked (don't auto-unlock)

@@ -15,9 +15,26 @@ function ensureWasmInitializedOnce(): WasmInit {
   const g = globalThis as typeof globalThis & Record<string, unknown>;
 
   const existing = g[IRIS_SDK_WASM_INIT_KEY];
-  if (existing && existing instanceof Promise) return existing as WasmInit;
+  // If a previous init attempt failed, the cached Promise may be rejected.
+  // Ensure we clear the cached value on failure so callers can retry without a full refresh.
+  if (existing && existing instanceof Promise) {
+    return (existing as WasmInit).catch(err => {
+      // Only clear if we're still pointing at this promise (avoid races).
+      if (g[IRIS_SDK_WASM_INIT_KEY] === existing) {
+        delete g[IRIS_SDK_WASM_INIT_KEY];
+      }
+      throw err;
+    }) as WasmInit;
+  }
 
-  const p = initWasm();
+  const p = initWasm().catch(err => {
+    // Allow retry after a failed init
+    if (g[IRIS_SDK_WASM_INIT_KEY] === p) {
+      delete g[IRIS_SDK_WASM_INIT_KEY];
+    }
+    throw err;
+  }) as WasmInit;
+
   g[IRIS_SDK_WASM_INIT_KEY] = p;
   return p;
 }

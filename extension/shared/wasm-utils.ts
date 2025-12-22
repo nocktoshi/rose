@@ -13,9 +13,11 @@ let wasmInitPromise: Promise<void> | null = null;
 const IRIS_WASM_INIT_KEY = '__iris_wasm_init_promise__';
 
 /**
- * Initialize WASM modules (low-level).
+ * Initialize WASM modules (low-level, no caching).
+ *
+ * Prefer calling `initIrisSdkOnce()` (or its aliases) instead.
  */
-export async function initWasmModules(): Promise<void> {
+async function initWasmModulesRaw(): Promise<void> {
   // Let the wasm-bindgen loader resolve the `.wasm` URL via `import.meta.url`.
   // Vite will rewrite that into a hashed asset (e.g. `dist/assets/iris_wasm_bg-<hash>.wasm`)
   // and the extension can fetch it from its own origin.
@@ -42,7 +44,7 @@ export async function initIrisSdkOnce(): Promise<void> {
   }
 
   if (!wasmInitPromise) {
-    wasmInitPromise = initWasmModules()
+    wasmInitPromise = initWasmModulesRaw()
       .then(() => {
         wasmInitialized = true;
       })
@@ -55,4 +57,22 @@ export async function initIrisSdkOnce(): Promise<void> {
   }
 
   await wasmInitPromise;
+}
+
+/**
+ * Back-compat alias.
+ * Historically, the codebase used `ensureWasmInitialized()` to mean "once per context".
+ */
+export async function ensureWasmInitialized(): Promise<void> {
+  return initIrisSdkOnce();
+}
+
+/**
+ * Exported for compatibility with recent call sites.
+ *
+ * Important: despite the name, this is intentionally **deduped** and safe to call many times.
+ * If you truly need a raw init (rare), use a dedicated helper in this module.
+ */
+export async function initWasmModules(): Promise<void> {
+  return initIrisSdkOnce();
 }

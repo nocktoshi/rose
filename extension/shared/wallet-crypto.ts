@@ -10,7 +10,7 @@ import {
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { deriveMasterKeyFromMnemonic } from '@nockbox/iris-wasm/iris_wasm.js';
 import { publicKeyToPKH } from './address-encoding';
-import { initWasmModules } from './wasm-utils';
+import { initIrisSdkOnce } from './wasm-utils';
 
 /**
  * Generates a BIP-39 mnemonic (24 words)
@@ -36,7 +36,7 @@ export function validateMnemonic(mnemonic: string): boolean {
  * @returns A Base58-encoded Nockchain v1 PKH address (~60 characters)
  */
 export async function deriveAddressFromMaster(mnemonic: string): Promise<string> {
-  await initWasmModules();
+  await initIrisSdkOnce();
 
   // Derive master key from mnemonic
   const masterKey = deriveMasterKeyFromMnemonic(mnemonic, '');
@@ -57,7 +57,7 @@ export async function deriveAddressFromMaster(mnemonic: string): Promise<string>
  * @returns A Base58-encoded Nockchain v1 PKH address (~60 characters)
  */
 export async function deriveAddress(mnemonic: string, accountIndex: number = 0): Promise<string> {
-  await initWasmModules();
+  await initIrisSdkOnce();
 
   // Derive master key from mnemonic
   const masterKey = deriveMasterKeyFromMnemonic(mnemonic, '');

@@ -34,8 +34,9 @@ function hexToBytes(hex: string): Uint8Array | null {
   if (!/^[0-9a-fA-F]*$/.test(normalized)) return null;
   if (normalized.length % 2 !== 0) return null;
   try {
-    // base16 expects hex without 0x prefix; normalize case for safety.
-    return base16.decode(normalized.toLowerCase());
+    // base16 expects hex without 0x prefix and is case-sensitive (RFC 4648 alphabet is uppercase).
+    // Normalize to uppercase so mixed/lowercase hex decodes correctly.
+    return base16.decode(normalized.toUpperCase());
   } catch {
     return null;
   }

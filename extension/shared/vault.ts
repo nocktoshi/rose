@@ -24,7 +24,7 @@ import { queryV1Balance } from './balance-query';
 import { createBrowserClient } from './rpc-client-browser';
 import type { Note as BalanceNote } from './types';
 import { base58 } from '@scure/base';
-import { initWasmModules } from './wasm-utils';
+import { initIrisSdkOnce } from './wasm-utils';
 import { getAccountBalanceSummary } from './utxo-sync';
 import {
   getAvailableNotes,
@@ -803,7 +803,7 @@ export class Vault {
     }
 
     // Initialize WASM modules (once per context)
-    await initWasmModules();
+    await initIrisSdkOnce();
 
     const msg = (Array.isArray(params) ? params[0] : params) ?? '';
     const msgString = String(msg);
@@ -874,7 +874,7 @@ export class Vault {
     }
 
     // Initialize WASM modules
-    await initWasmModules();
+    await initIrisSdkOnce();
 
     // Derive the account's private and public keys based on derivation method
     const masterKey = wasm.deriveMasterKeyFromMnemonic(this.mnemonic, '');
@@ -956,7 +956,7 @@ export class Vault {
 
     try {
       // Initialize WASM modules (same as sign/send)
-      await initWasmModules();
+      await initIrisSdkOnce();
 
       // Derive keys
       const masterKey = wasm.deriveMasterKeyFromMnemonic(this.mnemonic, '');
@@ -1047,7 +1047,7 @@ export class Vault {
 
     try {
       // Initialize WASM modules
-      await initWasmModules();
+      await initIrisSdkOnce();
 
       // Derive keys
       const masterKey = wasm.deriveMasterKeyFromMnemonic(this.mnemonic, '');
@@ -1154,7 +1154,7 @@ export class Vault {
 
     try {
       // Initialize WASM modules
-      await initWasmModules();
+      await initIrisSdkOnce();
 
       // Derive the account's private and public keys based on derivation method
       const masterKey = wasm.deriveMasterKeyFromMnemonic(this.mnemonic, '');
@@ -1267,7 +1267,7 @@ export class Vault {
 
       try {
         // Initialize WASM modules
-        await initWasmModules();
+        await initIrisSdkOnce();
 
         // Derive keys
         const masterKey = wasm.deriveMasterKeyFromMnemonic(this.mnemonic!, '');
@@ -1480,7 +1480,7 @@ export class Vault {
       throw new Error('Wallet is locked or no v0 seedphrase stored');
     }
 
-    await initWasmModules();
+    await initIrisSdkOnce();
 
     const seed = await this.pbkdf2SeedSha512(this.v0Seedphrase, this.v0Passphrase ?? '');
     const masterKey = wasm.deriveMasterKey(seed);
@@ -1521,7 +1521,7 @@ export class Vault {
     }
 
     // Initialize WASM modules
-    await initWasmModules();
+    await initIrisSdkOnce();
 
     const { rawTx, notes, spendConditions } = params;
 
@@ -1577,7 +1577,7 @@ export class Vault {
     }
 
     // Initialize WASM modules
-    await initWasmModules();
+    await initIrisSdkOnce();
 
     try {
       const irisRawTx = wasm.RawTx.fromProtobuf(rawTx);

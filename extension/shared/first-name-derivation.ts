@@ -7,7 +7,7 @@
  */
 
 import * as wasm from '@nockbox/iris-wasm/iris_wasm.js';
-import { initWasmModules } from './wasm-utils.js';
+import { initIrisSdkOnce } from './wasm-utils.js';
 
 /**
  * Derives the first-name for a simple PKH-locked note
@@ -26,7 +26,7 @@ import { initWasmModules } from './wasm-utils.js';
  * ```
  */
 export async function deriveSimpleFirstName(pkhBase58: string): Promise<string> {
-  await initWasmModules();
+  await initIrisSdkOnce();
 
   // Validate PKH is a non-empty string
   if (!pkhBase58 || typeof pkhBase58 !== 'string') {
@@ -68,7 +68,7 @@ export async function deriveSimpleFirstName(pkhBase58: string): Promise<string> 
  * ```
  */
 export async function deriveCoinbaseFirstName(pkhBase58: string): Promise<string> {
-  await initWasmModules();
+  await initIrisSdkOnce();
 
   // Validate PKH is a non-empty string
   if (!pkhBase58 || typeof pkhBase58 !== 'string') {
@@ -119,7 +119,7 @@ export async function getBothFirstNames(pkhBase58: string): Promise<{
   simple: string;
   coinbase: string;
 }> {
-  await initWasmModules();
+  await initIrisSdkOnce();
 
   return {
     simple: await deriveSimpleFirstName(pkhBase58),
