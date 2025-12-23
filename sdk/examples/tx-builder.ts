@@ -1686,7 +1686,7 @@ signTxBtn.onclick = async () => {
       signedTxSection.classList.remove('hidden');
 
       // Render TX ID
-      signedTxIdEl.innerHTML = renderCopyableId(state.signedTxId, 'Signed TX ID');
+      signedTxIdEl.innerHTML = renderCopyableId(state.signedTxId ?? '', 'Signed TX ID');
 
       // Render Validation Status
       const signedTxValidation = document.getElementById('signedTxValidation');
