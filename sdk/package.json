@@ -27,6 +27,20 @@
     "dist",
     "README.md"
   ],
+  "keywords": [
+    "nockchain",
+    "wallet",
+    "web3",
+    "blockchain",
+    "schnorr"
+  ],
+  "author": "Nockchain.net LLC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nocktoshi/rose.git",
+    "directory": "sdk"
+  },
   "scripts": {
     "build": "tsc",
     "build-example": "npm run build && tsc --project examples/tsconfig.json && vite build --config vite.config.examples.ts",
@@ -37,30 +51,16 @@
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
-  "keywords": [
-    "nockchain",
-    "wallet",
-    "web3",
-    "blockchain",
-    "schnorr"
-  ],
-  "author": "Nockchain.net LLC",
-  "license": "MIT",
+  "dependencies": {
+    "@nockchain/rose-wasm": "^0.1.4-nightly.11.1.2d67b54",
+    "@scure/base": "2.0.0"
+  },
   "devDependencies": {
     "@types/react": "19.2.7",
     "prettier": "3.7.4",
     "react": "19.2.3",
     "typescript": "5.9.3",
     "vite": "7.3.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nocktoshi/rose.git",
-    "directory": "sdk"
-  },
-  "dependencies": {
-    "@nockchain/rose-wasm": "^0.1.4-nightly.11.1.2d67b54",
-    "@scure/base": "2.0.0"
   },
   "peerDependencies": {
     "react": ">=18"

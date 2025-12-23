@@ -12,5 +12,3 @@ declare module '@nockchain/rose-wasm/rose_wasm.js' {
   import init from '@nockchain/rose-wasm/rose_wasm';
   export default init;
 }
-
-

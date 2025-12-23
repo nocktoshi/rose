@@ -11,5 +11,3 @@
 
 export * from '@nockchain/rose-wasm/rose_wasm.js';
 export { default } from '@nockchain/rose-wasm/rose_wasm.js';
-
-

@@ -1433,8 +1433,6 @@ function confirmAddLock() {
             return;
           }
 
-
-
           if (validAddrs.length === 1 && pkhConfig.m === 1) {
             const pkh = wasm.Pkh.single(validAddrs[0]);
             primitives.push(wasm.LockPrimitive.newPkh(pkh));

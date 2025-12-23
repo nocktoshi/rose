@@ -142,7 +142,7 @@ function decodeMemoValue(maybe: unknown): string | null {
   }
 
   // NEW: protobuf blobs may come through as number[]
-  if (Array.isArray(v) && v.every((n) => Number.isInteger(n) && n >= 0 && n <= 255)) {
+  if (Array.isArray(v) && v.every(n => Number.isInteger(n) && n >= 0 && n <= 255)) {
     return decodeMemoValue(Uint8Array.from(v));
   }
 
@@ -193,7 +193,8 @@ function getNoteDataEntries(
   // WASM path (strongly typed)
   if (isWasmNote(note)) {
     const noteData: any = (note as any).noteData;
-    const entries = typeof noteData?.entries === 'function' ? noteData.entries() : noteData?.entries;
+    const entries =
+      typeof noteData?.entries === 'function' ? noteData.entries() : noteData?.entries;
     return Array.isArray(entries) ? entries : [];
   }
 
