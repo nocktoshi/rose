@@ -14,7 +14,7 @@
   "dependencies": {
     "@fontsource/inter": "5.2.8",
     "@fontsource/lora": "5.2.8",
-    "@nockchain/sdk": "file:sdk/dist",
+    "@nockchain/sdk": "file:./sdk",
     "@scure/base": "2.0.0",
     "@scure/bip39": "2.0.1",
     "react": "19.2.3",

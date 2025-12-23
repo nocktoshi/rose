@@ -3,7 +3,7 @@
  * High-level API for constructing Nockchain transactions
  */
 
-import * as wasm from '@nockchain/rose-wasm/rose_wasm.js';
+import * as wasm from '@nockchain/sdk/wasm';
 import { publicKeyToPKHDigest } from './address-encoding.js';
 import { base58 } from '@scure/base';
 import { DEFAULT_FEE_PER_WORD } from './constants.js';

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NockchainProvider } from '../provider.js';
-import initWasm, { GrpcClient } from '@nockchain/rose-wasm/rose_wasm.js';
+import initWasm from '@nockchain/sdk/wasm';
+import * as wasm from '@nockchain/sdk/wasm';
 
 const ROSE_SDK_WASM_INIT_KEY = '__nockchain_rose_sdk_wasm_init_promise__';
 const ROSE_SDK_PROVIDER_KEY = '__nockchain_rose_sdk_provider__';
@@ -16,7 +17,7 @@ function ensureWasmInitializedOnce(): WasmInit {
 
   const existing = g[ROSE_SDK_WASM_INIT_KEY];
   if (existing && existing instanceof Promise) {
-    return (existing as WasmInit).catch(err => {
+    return (existing as WasmInit).catch((err: unknown) => {
       if (g[ROSE_SDK_WASM_INIT_KEY] === existing) {
         delete g[ROSE_SDK_WASM_INIT_KEY];
       }
@@ -24,7 +25,7 @@ function ensureWasmInitializedOnce(): WasmInit {
     }) as WasmInit;
   }
 
-  const p = initWasm().catch(err => {
+  const p = initWasm().catch((err: unknown) => {
     if (g[ROSE_SDK_WASM_INIT_KEY] === p) {
       delete g[ROSE_SDK_WASM_INIT_KEY];
     }
@@ -49,7 +50,7 @@ export type UseRoseStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 export function useRose({ rpcUrl = 'https://rpc.nockbox.org' }: { rpcUrl?: string } = {}) {
   const [provider, setProvider] = useState<NockchainProvider | null>(null);
-  const [rpcClient, setRpcClient] = useState<GrpcClient | null>(null);
+  const [rpcClient, setRpcClient] = useState<unknown>(null);
   const [status, setStatus] = useState<UseRoseStatus>('idle');
   const [error, setError] = useState<unknown>(null);
 
@@ -64,10 +65,14 @@ export function useRose({ rpcUrl = 'https://rpc.nockbox.org' }: { rpcUrl?: strin
       .then(() => {
         if (cancelled) return;
         setProvider(getProviderOnce());
-        setRpcClient(new GrpcClient(options.rpcUrl));
+        // The wasm package's type surface may lag runtime exports; keep this resilient.
+        const GrpcClientCtor = (wasm as any).GrpcClient as
+          | (new (rpcUrl: string) => unknown)
+          | undefined;
+        setRpcClient(GrpcClientCtor ? new GrpcClientCtor(options.rpcUrl) : null);
         setStatus('ready');
       })
-      .catch(err => {
+      .catch((err: unknown) => {
         if (cancelled) return;
         setError(err);
         setStatus('error');
