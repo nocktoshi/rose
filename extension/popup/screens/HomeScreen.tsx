@@ -335,9 +335,17 @@ export function HomeScreen() {
           style={{ backgroundColor: 'var(--color-home-fill)' }}
         >
           <div className="px-4 py-3 flex items-center justify-between min-h-[64px]">
-            <button
+            <div
               className="flex items-center gap-2"
+              role="button"
+              tabIndex={0}
               onClick={() => setWalletDropdownOpen(o => !o)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setWalletDropdownOpen(o => !o);
+                }
+              }}
               aria-label="Wallet menu"
             >
               <div
@@ -371,6 +379,7 @@ export function HomeScreen() {
                 >
                   <span className="truncate">{walletAddress}</span>
                   <button
+                    type="button"
                     className="shrink-0 opacity-70 hover:opacity-40"
                     onClick={async e => {
                       e.stopPropagation();
@@ -392,7 +401,7 @@ export function HomeScreen() {
                   </button>
                 </div>
               </div>
-            </button>
+            </div>
 
             <div className="flex items-center gap-2">
               <button

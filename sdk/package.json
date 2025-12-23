@@ -1,6 +1,6 @@
 {
   "name": "@nockchain/sdk",
-  "version": "0.1.4",
+  "version": "0.1.4-nightly.3",
   "description": "TypeScript SDK for interacting with Nockchain wallet extensions",
   "type": "module",
   "main": "./dist/index.js",
@@ -52,7 +52,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@nockchain/rose-wasm": "^0.1.4-nightly.11.1.2d67b54",
+    "@nockchain/rose-wasm": "^0.1.4-nightly.17.1.a460619",
     "@scure/base": "2.0.0"
   },
   "devDependencies": {

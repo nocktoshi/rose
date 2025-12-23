@@ -11,12 +11,12 @@
  */
 
 import { base16, base64, base64url } from '@scure/base';
-import { Noun } from '@nockchain/rose-wasm/rose_wasm.js';
+import * as wasm from '@nockchain/sdk/wasm';
 import type {
   Note as WasmNote,
   NoteDataEntry as WasmNoteDataEntry,
   RawTx as WasmRawTx,
-} from '@nockchain/rose-wasm/rose_wasm.js';
+} from '@nockchain/sdk/wasm';
 
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
@@ -43,7 +43,7 @@ function hexToBytes(hex: string): Uint8Array | null {
 }
 function decodeMemoJamListUx(blob: Uint8Array): string | null {
   try {
-    const noun = Noun.cue(blob);
+    const noun = wasm.Noun.cue(blob);
     const jsNoun = noun.toJs(); // atom => hex string, cell => [head, tail]
 
     const bytes: number[] = [];
@@ -67,6 +67,23 @@ function decodeMemoJamListUx(blob: Uint8Array): string | null {
 
     const decoded = bytesToUtf8(Uint8Array.from(bytes)).trim();
     return decoded.length ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
+function decodeMemoViaWasm(blob: Uint8Array): string | null {
+  try {
+    // Prefer the dedicated helper if present on the rose-wasm module (newer builds).
+    // We access it via `any` so the extension can compile against older rose-wasm typings.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fn = (wasm as any).decodeMemoUtf8 as undefined | ((b: Uint8Array) => string);
+
+    if (!fn) return null;
+    const s = fn(blob);
+    if (typeof s !== 'string') return null;
+    const trimmed = s.trim();
+    return trimmed.length ? trimmed : null;
   } catch {
     return null;
   }
@@ -132,7 +149,11 @@ function decodeMemoValue(maybe: unknown): string | null {
   if (v == null) return null;
 
   if (v instanceof Uint8Array) {
-    // NEW: wasm/protobuf stores memo as jam(noun), not raw UTF-8 bytes
+    // Prefer decoding via rose-wasm helper (keeps logic consistent with chain encoding).
+    const wasmDecoded = decodeMemoViaWasm(v);
+    if (wasmDecoded) return wasmDecoded;
+
+    // Fallback: decode jammed `(list @ux)` noun directly.
     const jamDecoded = decodeMemoJamListUx(v);
     if (jamDecoded) return jamDecoded;
 

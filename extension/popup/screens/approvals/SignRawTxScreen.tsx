@@ -85,15 +85,49 @@ function NoteItem({ note, type, textPrimary, textMuted, surface }: NoteItemProps
 
 export function SignRawTxScreen() {
   const { pendingSignRawTxRequest, setPendingSignRawTxRequest, navigate, wallet } = useStore();
+  const [memo, setMemo] = useState<string | null>(null);
 
-  if (!pendingSignRawTxRequest) {
-    navigate('home');
-    return null;
-  }
+  const request = pendingSignRawTxRequest;
+  const requestId = request?.id ?? '';
 
-  const { id, origin, rawTx, notes, outputs } = pendingSignRawTxRequest;
+  // Hooks must be unconditional; if there's no request, no-op.
+  useAutoRejectOnClose(requestId, INTERNAL_METHODS.REJECT_SIGN_RAW_TX);
 
-  useAutoRejectOnClose(id, INTERNAL_METHODS.REJECT_SIGN_RAW_TX);
+  // Avoid calling navigate() during render (it triggers "setState while rendering").
+  useEffect(() => {
+    if (!request) navigate('home');
+  }, [request, navigate]);
+
+  // Memo decoding must be unconditional too, otherwise when the request is cleared
+  // (e.g. after approval/reject), this component would render fewer hooks.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!request) {
+      setMemo(null);
+      return;
+    }
+
+    (async () => {
+      try {
+        const { ensureWasmInitialized } = await import('../../../shared/wasm-utils');
+        await ensureWasmInitialized();
+        if (cancelled) return;
+        setMemo(extractMemo({ rawTx: request.rawTx, outputs: request.outputs }));
+      } catch (err) {
+        console.error('[SignRawTx] Failed to decode memo:', err);
+        if (!cancelled) setMemo(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [request]);
+
+  if (!request) return null;
+
+  const { id, origin, rawTx, notes, outputs } = request;
 
   async function handleDecline() {
     await send(INTERNAL_METHODS.REJECT_SIGN_RAW_TX, [id]);
@@ -124,7 +158,6 @@ export function SignRawTxScreen() {
 
   const totalFeeNocks = nickToNock(totalFeeNicks);
   const formattedFee = formatNock(totalFeeNocks);
-  const memo = extractMemo({ rawTx, outputs });
 
   const bg = 'var(--color-bg)';
   const surface = 'var(--color-surface-800)';

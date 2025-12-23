@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useStore } from '../../store';
 import { AccountIcon } from '../../components/AccountIcon';
 import { SiteIcon } from '../../components/SiteIcon';
@@ -9,15 +10,21 @@ import { useAutoRejectOnClose } from '../../hooks/useAutoRejectOnClose';
 export function ConnectApprovalScreen() {
   const { navigate, pendingConnectRequest, setPendingConnectRequest, wallet } = useStore();
 
-  if (!pendingConnectRequest) {
-    navigate('home');
-    return null;
-  }
+  const request = pendingConnectRequest;
+  const requestId = request?.id ?? '';
 
-  const { id, origin } = pendingConnectRequest;
+  // Hooks must be unconditional; if there's no request, no-op.
+  useAutoRejectOnClose(requestId, INTERNAL_METHODS.REJECT_CONNECTION);
+
+  // Avoid calling navigate() during render.
+  useEffect(() => {
+    if (!request) navigate('home');
+  }, [request, navigate]);
+
+  if (!request) return null;
+
+  const { id, origin } = request;
   const domain = origin.includes('://') ? new URL(origin).hostname : origin;
-
-  useAutoRejectOnClose(id, INTERNAL_METHODS.REJECT_CONNECTION);
 
   async function handleReject() {
     await send(INTERNAL_METHODS.REJECT_CONNECTION, [id]);
