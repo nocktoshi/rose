@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Rose Wallet",
   "homepage_url": "https://nockchain.net",
-  "version": "0.1.4.122425",
+  "version": "0.1.4.6",
   "description": "Rose Wallet - Browser Wallet for Nockchain",
   "icons": {
     "16": "icons/rose16.png",

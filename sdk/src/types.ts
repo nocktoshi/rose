@@ -51,7 +51,7 @@ export type NockchainEvent = 'accountsChanged' | 'chainChanged' | 'connect' | 'd
 export type EventListener<T = unknown> = (data: T) => void;
 
 /**
- * Interface for the injected window.nockchain object
+ * Interface for the injected window.nockchain object (EIP-1193 compatible)
  */
 export interface InjectedNockchain {
   /**
@@ -62,9 +62,9 @@ export interface InjectedNockchain {
   request<T = unknown>(request: RpcRequest): Promise<T>;
 
   /**
-   * Provider name (e.g., 'rose')
+   * Provider name (e.g., 'rose', 'iris')
    */
-  provider?: string;
+  name?: string;
 
   /**
    * Provider version
@@ -73,12 +73,42 @@ export interface InjectedNockchain {
 }
 
 /**
- * Extended Window interface with nockchain property
+ * EIP-6963 Provider Info
+ * Metadata about the wallet provider
  */
-declare global {
-  interface Window {
-    nockchain?: InjectedNockchain;
-  }
+export interface EIP6963ProviderInfo {
+  /** Globally unique identifier (UUIDv4) */
+  uuid: string;
+  /** Human-readable name of the wallet */
+  name: string;
+  /** Data URI for the wallet icon (96x96px minimum) */
+  icon: string;
+  /** Reverse DNS identifier (e.g., 'net.nockchain.rose') */
+  rdns: string;
+}
+
+/**
+ * EIP-6963 Provider Detail
+ * Combined provider info and EIP-1193 provider
+ */
+export interface EIP6963ProviderDetail {
+  info: EIP6963ProviderInfo;
+  provider: InjectedNockchain;
+}
+
+/**
+ * EIP-6963 Announce Provider Event
+ */
+export interface EIP6963AnnounceProviderEvent extends CustomEvent {
+  type: 'eip6963:announceProvider';
+  detail: EIP6963ProviderDetail;
+}
+
+/**
+ * EIP-6963 Request Provider Event
+ */
+export interface EIP6963RequestProviderEvent extends Event {
+  type: 'eip6963:requestProvider';
 }
 
 /**
