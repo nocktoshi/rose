@@ -36,10 +36,16 @@ function ensureWasmInitializedOnce(): WasmInit {
   return p;
 }
 
-function getProviderOnce(): NockchainProvider {
+async function getProviderOnce(): Promise<NockchainProvider> {
   const g = globalThis as typeof globalThis & Record<string, unknown>;
   const existing = g[ROSE_SDK_PROVIDER_KEY];
   if (existing instanceof NockchainProvider) return existing;
+
+  // Wait for provider to announce via EIP-6963
+  const found = await NockchainProvider.waitForInstallation(3000);
+  if (!found) {
+    throw new Error('Rose wallet not found. Please install the Rose extension.');
+  }
 
   const provider = new NockchainProvider();
   g[ROSE_SDK_PROVIDER_KEY] = provider;
@@ -61,10 +67,10 @@ export function useRose({ rpcUrl = 'https://rpc.nockbox.org' }: { rpcUrl?: strin
     setStatus('loading');
     setError(null);
 
-    ensureWasmInitializedOnce()
-      .then(() => {
+    Promise.all([ensureWasmInitializedOnce(), getProviderOnce()])
+      .then(([, provider]) => {
         if (cancelled) return;
-        setProvider(getProviderOnce());
+        setProvider(provider);
         // The wasm package's type surface may lag runtime exports; keep this resilient.
         const GrpcClientCtor = (wasm as any).GrpcClient as
           | (new (rpcUrl: string) => unknown)

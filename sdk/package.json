@@ -1,6 +1,6 @@
 {
   "name": "@nockchain/sdk",
-  "version": "0.1.4-nightly.6",
+  "version": "0.1.4-nightly.7",
   "description": "TypeScript SDK for interacting with Nockchain wallet extensions",
   "type": "module",
   "main": "./dist/index.js",
