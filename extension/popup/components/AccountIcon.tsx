@@ -50,7 +50,7 @@ interface AccountIconProps {
  */
 export function AccountIcon({
   styleId = 1,
-  color = '#FFC413',
+  color = '#5968fb',
   className = 'h-6 w-6',
 }: AccountIconProps) {
   const [svgContent, setSvgContent] = useState<string>('');

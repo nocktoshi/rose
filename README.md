@@ -1,4 +1,4 @@
-# Iris - Nockchain Wallet Extension
+# Rose - Nockchain Wallet Extension
 
 Chrome extension wallet for Nockchain. Manage accounts, sign transactions, and interact with Nockchain dApps.
 
@@ -54,7 +54,7 @@ WASM binaries are **pre-built and included** in `@nockchain/sdk`. No build requi
 
 ## Local development: publishing `@nockchain/rose-wasm` / `@nockchain/sdk` to a local npm registry
 
-When you make changes to `@nockchain/rose-wasm`, **do not use** `file:` dependencies for Iris. Instead, publish to a **local npm registry** and consume via normal semver versions (so the repo can be checked in using npm-style deps).
+When you make changes to `@nockchain/rose-wasm`, **do not use** `file:` dependencies for Rose. Instead, publish to a **local npm registry** and consume via normal semver versions (so the repo can be checked in using npm-style deps).
 
 ### One-time setup (Verdaccio)
 
@@ -80,10 +80,10 @@ npm login --registry http://localhost:4873
 
 ### Publish workflow
 
-1. **Publish `@nockchain/rose-wasm`** from your local `iris-wasm` repo checkout:
+1. **Publish `@nockchain/rose-wasm`** from your local `rose-wasm` repo checkout:
 
 ```bash
-# in the iris-wasm package directory
+# in the rose-wasm package directory
 npm version 0.1.3 --no-git-tag-version
 npm publish --registry http://localhost:4873
 ```
@@ -99,7 +99,7 @@ npm run build
 npm publish --registry http://localhost:4873
 ```
 
-3. **Consume in Iris** using normal npm deps (no `file:`):
+3. **Consume in Rose** using normal npm deps (no `file:`):
 
 ```bash
 cd ..

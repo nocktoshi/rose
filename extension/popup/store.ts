@@ -28,6 +28,7 @@ export type Screen =
   | 'onboarding-verify'
   | 'onboarding-success'
   | 'onboarding-import'
+  | 'onboarding-import-v0'
   | 'onboarding-import-success'
   | 'onboarding-resume-backup'
 
@@ -43,7 +44,6 @@ export type Screen =
   | 'wallet-styling'
   | 'about'
   | 'recovery-phrase'
-  | 'v0-migration'
 
   // Transaction screens
   | 'send'
@@ -97,6 +97,8 @@ interface AppStore {
   // Temporary onboarding state (cleared after completion)
   onboardingMnemonic: string | null;
   setOnboardingMnemonic: (mnemonic: string | null) => void;
+  onboardingMnemonicV0: string | null;
+  setOnboardingMnemonicV0: (mnemonicV0: string | null) => void;
 
   // Last transaction details (for showing confirmation screen)
   lastTransaction: TransactionDetails | null;
@@ -172,6 +174,8 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   onboardingMnemonic: null,
+  onboardingMnemonicV0: null,
+  onboardingImportVersion: 1,
   lastTransaction: null,
   pendingConnectRequest: null,
   pendingSignRequest: null,
@@ -214,6 +218,9 @@ export const useStore = create<AppStore>((set, get) => ({
   // Set temporary mnemonic during onboarding
   setOnboardingMnemonic: (mnemonic: string | null) => {
     set({ onboardingMnemonic: mnemonic });
+  },
+  setOnboardingMnemonicV0: (mnemonicV0: string | null) => {
+    set({ onboardingMnemonicV0: mnemonicV0 });
   },
 
   // Set last transaction details

@@ -9,7 +9,7 @@ import { InjectedNockchain, RpcRequest } from '@nockchain/sdk';
 import { version } from '../../package.json';
 
 // Inline constant to avoid imports
-const MESSAGE_TARGET = 'IRIS';
+const MESSAGE_TARGET = 'ROSE';
 
 class NockProvider implements InjectedNockchain {
   /**
@@ -69,7 +69,7 @@ class NockProvider implements InjectedNockchain {
 
 // Inject provider into window
 const provider = new NockProvider();
-(provider as InjectedNockchain).provider = 'iris';
+(provider as InjectedNockchain).provider = 'rose';
 (provider as InjectedNockchain).version = version;
 (window as any).nockchain = provider;
 

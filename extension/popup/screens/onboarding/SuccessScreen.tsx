@@ -175,7 +175,7 @@ export function SuccessScreen() {
         <div className="border-t border-[var(--color-surface-800)] p-3">
           <button
             onClick={handleStartUsing}
-            className="w-full h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+            className="w-full h-12 px-5 py-[15px] btn-primary text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 'var(--font-size-base)',

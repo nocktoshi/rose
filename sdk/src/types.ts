@@ -1,5 +1,5 @@
 /**
- * TypeScript type definitions for Iris SDK
+ * TypeScript type definitions for Rose SDK
  */
 
 /**
@@ -62,7 +62,7 @@ export interface InjectedNockchain {
   request<T = unknown>(request: RpcRequest): Promise<T>;
 
   /**
-   * Provider name (e.g., 'iris')
+   * Provider name (e.g., 'rose')
    */
   provider?: string;
 

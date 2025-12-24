@@ -5,11 +5,26 @@
 import { useStore } from '../../store';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import checkmarkSuccessIcon from '../../assets/checkmark-success-icon.svg';
+import { InfoIcon } from '../../components/icons/InfoIcon';
+import { send } from '../../utils/messaging';
+import { useState, useEffect } from 'react';
+import { INTERNAL_METHODS } from '../../../shared/constants';
 
 export function ImportSuccessScreen() {
   const { navigate, wallet, goBack, fetchBalance } = useStore();
   const { copied, copyToClipboard } = useCopyToClipboard();
-
+  const [isV0, setIsV0] = useState(false);
+  useEffect(() => {
+    (async () => {
+            const res = await send<{ ok?: boolean; has?: boolean; error?: unknown }>(
+                INTERNAL_METHODS.HAS_V0_MNEMONIC,
+                []
+            );
+            if (res?.ok) {
+                setIsV0(Boolean(res.has));
+            }
+    })();
+}, []);
   // Format address to show start and end with middle grayed out
   function formatAddress(address: string) {
     if (!address || address.length < 20) return address;
@@ -77,7 +92,7 @@ export function ImportSuccessScreen() {
                   letterSpacing: '-0.02em',
                 }}
               >
-                Wallet imported successfully!
+                {isV0 ? 'Wallet (v0) imported successfully!' : 'Wallet imported successfully!'}
               </h1>
               <p
                 className="font-sans text-[var(--color-text-muted)]"
@@ -87,7 +102,7 @@ export function ImportSuccessScreen() {
                   letterSpacing: '0.02em',
                 }}
               >
-                Your wallet is ready to use
+                {isV0 ? 'A new v1 wallet has been created for you. You can use the upgrade tool to move your v0 notes.' : 'Your wallet is ready to use'}
               </p>
             </div>
           </div>
@@ -102,7 +117,7 @@ export function ImportSuccessScreen() {
                 letterSpacing: '0.02em',
               }}
             >
-              Your address
+              {isV0 ? 'Your NEW v1 address' : 'Your address'}
             </p>
             <div className="bg-[var(--color-surface-900)] rounded-lg p-3 flex flex-col gap-5 items-center">
               {/* Address display */}
@@ -160,6 +175,38 @@ export function ImportSuccessScreen() {
                   {copied ? 'Copied!' : 'Copy address'}
                 </span>
               </button>
+
+              {isV0 && (
+                <div
+                  className="flex items-start gap-2 p-3 rounded-lg"
+                  style={{
+                    backgroundColor: 'var(--color-surface-800)',
+                    border: '1px solid var(--color-surface-700)',
+                  }}
+                >
+                  <InfoIcon className="w-5 h-5 flex-shrink-0 mt-0.5 m-auto" />
+                  <div className="flex-1">
+                    <p
+                      className="font-sans text-center text-[var(--color-text-muted)]"
+                      style={{
+                        fontSize: 'var(--font-size-sm)',
+                        lineHeight: 'var(--line-height-snug)',
+                        letterSpacing: '0.01em',
+                      }}
+                    >
+                      Hint: Use the upgrade tool to move your v0 notes.<br />
+                      <a
+                        href="https://nocknames.com/upgrade"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:opacity-70 text-[#37f] font-bold"
+                      >
+                        nocknames.com/upgrade
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -168,7 +215,7 @@ export function ImportSuccessScreen() {
         <div className="border-t border-[var(--color-surface-800)] p-3">
           <button
             onClick={handleStartUsing}
-            className="w-full h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+            className="w-full h-12 px-5 py-[15px] btn-primary text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 'var(--font-size-base)',

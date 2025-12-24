@@ -17,17 +17,21 @@ export default defineConfig({
 
         // Add back the icons that @crxjs strips
         builtManifest.icons = {
-          '16': 'icons/icon16.png',
-          '32': 'icons/icon32.png',
-          '48': 'icons/icon48.png',
-          '128': 'icons/icon128.png',
+          '16': 'icons/rose16.png',
+          '32': 'icons/rose32.png',
+          '48': 'icons/rose48.png',
+          '128': 'icons/rose128.png',
+          '256': 'icons/rose256.png',
+          '512': 'icons/rose512.png',
         };
 
         builtManifest.action.default_icon = {
-          '16': 'icons/icon16.png',
-          '32': 'icons/icon32.png',
-          '48': 'icons/icon48.png',
-          '128': 'icons/icon128.png',
+          '16': 'icons/rose16.png',
+          '32': 'icons/rose32.png',
+          '48': 'icons/rose48.png',
+          '128': 'icons/rose128.png',
+          '256': 'icons/rose256.png',
+          '512': 'icons/rose512.png',
         };
 
         writeFileSync(manifestPath, JSON.stringify(builtManifest, null, 2));
@@ -40,6 +44,7 @@ export default defineConfig({
     emptyOutDir: true,
     // Disable CSS code splitting to avoid document.* injection in service worker
     cssCodeSplit: false,
+    sourcemap: true,
     minify: 'terser',
     rollupOptions: {
       output: {

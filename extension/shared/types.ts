@@ -17,7 +17,7 @@ export interface Account {
   index: number;
   /** Icon style ID (1-15, defaults to index % 3 + 1 for variety) */
   iconStyleId?: number;
-  /** Icon color (hex string, defaults to #FFC413) */
+  /** Icon color (hex string, defaults to #5968fb) */
   iconColor?: string;
   /** Whether this account is hidden from the UI */
   hidden?: boolean;

@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 import { CheckIcon } from '../components/icons/CheckIcon';
-import IrisLogo40 from '../assets/iris-logo-40.svg';
+import RoseLogo40 from '../assets/iris-logo-40.svg';
 import { truncateAddress, formatUTCTimestamp } from '../utils/format';
 import { NOCK_TO_NICKS } from '../../shared/constants';
 
@@ -139,10 +139,10 @@ export function TransactionDetailsScreen() {
     navigate('home');
   }
   function handleViewExplorer() {
-    // Open transaction on nockscan.net (only if we have a txHash)
+    // Open transaction on nockblocks.com (only if we have a txHash)
     const txHash = selectedTransaction?.txHash;
     if (txHash) {
-      window.open(`https://nockscan.net/tx/${txHash}`, '_blank');
+      window.open(`https://nockblocks.com/tx/${txHash}`, '_blank');
     }
   }
   async function handleCopyTransactionId() {
@@ -190,7 +190,7 @@ export function TransactionDetailsScreen() {
         <div className="flex flex-col gap-8 px-4 py-2">
           {/* Amount Section */}
           <div className="flex flex-col items-center gap-3">
-            <img src={IrisLogo40} alt="Iris" className="w-10 h-10" />
+            <img src={RoseLogo40} alt="Rose" className="w-10 h-10" />
             <div className="flex flex-col items-center gap-0.5 text-center">
               <h2
                 className="m-0 font-[Lora] text-[36px] font-semibold leading-10 tracking-[-0.72px]"

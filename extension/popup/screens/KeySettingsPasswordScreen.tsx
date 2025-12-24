@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { send } from '../utils/messaging';
 import { INTERNAL_METHODS } from '../../shared/constants';
-import IrisLogo96 from '../assets/iris-logo-96.svg';
+import RoseLogo96 from '../assets/iris-logo-96.svg';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { EyeIcon } from '../components/icons/EyeIcon';
 import { EyeOffIcon } from '../components/icons/EyeOffIcon';
@@ -78,7 +78,7 @@ export function KeySettingsPasswordScreen() {
       <div className="flex flex-1 flex-col justify-between px-4 py-8">
         {/* Content */}
         <div className="flex flex-col items-center gap-3 w-full">
-          <img src={IrisLogo96} alt="Iris" className="w-24 h-24" />
+          <img src={RoseLogo96} alt="Rose" className="w-24 h-24" />
 
           <p
             className="m-0 text-[13px] leading-[18px] tracking-[0.26px] text-center"

@@ -1,5 +1,5 @@
 /**
- * NockchainProvider - Main SDK class for interacting with Iris wallet
+ * NockchainProvider - Main SDK class for interacting with Rose wallet
  */
 
 import type { Transaction, NockchainEvent, EventListener, InjectedNockchain } from './types.js';
@@ -8,7 +8,7 @@ import { WalletNotInstalledError, UserRejectedError, RpcError, NoAccountError } 
 import { PROVIDER_METHODS } from './constants.js';
 
 /**
- * NockchainProvider class - Main interface for dApps to interact with Iris wallet
+ * NockchainProvider class - Main interface for dApps to interact with Rose wallet
  *
  * @example
  * ```typescript
@@ -35,14 +35,14 @@ export class NockchainProvider {
 
   /**
    * Create a new NockchainProvider instance
-   * @throws {WalletNotInstalledError} If the Iris extension is not installed
+   * @throws {WalletNotInstalledError} If the Rose extension is not installed
    */
   constructor() {
     if (typeof window === 'undefined') {
       throw new Error('NockchainProvider can only be used in a browser environment');
     }
 
-    // Verify Iris extension is installed and authentic
+    // Verify Rose extension is installed and authentic
     if (!NockchainProvider.isInstalled()) {
       throw new WalletNotInstalledError();
     }
@@ -323,9 +323,9 @@ export class NockchainProvider {
 
       const payload = event.data;
 
-      // SECURITY: Verify the message is from Iris extension
+      // SECURITY: Verify the message is from Rose extension
       // This prevents malicious scripts from forging wallet events
-      if (!payload || payload.__iris !== true) return;
+      if (!payload || payload.__rose !== true) return;
 
       // Check if this is a valid wallet event
       if (typeof payload.type !== 'string' || !payload.type.startsWith('nockchain_')) return;
@@ -382,11 +382,11 @@ export class NockchainProvider {
   }
 
   /**
-   * Check if the Iris extension is installed and authentic
+   * Check if the Rose extension is installed and authentic
    * @returns true if the extension is installed
    */
   static isInstalled(): boolean {
     // TODO: Support other providers
-    return typeof window !== 'undefined' && window.nockchain?.provider === 'iris';
+    return typeof window !== 'undefined' && window.nockchain?.provider === 'rose';
   }
 }

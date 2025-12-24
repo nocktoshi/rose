@@ -24,7 +24,7 @@ async function initWasmModulesRaw(): Promise<void> {
 }
 
 /**
- * Initialize Iris WASM once per context (promise-cached).
+ * Initialize Rose WASM once per context (promise-cached).
  * Concurrent callers share a single init Promise (SDK-style).
  */
 export async function initIrisSdkOnce(): Promise<void> {

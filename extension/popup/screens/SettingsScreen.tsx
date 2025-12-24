@@ -1,5 +1,5 @@
 import { useStore } from '../store';
-import IrisLogo from '../assets/iris-logo.svg';
+import RoseLogo from '../assets/iris-logo.svg';
 import ThemeIcon from '../assets/theme-icon.svg';
 import KeyIcon from '../assets/key-icon.svg';
 import ClockIcon from '../assets/clock-icon.svg';
@@ -9,7 +9,7 @@ import AboutIcon from '../assets/settings-gear-icon.svg';
 import { version } from '../../../package-lock.json';
 
 export function SettingsScreen() {
-  const { navigate } = useStore();
+const { navigate } = useStore();
 
   function handleClose() {
     navigate('home');
@@ -24,7 +24,7 @@ export function SettingsScreen() {
     navigate('lock-time');
   }
   function handleV0Migration() {
-    navigate('v0-migration');
+    navigate('onboarding-import-v0');
   }
   function handleAbout() {
     navigate('about');
@@ -69,7 +69,7 @@ export function SettingsScreen() {
         style={{ backgroundColor: 'var(--color-bg)' }}
       >
         <div className="w-8 h-8 flex items-center justify-center shrink-0">
-          <img src={IrisLogo} alt="Iris" className="w-6 h-6" />
+          <img src={RoseLogo} alt="Rose" className="w-6 h-6" />
         </div>
         <h1 className="m-0 text-base font-medium leading-[22px] tracking-[0.16px]">Settings</h1>
         <button
@@ -89,7 +89,7 @@ export function SettingsScreen() {
       <div className="flex flex-col justify-between flex-1 h-[536px]">
         {/* Menu */}
         <div className="flex flex-col gap-2 px-3 py-2">
-          <Row icon={ThemeIcon} label="Theme settings" onClick={handleThemeSettings} />
+          {/* <Row icon={ThemeIcon} label="Theme settings" onClick={handleThemeSettings} /> */}
           <Row icon={KeyIcon} label="Key settings" onClick={handleKeySettings} />
           <Row icon={ClockIcon} label="Lock time" onClick={handleLockTime} />
           <Row icon={KeyIcon} label="Upgrade v0 → v1" onClick={handleV0Migration} />

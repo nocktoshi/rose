@@ -164,7 +164,7 @@ export function BackupScreen() {
               onClick={() => setHasConfirmed(!hasConfirmed)}
               className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${
                 hasConfirmed
-                  ? 'bg-[var(--color-primary)]'
+                  ? 'btn-primary'
                   : 'bg-transparent border-2 border-[var(--color-surface-700)]'
               }`}
               aria-label="Confirm you've written down the secret phrase"
@@ -200,7 +200,7 @@ export function BackupScreen() {
         {!isRevealed ? (
           <button
             onClick={() => setIsRevealed(true)}
-            className="w-full h-12 px-5 py-[15px] bg-[var(--color-text-primary)] text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+            className="w-full h-12 px-5 py-[15px] btn-secondary text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 'var(--font-size-base)',
@@ -233,7 +233,7 @@ export function BackupScreen() {
               disabled={!hasConfirmed}
               className={`flex-1 h-12 px-5 py-[15px] rounded-lg flex items-center justify-center transition-opacity ${
                 hasConfirmed
-                  ? 'bg-[var(--color-text-primary)] text-[var(--color-bg)] hover:opacity-90'
+                  ? 'btn-secondary text-[var(--color-bg)] hover:opacity-90'
                   : 'bg-[var(--color-surface-700)] text-[var(--color-text-muted)] cursor-not-allowed opacity-50'
               }`}
               style={{

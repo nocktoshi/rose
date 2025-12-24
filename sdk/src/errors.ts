@@ -1,13 +1,13 @@
 /**
- * Custom error classes for Iris SDK
+ * Custom error classes for Rose SDK
  */
 
 /**
- * Thrown when the Iris wallet extension is not installed
+ * Thrown when the Rose wallet extension is not installed
  */
 export class WalletNotInstalledError extends Error {
   constructor() {
-    super('Iris wallet extension not installed. Please install it from the Chrome Web Store.');
+    super('Rose wallet extension not installed. Please install it from the Chrome Web Store.');
     this.name = 'WalletNotInstalledError';
     Object.setPrototypeOf(this, WalletNotInstalledError.prototype);
   }

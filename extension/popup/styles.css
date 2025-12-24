@@ -1,46 +1,42 @@
 @import 'tailwindcss';
 
-/* Import custom fonts */
-@import '@fontsource/lora/400.css';
-@import '@fontsource/lora/500.css';
-@import '@fontsource/lora/600.css';
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
+/* Monospace-first typography to mirror nocknames.com */
 
 @theme {
   /* ============================================================================
-     DESIGN TOKENS - Iris Design System
+     DESIGN TOKENS - Rose Design System
      Source: /Documents/tokens/
      ============================================================================ */
 
   /* Brand Colors */
-  --color-primary: #ffc413;
-  --color-green: #7fcc48;
-  --color-red: #ff7373;
-  --color-red-light: #412322;
+  --color-primary: #37f;
+  --color-green: #7ccf8b;
+  --color-red: #ff6b6b;
+  --color-red-light: #2a1a1a;
 
   /* Dark Mode Greyscale (Default) */
-  --color-bg: #050505;
-  --color-surface-900: #151515;
-  --color-surface-800: #1f1f1f;
-  --color-surface-700: #252525;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #aaaaaa;
-  --color-text-muted: #909090;
-  --color-divider: #232323;
+  --color-bg: #0a0a0b;
+  --color-surface-900: #2f2f35;
+  --color-surface-800: #151517;
+  --color-surface-700: #1c1c1f;
+  --color-text-primary: #f5f5f5;
+  --color-text-secondary: #c7c7c7;
+  --color-text-muted: #9e9ea2;
+  --color-divider: #1f1f22;
 
   /* Home Screen Specific */
-  --color-home-accent: #191919;
-  --color-home-fill: #050505;
+  --color-home-accent: #15151f;
+  --color-home-fill: #111317;
   --color-tx-icon: #222222;
 
   /* Modals */
-  --color-modal-overlay: #05050533;
-  --color-popover: #05050566;
+  --color-modal-overlay: #11131733;
+  --color-popover: #11131766;
 
   /* Font Families */
-  --font-serif: 'Lora', Georgia, serif;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Berkeley Mono', 'BerkeleyMono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+  --font-sans: 'Berkeley Mono', 'BerkeleyMono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+  --font-mono: 'Berkeley Mono', 'BerkeleyMono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
 
   /* Font Sizes */
   --font-size-xs: 0.75rem;
@@ -77,15 +73,15 @@
   /* 2% */
 
   /* Shadows */
-  --shadow-xs: 0 0 4px 0 #05050514;
-  --shadow-md: 0 4px 12px 0 #0505051f;
+  --shadow-xs: 0 0 4px 0 #11131714;
+  --shadow-md: 0 4px 12px 0 #1113171f;
 
   /* Custom Figma Colors - Light Mode */
   --color-fn-bg: #ebebe9;
   --color-fn-card: #ffffff;
   --color-fn-ink: #000000;
   --color-fn-sub: #707070;
-  --color-fn-yellow: #ffc413;
+  --color-fn-yellow: #5968fb;
   --color-fn-green: #369929;
   --color-fn-line: #e0e0e0;
   --color-fn-line-muted: #dadad8;
@@ -100,8 +96,8 @@
   /* Custom Shadows */
   --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.08);
 
-  /* Font Display (Lora) */
-  --font-display: 'Lora', Georgia, serif;
+  /* Font Display (Berkeley) */
+  --font-display: 'Berkeley Mono', 'BerkeleyMono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
 }
 
 /* ============================================================================
@@ -109,37 +105,31 @@
    Applied when .light class is on root element
    ============================================================================ */
 
+/* Enforce dark theme values even if .light is present */
 html.light {
-  /* Light Mode Greyscale */
-  --color-bg: #ffffff;
-  --color-surface-900: #f2f2f0;
-  --color-surface-800: #ebebe9;
-  --color-surface-700: #dadad8;
-  --color-text-primary: #000000;
-  --color-text-secondary: #aaaaaa;
-  --color-text-muted: #707070;
-  --color-divider: #ebebe9;
-
-  /* Light Mode Specific Colors */
-  --color-green: #369929;
-  --color-red: #d43131;
-  --color-red-light: #ffe5e3;
-
-  /* Home Screen Light Mode */
-  --color-home-accent: #ffffff;
-  --color-home-fill: #ebebe9;
-  --color-tx-icon: #f2f2f0;
-
-  /* Modals Light Mode */
-  --color-modal-overlay: #00000014;
-  --color-popover: #ffffff66;
+  --color-bg: #0a0a0b;
+  --color-surface-900: #111113;
+  --color-surface-800: #151517;
+  --color-surface-700: #1c1c1f;
+  --color-text-primary: #f5f5f5;
+  --color-text-secondary: #c7c7c7;
+  --color-text-muted: #9e9ea2;
+  --color-divider: #1f1f22;
+  --color-green: #7ccf8b;
+  --color-red: #ff6b6b;
+  --color-red-light: #2a1a1a;
+  --color-home-accent: #111113;
+  --color-home-fill: #0a0a0b;
+  --color-tx-icon: #151517;
+  --color-modal-overlay: #11131733;
+  --color-popover: #11131766;
 }
 
 /* Custom base styles */
 body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   letter-spacing: var(--letter-spacing-normal);
@@ -166,15 +156,14 @@ button {
 /* Custom component classes */
 .btn-primary {
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, #8b55f6, #37f, #0ff);
   color: #000;
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: var(--font-size-base);
   letter-spacing: var(--letter-spacing-normal);
   border-radius: 0.375rem;
-  border: none;
+  border: 1px solid #3377ff70;
   cursor: pointer;
   transition: opacity 0.2s;
 }
@@ -185,17 +174,16 @@ button {
 
 .btn-secondary {
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  background-color: var(--color-surface-700);
+  background: linear-gradient(135deg, #23232a, #454553, #222328);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: var(--font-size-base);
   letter-spacing: var(--letter-spacing-normal);
   border-radius: 0.375rem;
-  border: none;
+  border: 1px solid #3377ff70;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, border-color 0.2s;
 }
 
 .btn-secondary:hover {

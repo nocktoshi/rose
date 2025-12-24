@@ -1,6 +1,6 @@
 /**
- * Iris Wallet SDK
- * TypeScript SDK for interacting with Iris wallet extension
+ * Rose Wallet SDK
+ * TypeScript SDK for interacting with Rose wallet extension
  */
 
 export * from './types.js';

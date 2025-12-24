@@ -3,12 +3,12 @@
  */
 
 import { useStore } from '../../store';
-import { AnimatedLogo } from '../../components/AnimatedLogo';
 import vectorLeft from '../../assets/vector-left.svg';
 import vectorRight from '../../assets/vector-right.svg';
 import vectorTopRight from '../../assets/vector-top-right.svg';
 import vectorTopRightRotated from '../../assets/vector-top-right-rotated.svg';
 import vectorBottomLeft from '../../assets/vector-bottom-left.svg';
+import RoseLogo from '../../../icons/rose.svg';
 
 export function StartScreen() {
   const { navigate } = useStore();
@@ -58,9 +58,7 @@ export function StartScreen() {
         {/* Top section: Logo and text */}
         <div className="flex flex-col items-center gap-8 w-full">
           {/* Logo */}
-          <div className="w-[104px] h-[104px] flex items-center justify-center">
-            <AnimatedLogo />
-          </div>
+          <img src={RoseLogo} alt="Rose Wallet" className="w-[104px] h-[104px]" />
 
           {/* Text content */}
           <div className="flex flex-col gap-2 items-center text-center w-full">
@@ -72,7 +70,7 @@ export function StartScreen() {
                 letterSpacing: '-0.02em',
               }}
             >
-              Welcome to Iris
+              Welcome to Rose
             </h1>
             <p
               className="font-sans text-[var(--color-text-muted)]"
@@ -91,7 +89,7 @@ export function StartScreen() {
         <div className="flex flex-col gap-4 w-full">
           <button
             onClick={() => navigate('onboarding-create')}
-            className="h-12 px-5 py-[15px] bg-[var(--color-primary)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+            className="h-12 px-5 py-[15px] btn-primary rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 'var(--font-size-base)',
@@ -105,8 +103,10 @@ export function StartScreen() {
           </button>
 
           <button
-            onClick={() => navigate('onboarding-import')}
-            className="h-12 px-5 py-[15px] bg-[var(--color-text-primary)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+            onClick={() => {
+              navigate('onboarding-import');
+            }}
+            className="h-12 px-5 py-[15px] btn-secondary rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 'var(--font-size-base)',
@@ -117,6 +117,23 @@ export function StartScreen() {
             }}
           >
             I have a wallet
+          </button>
+
+          <button
+            onClick={() => {
+              navigate('onboarding-import-v0');
+            }}
+            className="h-12 px-5 py-[15px] btn-secondary rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 'var(--font-size-base)',
+              fontWeight: 500,
+              lineHeight: 'var(--line-height-snug)',
+              letterSpacing: '0.01em',
+              color: 'var(--color-bg)',
+            }}
+          >
+            I have a v0 wallet
           </button>
         </div>
       </div>

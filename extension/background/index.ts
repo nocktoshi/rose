@@ -245,7 +245,7 @@ interface PendingRequest {
 }
 
 const pendingRequests = new Map<string, PendingRequest>();
-// v0 migration provider methods (string-literal; not yet in published iris-sdk)
+// v0 migration provider methods (string-literal; not yet in published rose-sdk)
 const MIGRATE_V0_GET_STATUS = 'nock_migrateV0GetStatus';
 const MIGRATE_V0_SIGN_RAW_TX = 'nock_migrateV0SignRawTx';
 
@@ -610,7 +610,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
-        sendResponse({ ok: true, hasV0Seedphrase: vault.hasV0Seedphrase() });
+        sendResponse({ ok: true, hasV0Mnemonic: vault.hasV0Mnemonic() });
         return;
       }
 
@@ -832,7 +832,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
       case INTERNAL_METHODS.SETUP:
         // params: password, mnemonic (optional). If no mnemonic, generates one automatically.
-        const setupResult = await vault.setup(payload.params?.[0], payload.params?.[1]);
+        const setupResult = await vault.setup(payload.params?.[0], payload.params?.[1], payload.params?.[2]);
         sendResponse(setupResult);
 
         if ('ok' in setupResult && setupResult.ok) {
@@ -914,40 +914,32 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         }
         return;
 
-      case INTERNAL_METHODS.HAS_V0_SEEDPHRASE:
+      case INTERNAL_METHODS.HAS_V0_MNEMONIC:
         if (vault.isLocked()) {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
-        sendResponse({ ok: true, has: vault.hasV0Seedphrase() });
+        sendResponse({ ok: true, has: vault.hasV0Mnemonic() });
         return;
 
-      case INTERNAL_METHODS.SET_V0_SEEDPHRASE: {
-        const seedphrase = payload.params?.[0];
-        const passphrase = payload.params?.[1];
-        if (!seedphrase) {
-          sendResponse({ error: { code: -32602, message: 'Invalid params' } });
-          return;
-        }
+      case INTERNAL_METHODS.CLEAR_V0_MNEMONIC: {
         if (vault.isLocked()) {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
-        const res = await vault.setV0Seedphrase({ seedphrase, passphrase });
+        const res = await vault.clearMnemonicV0() as { ok: true } | { error: string };
         sendResponse(res);
         return;
       }
 
-      case INTERNAL_METHODS.CLEAR_V0_SEEDPHRASE: {
+      case INTERNAL_METHODS.SET_V0_MNEMONIC:
         if (vault.isLocked()) {
           sendResponse({ error: ERROR_CODES.LOCKED });
           return;
         }
-        const res = await vault.clearV0Seedphrase();
+        const res = await vault.setMnemonicV0(payload.params?.[0]);
         sendResponse(res);
         return;
-      }
-
       case INTERNAL_METHODS.GET_MNEMONIC:
         // params: password (required for verification)
         sendResponse(await vault.getMnemonic(payload.params?.[0]));

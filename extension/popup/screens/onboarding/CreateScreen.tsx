@@ -255,7 +255,7 @@ export function CreateScreen() {
         <div className="border-t border-[var(--color-surface-800)] px-4 py-3">
           <button
             onClick={handleCreate}
-            className="w-full h-12 px-5 py-[15px] bg-[var(--color-text-primary)] text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+            className="w-full h-12 px-5 py-[15px] btn-secondary text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 'var(--font-size-base)',

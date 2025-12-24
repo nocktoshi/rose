@@ -24,7 +24,7 @@ import ExplorerIcon from '../assets/explorer-icon.svg';
 import PermissionsIcon from '../assets/permissions-icon.svg';
 import FeedbackIcon from '../assets/feedback-icon.svg';
 import CopyIcon from '../assets/copy-icon.svg';
-import SettingsGearIcon from '../assets/settings-gear-icon.svg';
+import KeyIcon from '../assets/key-icon.svg';
 import PencilEditIcon from '../assets/pencil-edit-icon.svg';
 import RefreshIcon from '../assets/refresh-icon.svg';
 import ReceiptIcon from '../assets/receipt-icon.svg';
@@ -49,14 +49,13 @@ export function HomeScreen() {
     isPriceFetching,
   } = useStore();
   const { theme } = useTheme();
-
   const [balanceHidden, setBalanceHidden] = useState(false);
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
   const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
-
+  const [hasV0, setHasV0] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isTransactionsStuck, setIsTransactionsStuck] = useState(false);
@@ -94,7 +93,7 @@ export function HomeScreen() {
   // Fetch wallet transactions on mount and when account changes
   useEffect(() => {
     fetchWalletTransactions();
-  }, [fetchWalletTransactions, wallet.currentAccount?.address]);
+  }, [wallet.currentAccount?.address]);
 
   // Listen for storage changes to wallet transactions and auto-refresh UI
   // This keeps the UI in sync when background sync updates transaction status
@@ -106,7 +105,7 @@ export function HomeScreen() {
     };
     chrome.storage.onChanged.addListener(listener);
     return () => chrome.storage.onChanged.removeListener(listener);
-  }, [fetchWalletTransactions]);
+  }, []);
 
   // Check RPC connection status on mount and after balance fetching completes
   // (RPC calls update the status in background, so re-check after they finish)
@@ -142,6 +141,23 @@ export function HomeScreen() {
   // Get accounts from vault (filter out hidden accounts)
   const accounts = (wallet.accounts || []).filter(acc => !acc.hidden);
   const currentAccount = wallet.currentAccount || accounts[0];
+
+  useEffect(() => {
+    let isMounted = true;
+    async function checkHasV0Mnemonic() {
+      const result = await send<{ ok?: boolean; has?: boolean; error?: string }>(
+        INTERNAL_METHODS.HAS_V0_MNEMONIC,
+        []
+      );
+      if (result?.ok && isMounted) {
+        setHasV0(Boolean(result.has));
+      }
+    }
+    checkHasV0Mnemonic();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Lock wallet handler
   async function handleLockWallet() {
@@ -533,11 +549,21 @@ export function HomeScreen() {
                 boxShadow: '0 4px 12px 0 rgba(5, 5, 5, 0.12)',
               }}
             >
+              {hasV0 && (
+                <DropdownItem
+                  icon={KeyIcon}
+                  label="Upgrade v0 → v1"
+                  onClick={() => {
+                    setSettingsDropdownOpen(false);
+                    navigate('onboarding-import-v0');
+                  }}
+                />
+              )}
               <DropdownItem
                 icon={ExplorerIcon}
                 label="View on explorer"
                 onClick={() =>
-                  window.open(`https://nockscan.net/address/${currentAccount?.address}`, '_blank')
+                  window.open(`https://nockblocks.com/address/${currentAccount?.address}`, '_blank')
                 }
               />
               <DropdownItem
@@ -560,7 +586,7 @@ export function HomeScreen() {
               <DropdownItem
                 icon={FeedbackIcon}
                 label="Wallet feedback"
-                onClick={() => window.open('https://iriswallet.io/feedback', '_blank')}
+                onClick={() => window.open('https://nockchain.net/feedback', '_blank')}
               />
             </div>
           </>
@@ -651,8 +677,8 @@ export function HomeScreen() {
           <div className="grid grid-cols-2 gap-2 mb-3">
             <div className="relative">
               <button
-                className="w-full rounded-card shadow-card flex flex-col items-start justify-center gap-4 p-3 font-sans text-[14px] font-medium transition-all hover:opacity-90 active:scale-[0.98]"
-                style={{ backgroundColor: 'var(--color-primary)', color: '#000' }}
+                className="btn-primary w-full rounded-card shadow-card flex flex-col items-start justify-center gap-4 p-3 font-sans text-[14px] font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+                style={{ color: '#000' }}
                 onClick={() => navigate('send')}
               >
                 <SendPaperPlaneIcon className="h-5 w-5" />
@@ -660,9 +686,8 @@ export function HomeScreen() {
               </button>
             </div>
             <button
-              className="rounded-card shadow-card flex flex-col items-start justify-center gap-4 p-3 font-sans text-[14px] font-medium transition-all hover:opacity-90 active:scale-[0.98]"
+              className="btn-secondary rounded-card shadow-card flex flex-col items-start justify-center gap-4 p-3 font-sans text-[14px] font-medium transition-all hover:opacity-90 active:scale-[0.98]"
               style={{
-                backgroundColor: 'var(--color-home-accent)',
                 color: 'var(--color-text-primary)',
               }}
               onClick={() => navigate('receive')}
@@ -698,7 +723,7 @@ export function HomeScreen() {
                 Recent Transactions
               </h2>
               <a
-                href={`https://nockscan.net/address/${currentAccount?.address}`}
+                href={`https://nockblocks.com/address/${currentAccount?.address}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[12px] font-medium rounded-full pl-[12px] pr-[16px] py-[3px] flex items-center gap-[4px] transition-opacity"

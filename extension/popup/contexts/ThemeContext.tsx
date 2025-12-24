@@ -14,7 +14,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'iris-theme';
+const STORAGE_KEY = 'rose-theme';
 
 // Detect system theme preference
 function getSystemTheme(): 'dark' | 'light' {

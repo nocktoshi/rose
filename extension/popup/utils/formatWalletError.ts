@@ -18,7 +18,7 @@ export function formatWalletError(err: unknown): string {
   // Background often returns string error codes
   if (typeof err === 'string') {
     if (err === ERROR_CODES.BAD_PASSWORD) return 'Incorrect password';
-    if (err === ERROR_CODES.LOCKED) return 'Wallet is locked. Unlock Iris to continue.';
+    if (err === ERROR_CODES.LOCKED) return 'Wallet is locked. Unlock Rose to continue.';
     if (err === ERROR_CODES.UNAUTHORIZED) return 'Unauthorized';
     if (err === ERROR_CODES.INVALID_PARAMS) return 'Invalid parameters';
     return `Error: ${err}`;

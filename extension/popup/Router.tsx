@@ -12,6 +12,7 @@ import { BackupScreen } from './screens/onboarding/BackupScreen';
 import { VerifyScreen } from './screens/onboarding/VerifyScreen';
 import { SuccessScreen } from './screens/onboarding/SuccessScreen';
 import { ImportScreen } from './screens/onboarding/ImportScreen';
+import { ImportScreenV0 } from './screens/onboarding/ImportScreenV0';
 import { ImportSuccessScreen } from './screens/onboarding/ImportSuccessScreen';
 import { ResumeBackupScreen } from './screens/onboarding/ResumeBackupScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -35,7 +36,6 @@ import { WalletSettingsScreen } from './screens/WalletSettingsScreen';
 import { WalletStylingScreen } from './screens/WalletStylingScreen';
 import { AboutScreen } from './screens/AboutScreen';
 import { RecoveryPhraseScreen } from './screens/RecoveryPhraseScreen';
-import { V0MigrationScreen } from './screens/V0MigrationScreen';
 
 export function Router() {
   const { currentScreen } = useStore();
@@ -55,6 +55,8 @@ export function Router() {
       return <SuccessScreen />;
     case 'onboarding-import':
       return <ImportScreen />;
+    case 'onboarding-import-v0':
+      return <ImportScreenV0 />;
     case 'onboarding-import-success':
       return <ImportSuccessScreen />;
     case 'onboarding-resume-backup':
@@ -83,8 +85,6 @@ export function Router() {
       return <AboutScreen />;
     case 'recovery-phrase':
       return <RecoveryPhraseScreen />;
-    case 'v0-migration':
-      return <V0MigrationScreen />;
 
     // Transactions
     case 'send':

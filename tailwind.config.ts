@@ -14,7 +14,7 @@ export default {
         'fn-card': '#FFFFFF',
         'fn-ink': '#000000',
         'fn-sub': '#707070',
-        'fn-yellow': '#FFC413',
+        'fn-yellow': '#5968fb',
         'fn-green': '#369929',
         'fn-line': '#E0E0E0',
         'fn-lineMuted': '#DADAD8',

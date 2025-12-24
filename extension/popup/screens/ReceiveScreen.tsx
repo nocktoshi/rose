@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store';
-import IrisLogo40 from '../assets/iris-logo-40.svg';
+import RoseLogo40 from '../assets/iris-logo-40.svg';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 
 export function ReceiveScreen() {
@@ -57,7 +57,7 @@ export function ReceiveScreen() {
         <div className="flex flex-col gap-8 px-4 py-2">
           {/* Intro */}
           <div className="flex flex-col items-center gap-3 w-full">
-            <img src={IrisLogo40} alt="Iris" className="w-10 h-10" />
+            <img src={RoseLogo40} alt="Rose" className="w-10 h-10" />
 
             <h2
               className="m-0 text-2xl font-medium leading-7 tracking-[-0.48px] text-center font-display"

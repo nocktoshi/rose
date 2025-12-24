@@ -11,12 +11,12 @@ import { Alert } from '../../components/Alert';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { EyeIcon } from '../../components/icons/EyeIcon';
 import { EyeOffIcon } from '../../components/icons/EyeOffIcon';
-import { AnimatedLogo } from '../../components/AnimatedLogo';
 import vectorLeft from '../../assets/vector-left.svg';
 import vectorRight from '../../assets/vector-right.svg';
 import vectorTopRight from '../../assets/vector-top-right.svg';
 import vectorTopRightRotated from '../../assets/vector-top-right-rotated.svg';
 import vectorBottomLeft from '../../assets/vector-bottom-left.svg';
+import RoseLogo from '../../../icons/rose.svg';
 
 export function LockedScreen() {
   const [password, setPassword] = useState('');
@@ -157,7 +157,7 @@ export function LockedScreen() {
         <div className="flex flex-col gap-8 w-full">
           {/* Logo and heading */}
           <div className="flex flex-col items-center gap-3 w-full">
-            <AnimatedLogo />
+            <img src={RoseLogo} alt="Rose Wallet" className="w-[104px] h-[104px]" />
             <div className="flex flex-col gap-2 items-center text-center w-full">
               <h1
                 className="font-serif font-medium text-[var(--color-text-primary)]"
@@ -232,7 +232,7 @@ export function LockedScreen() {
             {/* Unlock button */}
             <button
               onClick={handleUnlock}
-              className="w-full h-12 px-5 py-[15px] bg-[var(--color-text-primary)] text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+              className="w-full h-12 px-5 py-[15px] btn-secondary text-[var(--color-bg)] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
               style={{
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--font-size-base)',

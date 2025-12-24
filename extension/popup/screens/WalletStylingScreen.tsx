@@ -30,7 +30,7 @@ export function WalletStylingScreen() {
 
   // Load initial values from current account or use defaults
   const [selectedStyle, setSelectedStyle] = useState(currentAccount?.iconStyleId || 1);
-  const [selectedColor, setSelectedColor] = useState(currentAccount?.iconColor || '#FFC413');
+  const [selectedColor, setSelectedColor] = useState(currentAccount?.iconColor || '#5968fb');
   const [svgContent, setSvgContent] = useState<string>('');
 
   // Track if we're scrolled to the end (false = at start, true = at end)
@@ -62,7 +62,7 @@ export function WalletStylingScreen() {
   useEffect(() => {
     if (currentAccount) {
       setSelectedStyle(currentAccount.iconStyleId || 1);
-      const color = currentAccount.iconColor || '#FFC413';
+      const color = currentAccount.iconColor || '#5968fb';
       setSelectedColor(color);
     }
   }, [currentAccount?.index]);

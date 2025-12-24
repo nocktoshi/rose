@@ -147,12 +147,8 @@ interface EncryptedVault {
  */
 interface VaultPayload {
   mnemonic: string;
+  mnemonicV0: string | null;
   accounts: Account[];
-  // Optional v0 migration seedphrase (encrypted at rest).
-  v0Migration?: {
-    seedphrase: string;
-    passphrase?: string; // BIP39 passphrase (“25th word”)
-  } | null;
 }
 
 interface VaultState {
@@ -174,8 +170,7 @@ export class Vault {
   private mnemonic: string | null = null;
 
   /** Decrypted v0 migration seedphrase (only stored in memory while unlocked) */
-  private v0Seedphrase: string | null = null;
-  private v0Passphrase: string | null = null;
+  private mnemonicV0: string | null = null;
 
   /** Derived encryption key (only stored in memory while unlocked, cleared on lock) */
   private encryptionKey: CryptoKey | null = null;
@@ -237,14 +232,20 @@ export class Vault {
 
   async setup(
     password: string,
-    mnemonic?: string
-  ): Promise<{ ok: boolean; address: string; mnemonic: string } | { error: string }> {
+    mnemonic?: string,
+    mnemonicV0?: string,
+  ): Promise<{ ok: boolean; address: string; mnemonic: string; mnemonicV0: string } | { error: string }> {
     // Generate or validate mnemonic
     const words = mnemonic ? mnemonic.trim() : generateMnemonic();
+    const wordsV0 = mnemonicV0 ? mnemonicV0.trim() : '';
 
     // Validate imported mnemonic
     if (mnemonic && !validateMnemonic(words)) {
       return { error: ERROR_CODES.INVALID_MNEMONIC };
+    }
+
+    if (mnemonicV0 && !validateMnemonic(wordsV0)) {
+      return { error: ERROR_CODES.INVALID_V0_MNEMONIC };
     }
 
     // Create first account (Wallet 1 at index 0)
@@ -270,8 +271,8 @@ export class Vault {
     // Encrypt both mnemonic AND accounts together
     const vaultPayload: VaultPayload = {
       mnemonic: words,
+      mnemonicV0: wordsV0,
       accounts: [firstAccount],
-      v0Migration: null,
     };
     const payloadJson = JSON.stringify(vaultPayload);
     const { iv, ct } = await encryptGCM(key, new TextEncoder().encode(payloadJson));
@@ -302,6 +303,7 @@ export class Vault {
     // Keep wallet unlocked after setup for smooth onboarding UX
     // Auto-lock timer will handle locking after inactivity
     this.mnemonic = words;
+    this.mnemonicV0 = wordsV0;
     this.encryptionKey = key; // Cache the key for account operations (rename, create, etc.)
     this.state = {
       locked: false,
@@ -310,7 +312,7 @@ export class Vault {
       enc: encData,
     };
 
-    return { ok: true, address: firstAccount.address, mnemonic: words };
+    return { ok: true, address: firstAccount.address, mnemonic: words, mnemonicV0: wordsV0 };
   }
 
   /**
@@ -361,8 +363,7 @@ export class Vault {
 
       // Store decrypted data in memory (only after successful decrypt)
       this.mnemonic = mnemonic;
-      this.v0Seedphrase = payload.v0Migration?.seedphrase ?? null;
-      this.v0Passphrase = payload.v0Migration?.passphrase ?? null;
+      this.mnemonicV0 = payload.mnemonicV0 ?? null;
       this.encryptionKey = key; // Cache key for account operations
 
       this.state = {
@@ -419,8 +420,7 @@ export class Vault {
     const accounts = payload.accounts;
 
     this.mnemonic = payload.mnemonic;
-    this.v0Seedphrase = payload.v0Migration?.seedphrase ?? null;
-    this.v0Passphrase = payload.v0Migration?.passphrase ?? null;
+    this.mnemonicV0 = payload.mnemonicV0 ?? null;
     this.encryptionKey = key;
 
     this.state = {
@@ -459,10 +459,8 @@ export class Vault {
     // Re-encrypt mnemonic + accounts together with the key stored in memory
     const vaultPayload: VaultPayload = {
       mnemonic: this.mnemonic,
+      mnemonicV0: this.mnemonicV0,
       accounts: this.state.accounts,
-      v0Migration: this.v0Seedphrase
-        ? { seedphrase: this.v0Seedphrase, passphrase: this.v0Passphrase ?? undefined }
-        : null,
     };
     const payloadJson = JSON.stringify(vaultPayload);
     const { iv, ct } = await encryptGCM(this.encryptionKey, new TextEncoder().encode(payloadJson));
@@ -495,8 +493,7 @@ export class Vault {
     // Clear sensitive data from memory for security
     this.state.accounts = []; // Clear accounts to enforce "no addresses while locked"
     this.mnemonic = null;
-    this.v0Seedphrase = null;
-    this.v0Passphrase = null;
+    this.mnemonicV0 = null;
     this.encryptionKey = null;
     return { ok: true };
   }
@@ -516,8 +513,7 @@ export class Vault {
       enc: null,
     };
     this.mnemonic = null;
-    this.v0Seedphrase = null;
-    this.v0Passphrase = null;
+    this.mnemonicV0 = null;
     this.encryptionKey = null; // Clear encryption key as well
 
     return { ok: true };
@@ -1409,21 +1405,11 @@ export class Vault {
     });
   }
 
-  /**
-   * Sign a raw transaction using iris-wasm
-   *
-   * @param params - Transaction parameters with raw tx jam and notes/spend conditions
-   * @returns Hex-encoded signed transaction jam
-   */
-  // ============================================================================
-  // v0 Migration seedphrase storage (encrypted in vault)
-  // ============================================================================
-
-  hasV0Seedphrase(): boolean {
-    return Boolean(this.v0Seedphrase);
+  hasV0Mnemonic(): boolean {
+    return Boolean(this.mnemonicV0);
   }
 
-  private async pbkdf2SeedSha512(seedphrase: string, passphrase: string): Promise<Uint8Array> {
+  private async pbkdf2SeedSha512(seedphrase: string, passphrase?: string): Promise<Uint8Array> {
     const normalized = seedphrase.trim().split(/\s+/).join(' ');
     const salt = `mnemonic${passphrase ?? ''}`;
     const enc = new TextEncoder();
@@ -1442,29 +1428,24 @@ export class Vault {
     return new Uint8Array(bits);
   }
 
-  async setV0Seedphrase(params: {
-    seedphrase: string;
-    passphrase?: string;
-  }): Promise<{ ok: true } | { error: string }> {
-    if (this.state.locked || !this.encryptionKey || !this.state.enc || !this.mnemonic) {
+  async setMnemonicV0(mnemonic: string): Promise<{ ok: true } | { error: string }> {
+    if (this.state.locked || !this.encryptionKey || !this.state.enc) {
       return { error: ERROR_CODES.LOCKED };
     }
 
-    this.v0Seedphrase = params.seedphrase.trim();
-    this.v0Passphrase = params.passphrase?.trim() || null;
+    this.mnemonicV0 = mnemonic.trim();
 
     // Re-encrypt the vault payload using the in-memory key (same pattern as account updates).
     await this.saveAccountsToVault();
     return { ok: true };
   }
 
-  async clearV0Seedphrase(): Promise<{ ok: true } | { error: string }> {
-    if (this.state.locked || !this.encryptionKey || !this.state.enc || !this.mnemonic) {
+  async clearMnemonicV0(): Promise<{ ok: true } | { error: string }> {
+    if (this.state.locked || !this.encryptionKey || !this.state.enc) {
       return { error: ERROR_CODES.LOCKED };
     }
 
-    this.v0Seedphrase = null;
-    this.v0Passphrase = null;
+    this.mnemonicV0 = null;
 
     await this.saveAccountsToVault();
     return { ok: true };
@@ -1476,13 +1457,13 @@ export class Vault {
     spendConditions: any[];
     derivation: 'master' | 'child0' | 'hard0';
   }): Promise<any> {
-    if (this.state.locked || !this.v0Seedphrase) {
+    if (this.state.locked || !this.mnemonicV0) {
       throw new Error('Wallet is locked or no v0 seedphrase stored');
     }
 
     await initIrisSdkOnce();
 
-    const seed = await this.pbkdf2SeedSha512(this.v0Seedphrase, this.v0Passphrase ?? '');
+    const seed = await this.pbkdf2SeedSha512(this.mnemonicV0);
     const masterKey = wasm.deriveMasterKey(seed);
     let key: any = masterKey;
     if (params.derivation === 'child0') key = masterKey.deriveChild(0);
@@ -1510,6 +1491,12 @@ export class Vault {
     }
   }
 
+  /**
+   * Sign a raw transaction using rose-wasm
+   *
+   * @param params - Transaction parameters with raw tx jam and notes/spend conditions
+   * @returns Hex-encoded signed transaction jam
+   */
   async signRawTx(params: {
     rawTx: any; // Protobuf wasm.RawTx object
     notes: any[]; // Protobuf Note objects

@@ -1,6 +1,6 @@
 # `@nockchain/sdk`
 
-TypeScript SDK for interacting with the **Iris** browser wallet extension (Nockchain).
+TypeScript SDK for interacting with the **Rose** browser wallet extension (Nockchain).
 
 ## Install
 
@@ -10,7 +10,7 @@ npm i @nockchain/sdk
 
 ## What you get
 
-- **`NockchainProvider`**: connect to Iris and request signatures / transactions (EIP-1193-ish API).
+- **`NockchainProvider`**: connect to Rose and request signatures / transactions (EIP-1193-ish API).
 - **`TransactionBuilder`**: small fluent helper for constructing the simple “send transaction” payload.
 - **WASM**: use `@nockchain/rose-wasm` directly for `TxBuilder`, `GrpcClient`, etc.
 - **React Hook**: `useIris()` for one-time WASM init + gRPC client + provider wiring.
@@ -85,4 +85,4 @@ Notes:
 
 This SDK is built with `tsc` and publishes **compiled output** from `sdk/dist/`.
 
-If you are iterating on `@nockchain/rose-wasm`, the recommended workflow is to publish it to a **local npm registry** (e.g. Verdaccio), then publish `@nockchain/sdk` against that version, and finally consume Iris using normal semver dependencies (no `file:`).
+If you are iterating on `@nockchain/rose-wasm`, the recommended workflow is to publish it to a **local npm registry** (e.g. Verdaccio), then publish `@nockchain/sdk` against that version, and finally consume Rose using normal semver dependencies (no `file:`).

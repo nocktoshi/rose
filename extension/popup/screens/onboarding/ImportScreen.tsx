@@ -125,7 +125,7 @@ export function ImportScreen() {
       address?: string;
       mnemonic?: string;
       error?: string;
-    }>(INTERNAL_METHODS.SETUP, [password, mnemonic]);
+    }>(INTERNAL_METHODS.SETUP, [password, mnemonic, '']);
 
     if (result?.error) {
       if (result.error === ERROR_CODES.INVALID_MNEMONIC) {
@@ -410,7 +410,7 @@ export function ImportScreen() {
               </button>
               <button
                 onClick={handleImport}
-                className="flex-1 h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
+                className="flex-1 h-12 px-5 py-[15px] btn-primary text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90"
                 style={{
                   fontFamily: 'var(--font-sans)',
                   fontSize: 'var(--font-size-base)',
@@ -542,7 +542,7 @@ export function ImportScreen() {
                         className="flex-1 min-w-0 bg-[var(--color-bg)] border border-[var(--color-surface-700)] rounded-lg p-2 flex items-center gap-2.5 h-11"
                       >
                         <span
-                          className="bg-[var(--color-surface-900)] rounded w-7 h-7 flex items-center justify-center font-sans font-medium text-[var(--color-text-primary)] flex-shrink-0"
+                          className="bg-[var(--color-surface-700)] rounded w-7 h-7 flex items-center justify-center font-sans font-medium text-[var(--color-text-primary)] flex-shrink-0"
                           style={{
                             fontSize: 'var(--font-size-base)',
                             lineHeight: 'var(--line-height-snug)',
@@ -591,7 +591,7 @@ export function ImportScreen() {
           <button
             onClick={handleContinue}
             disabled={words.some(w => !w)}
-            className="w-full h-12 px-5 py-[15px] bg-[var(--color-primary)] text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 px-5 py-[15px] btn-primary text-[#000000] rounded-lg flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 'var(--font-size-base)',

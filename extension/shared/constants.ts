@@ -51,14 +51,14 @@ export const INTERNAL_METHODS = {
   /** Get mnemonic phrase (requires password verification) */
   GET_MNEMONIC: 'wallet:getMnemonic',
 
-  /** Returns whether a v0 seedphrase is stored (requires unlocked) */
-  HAS_V0_SEEDPHRASE: 'wallet:hasV0Seedphrase',
+  /** Returns whether a v0 mnemonic is stored (requires unlocked) */
+  HAS_V0_MNEMONIC: 'wallet:hasV0Mnemonic',
 
-  /** Store/replace v0 seedphrase (requires password verification) */
-  SET_V0_SEEDPHRASE: 'wallet:setV0Seedphrase',
+  /** Returns whether a v0 mnemonic is stored (requires unlocked) */
+  CLEAR_V0_MNEMONIC: 'wallet:clearV0Mnemonic',
 
-  /** Remove v0 seedphrase (requires password verification) */
-  CLEAR_V0_SEEDPHRASE: 'wallet:clearV0Seedphrase',
+  /** Remove v0 mnemonic (requires password verification) */
+  SET_V0_MNEMONIC: 'wallet:setV0Mnemonic',
 
   /** Get auto-lock timeout setting */
   GET_AUTO_LOCK: 'wallet:getAutoLock',
@@ -162,6 +162,7 @@ export const ERROR_CODES = {
 
   /** Invalid mnemonic phrase provided */
   INVALID_MNEMONIC: 'INVALID_MNEMONIC',
+  INVALID_V0_MNEMONIC: 'INVALID_V0_MNEMONIC',
 
   /** Invalid account index provided */
   INVALID_ACCOUNT_INDEX: 'INVALID_ACCOUNT_INDEX',
@@ -253,7 +254,7 @@ export const ALARM_NAMES = {
  */
 export const MESSAGE_TARGETS = {
   /** Target identifier for wallet bridge messages */
-  WALLET_BRIDGE: 'IRIS',
+  WALLET_BRIDGE: 'ROSE',
 } as const;
 
 /**
@@ -334,7 +335,7 @@ export const UI_CONSTANTS = {
 export const ACCOUNT_COLORS = [
   '#2C9AEF', // blue
   '#EF2C2F', // red
-  '#FFC413', // yellow (primary)
+  '#5968fb', // yellow (primary)
   '#96B839', // green
   '#3C2CEF', // purple
   '#EF2CB1', // pink/magenta
@@ -347,7 +348,7 @@ export const ACCOUNT_COLORS = [
  * After preset limit, random combinations are used
  */
 export const PRESET_WALLET_STYLES = [
-  { iconStyleId: 1, iconColor: '#FFC413' }, // Wallet 1: yellow, style 1
+  { iconStyleId: 1, iconColor: '#5968fb' }, // Wallet 1: yellow, style 1
   { iconStyleId: 5, iconColor: '#2C9AEF' }, // Wallet 2: blue, style 5
   { iconStyleId: 9, iconColor: '#EF2C2F' }, // Wallet 3: red, style 9
   { iconStyleId: 3, iconColor: '#96B839' }, // Wallet 4: green, style 3
@@ -355,7 +356,7 @@ export const PRESET_WALLET_STYLES = [
   { iconStyleId: 7, iconColor: '#EF2CB1' }, // Wallet 6: pink, style 7
   { iconStyleId: 15, iconColor: '#2C6AEF' }, // Wallet 7: dark blue, style 15
   { iconStyleId: 2, iconColor: '#EF2C2F' }, // Wallet 8: red, style 2
-  { iconStyleId: 6, iconColor: '#FFC413' }, // Wallet 9: yellow, style 6
+  { iconStyleId: 6, iconColor: '#5968fb' }, // Wallet 9: yellow, style 6
   { iconStyleId: 10, iconColor: '#96B839' }, // Wallet 10: green, style 10
   { iconStyleId: 4, iconColor: '#2C9AEF' }, // Wallet 11: blue, style 4
   { iconStyleId: 13, iconColor: '#EF2CB1' }, // Wallet 12: pink, style 13
@@ -363,7 +364,7 @@ export const PRESET_WALLET_STYLES = [
   { iconStyleId: 14, iconColor: '#2C6AEF' }, // Wallet 14: dark blue, style 14
   { iconStyleId: 11, iconColor: '#EF2C2F' }, // Wallet 15: red, style 11
   { iconStyleId: 1, iconColor: '#96B839' }, // Wallet 16: green, style 1
-  { iconStyleId: 5, iconColor: '#FFC413' }, // Wallet 17: yellow, style 5
+  { iconStyleId: 5, iconColor: '#5968fb' }, // Wallet 17: yellow, style 5
   { iconStyleId: 9, iconColor: '#2C9AEF' }, // Wallet 18: blue, style 9
   { iconStyleId: 3, iconColor: '#3C2CEF' }, // Wallet 19: purple, style 3
   { iconStyleId: 12, iconColor: '#EF2CB1' }, // Wallet 20: pink, style 12

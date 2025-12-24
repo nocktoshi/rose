@@ -1,5 +1,5 @@
 import { useStore } from '../store';
-import IrisLogo96 from '../assets/iris-logo-96.svg';
+import RoseLogo96 from '../assets/iris-logo-96.svg';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { version } from '../../../package-lock.json';
 
@@ -13,20 +13,16 @@ export function AboutScreen() {
     navigate('settings');
   }
 
-  function handlePrivacyPolicy() {
-    window.open('https://iriswallet.io/privacy-policy', '_blank');
-  }
-
-  function handleTermsOfUse() {
-    window.open('https://iriswallet.io/terms-of-use', '_blank');
-  }
-
   function handleVisitWebsite() {
-    window.open('https://iriswallet.io', '_blank');
+    window.open('https://nocknames.com', '_blank');
   }
 
-  function handleFAQ() {
-    window.open('https://iriswallet.io/faq', '_blank');
+  function handleVisitNockchainWebsite() {
+    window.open('https://nockchain.net', '_blank');
+  }
+
+  function handleVisitNockboxWebsite() {
+    window.open('https://nockbox.org', '_blank');
   }
 
   return (
@@ -59,12 +55,12 @@ export function AboutScreen() {
       {/* Content */}
       <div className="flex flex-col items-center gap-6 px-4 py-2 h-[536px]">
         <div className="w-24 h-24 flex items-center justify-center flex-shrink-0">
-          <img src={IrisLogo96} alt="Iris" className="w-24 h-24" />
+          <img src={RoseLogo96} alt="Rose" className="w-24 h-24" />
         </div>
 
         <div className="w-full flex flex-col items-center justify-center gap-1">
           <p className="m-0 text-base font-medium leading-[22px] tracking-[0.16px] text-center">
-            Iris Version {version}
+            Rose Version {version}
           </p>
         </div>
 
@@ -81,34 +77,48 @@ export function AboutScreen() {
           <div className="w-full flex flex-col gap-4">
             <button
               type="button"
-              onClick={handlePrivacyPolicy}
-              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
-            >
-              Privacy policy
-            </button>
-
-            <button
-              type="button"
-              onClick={handleTermsOfUse}
-              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
-            >
-              Terms of use
-            </button>
-
-            <button
-              type="button"
-              onClick={handleFAQ}
-              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
-            >
-              FAQ
-            </button>
-
-            <button
-              type="button"
               onClick={handleVisitWebsite}
               className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
             >
-              Visit our website
+              nocknames.com
+            </button>
+            <button
+              type="button"
+              onClick={handleVisitNockchainWebsite}
+              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
+            >
+              nockchain.net
+            </button>
+            <button
+              type="button"
+              onClick={handleVisitNockboxWebsite}
+              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
+            >
+              nockbox.org
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                window.open(
+                  'https://raw.githubusercontent.com/nockbox/iris/refs/heads/main/LICENSE',
+                  '_blank'
+                )
+              }
+              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
+            >
+              Copyright (c) 2025 NockBox inc.
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                window.open(
+                  'https://www.vecteezy.com/free-vector/simple-rose',
+                  '_blank'
+                )
+              }
+              className="text-left bg-transparent p-0 text-base font-medium leading-[22px] tracking-[0.16px] underline underline-offset-2 transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2"
+            >
+              Simple Rose Vectors by Vecteezy
             </button>
           </div>
         </div>
