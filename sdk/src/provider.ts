@@ -1,8 +1,16 @@
 /**
  * NockchainProvider - Main SDK class for interacting with Rose wallet
+ * Supports EIP-6963 Multi Injected Provider Discovery
  */
 
-import type { Transaction, NockchainEvent, EventListener, InjectedNockchain } from './types.js';
+import type {
+  Transaction,
+  NockchainEvent,
+  EventListener,
+  InjectedNockchain,
+  EIP6963ProviderDetail,
+  EIP6963AnnounceProviderEvent,
+} from './types.js';
 import { TransactionBuilder } from './transaction.js';
 import { WalletNotInstalledError, UserRejectedError, RpcError, NoAccountError } from './errors.js';
 import { PROVIDER_METHODS } from './constants.js';
@@ -42,19 +50,14 @@ export class NockchainProvider {
       throw new Error('NockchainProvider can only be used in a browser environment');
     }
 
-    // Verify Rose extension is installed and authentic
-    if (!NockchainProvider.isInstalled()) {
+    // Discover Rose provider using EIP-6963
+    const eip6963Provider = NockchainProvider.discoverEIP6963Provider();
+
+    if (!eip6963Provider) {
       throw new WalletNotInstalledError();
     }
 
-    const injected = window.nockchain;
-
-    // TODO: remove this duplicate check
-    if (!injected) {
-      throw new WalletNotInstalledError();
-    }
-
-    this.injected = injected;
+    this.injected = eip6963Provider;
     this.eventListeners = new Map();
 
     // Initialize event listeners for wallet events
@@ -382,15 +385,125 @@ export class NockchainProvider {
   }
 
   /**
+   * Discover Rose provider using EIP-6963 (preferred method)
+   * @returns The Rose provider if found, null otherwise
+   * @private
+   */
+  private static discoverEIP6963Provider(): InjectedNockchain | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    let roseProvider: InjectedNockchain | null = null;
+
+    // Synchronous event listener - must be added before dispatching
+    const handler = (event: Event) => {
+      const announceEvent = event as EIP6963AnnounceProviderEvent;
+      if (announceEvent.detail?.info?.rdns === 'net.nockchain.rose') {
+        roseProvider = announceEvent.detail.provider;
+      }
+    };
+
+    // Add listener synchronously
+    window.addEventListener('eip6963:announceProvider', handler);
+
+    // Request providers to announce themselves
+    // Providers that are already loaded will respond synchronously
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+    // Clean up listener immediately (synchronous announcements already happened)
+    window.removeEventListener('eip6963:announceProvider', handler);
+
+    return roseProvider;
+  }
+
+  /**
+   * Discover all available Nockchain providers using EIP-6963
+   * @returns Array of provider details
+   */
+  static discoverProviders(): EIP6963ProviderDetail[] {
+    if (typeof window === 'undefined') {
+      return [];
+    }
+
+    const providers: EIP6963ProviderDetail[] = [];
+
+    const handler = (event: Event) => {
+      const announceEvent = event as EIP6963AnnounceProviderEvent;
+      if (announceEvent.detail) {
+        providers.push(announceEvent.detail);
+      }
+    };
+
+    window.addEventListener('eip6963:announceProvider', handler);
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    window.removeEventListener('eip6963:announceProvider', handler);
+
+    return providers;
+  }
+
+  /**
    * Check if the Rose extension is installed and authentic
-   * @returns true if the extension is installed
+   * Uses EIP-6963 discovery (synchronous check)
+   *
+   * Note: This performs synchronous discovery which only works if the provider
+   * has already announced itself. For async discovery, use waitForInstallation().
+   *
+   * @returns true if the extension is installed and has announced itself
    */
   static isInstalled(): boolean {
-    if (typeof window === 'undefined' || !window.nockchain?.providers) {
+    if (typeof window === 'undefined') {
       return false;
     }
-    return window.nockchain.providers.some(
-      (provider: { name?: string }) => provider && provider.name === 'rose'
-    );
+
+    const eip6963Provider = NockchainProvider.discoverEIP6963Provider();
+    return eip6963Provider !== null;
+  }
+
+  /**
+   * Wait for the Rose extension to be available
+   * Useful if the extension might load after your script
+   * Uses EIP-6963 discovery
+   * @param timeout - Maximum time to wait in milliseconds (default: 3000)
+   * @returns Promise that resolves to true if found, false if timeout
+   */
+  static async waitForInstallation(timeout = 3000): Promise<boolean> {
+    if (NockchainProvider.isInstalled()) {
+      return true;
+    }
+
+    return new Promise(resolve => {
+      const startTime = Date.now();
+      let resolved = false;
+
+      const checkAndResolve = (found: boolean) => {
+        if (!resolved) {
+          resolved = true;
+          clearInterval(checkInterval);
+          window.removeEventListener('eip6963:announceProvider', eip6963Handler);
+          resolve(found);
+        }
+      };
+
+      const checkInterval = setInterval(() => {
+        if (NockchainProvider.isInstalled()) {
+          checkAndResolve(true);
+        } else if (Date.now() - startTime > timeout) {
+          checkAndResolve(false);
+        }
+      }, 100);
+
+      // Listen for EIP-6963 announcements
+      const eip6963Handler = (event: Event) => {
+        const announceEvent = event as EIP6963AnnounceProviderEvent;
+        if (announceEvent.detail?.info?.rdns === 'net.nockchain.rose') {
+          checkAndResolve(true);
+        }
+      };
+      window.addEventListener('eip6963:announceProvider', eip6963Handler);
+
+      // Request providers to announce themselves
+      window.dispatchEvent(new Event('eip6963:requestProvider'));
+    });
   }
 }
