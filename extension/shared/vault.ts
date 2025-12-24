@@ -509,7 +509,7 @@ export class Vault {
 
     // Reset in-memory state
     this.state = {
-      locked: true,
+      locked: false,
       accounts: [],
       currentAccountIndex: 0,
       enc: null,
