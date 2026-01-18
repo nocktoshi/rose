@@ -69,7 +69,12 @@ class NockchainProvider implements InjectedNockchain {
           }
 
           if (data.reply?.error) {
-            reject(new Error(data.reply.error));
+            const err = data.reply.error;
+            const message =
+              typeof err === 'string'
+                ? err
+                : err?.message || JSON.stringify(err);
+            reject(new Error(message));
           } else {
             resolve(data.reply);
           }

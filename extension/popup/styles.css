@@ -1,5 +1,14 @@
 @import 'tailwindcss';
 
+/* Load Berkeley Mono font */
+@font-face {
+  font-family: 'Berkeley Mono';
+  src: url('../fonts/BerkeleyMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Monospace-first typography to mirror nocknames.com */
 
 @theme {
