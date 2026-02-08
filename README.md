@@ -1,4 +1,6 @@
-# Rose - Nockchain Wallet Extension
+<img width="359" height="233" alt="image" src="https://github.com/user-attachments/assets/33bfc495-1440-4edc-8c28-04c7e6709713" />
+
+# Rose - Nockchain Wallet
 
 Chrome extension wallet for Nockchain. Manage accounts, sign transactions, and interact with Nockchain dApps.
 
